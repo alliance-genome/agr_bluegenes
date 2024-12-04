@@ -44,17 +44,21 @@
       [:div.form-group.organism-selector
        (into [:select.form-control
               {:value (if disabled "" (or value @default-organism ""))
-               :disabled disabled
+               :disabled (or disabled (nil? @organisms))
                :class class
                :on-change (fn [e]
-                            (on-change (oget e :target :value)))}]
+                           (on-change (oget e :target :value)))}]
              (concat
               [[:option {:value ""} "Any"]
                [:option {:value "_" :disabled true} "---"]
-               (when (empty? @organisms)
+               (cond
+                 (nil? @organisms)
+                 [:option {:value "_" :disabled true} "Loading organisms..."]
+                 
+                 (empty? @organisms)
                  [:option {:value "_" :disabled true} "Failed to query organisms from mine"])]
               (map (fn [{short-name :shortName}]
-                     [:option {:value short-name} short-name]) @organisms)))])))
+                    [:option {:value short-name} short-name]) @organisms)))])))
 
 (defn sort-classes [classes]
   (sort-by (comp :displayName second) < classes))

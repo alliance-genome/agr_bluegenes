@@ -1,23 +1,28 @@
-{;; You will likely want to copy this file to config/prod/config.edn and make
- ;; changes there. See docs/configuring.md for information on these fields.
- :server-port 5000
+{:server-port 5000
  :logging-level "info"
  :google-analytics nil
  :bluegenes-tool-path "./tools"
- :bluegenes-deploy-path nil
+ :bluegenes-deploy-path "/bluegenes"
  :bluegenes-backend-service-root nil
- :bluegenes-default-service-root "https://www.flymine.org/flymine"
- :bluegenes-default-mine-name "FlyMine"
- :bluegenes-default-namespace "flymine"
- :bluegenes-additional-mines [
-                              ;; Example of an additional mine.
-                              ; {
-                              ;  :root "https://www.humanmine.org/humanmine"
-                              ;  :name "HumanMine"
-                              ;  :namespace "humanmine"
-                              ;  ; :external true ; Optional to open as a new tab.
-                              ;  }
-                              ]
- :hide-registry-mines false
- }
-
+ :bluegenes-default-service-root "https://www.alliancegenome.org/alliancemine"
+ :bluegenes-default-mine-name "AllianceMine"
+ :bluegenes-default-namespace "alliancemine"
+ :bluegenes-additional-mines [{:root "http://www.mousemine.org/mousemine"
+                              :name "mousemine"
+                              :namespace "mousemine"
+                              :external true}
+                             {:root "http://ratmine.mcw.edu/ratmine"
+                              :name "ratmine"
+                              :namespace "ratmine"
+                              :external true}
+                             {:root "http://intermine.wormbase.org/tools/wormmine"
+                              :name "WormMine"
+                              :namespace "wormmine"}
+                             {:root "https://www.flymine.org/flymine"
+                              :name "flymine"
+                              :namespace "flymine"}
+                             {:root "https://www.humanmine.org/humanmine"
+                              :name "humanmine"
+                              :namespace "humanmine"
+                              :external false}]
+ :hide-registry-mines true}

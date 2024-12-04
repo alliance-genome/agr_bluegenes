@@ -213,21 +213,30 @@
 
 (reg-event-fx
  :cache/fetch-organisms-failure
- (fn [{db :db} [_ res]]
-   {:log-error ["Failed query for organisms" res]}))
+ (fn [{db :db} [_ retry-count res]]
+   (let [max-retries 5]
+     (cond-> {:log-error ["Failed query for organisms" res]}
+       (< retry-count max-retries)
+       (assoc :dispatch-later
+              [{:ms (* 1000 (inc retry-count)) ; Exponential backoff
+                :dispatch [:cache/fetch-organisms (inc retry-count)]}])))))
 
 (reg-event-fx
  :cache/fetch-organisms
- (fn [{db :db}]
+ (fn [{db :db} [_ retry-count]]
    (let [service (get-in db [:mines (:current-mine db) :service])
          q {:from "Organism"
-            :select ["name" "taxonId" "species" "shortName" "genus" "commonName"]}]
+            :select ["name" "taxonId" "species" "shortName" "genus" "commonName"]}
+         max-retries 5
+         current-retry (or retry-count 0)]
      (if (contains? service :model)
        {:im-chan {:chan (fetch/rows service q {:format "jsonobjects"})
-                  :on-success [:cache/store-organisms]
-                  :on-failure [:cache/fetch-organisms-failure]}}
-       ;; No point running this query if we failed to fetch the model.
-       {}))))
+                 :on-success [:cache/store-organisms]
+                 :on-failure [:cache/fetch-organisms-failure current-retry]}}
+       ;; Retry in 1 second if model isn't available yet and we haven't exceeded max retries
+       (when (< current-retry max-retries)
+         {:dispatch-later [{:ms 1000 
+                           :dispatch [:cache/fetch-organisms (inc current-retry)]}]})))))
 
 (reg-event-db
  :cache/store-possible-values
