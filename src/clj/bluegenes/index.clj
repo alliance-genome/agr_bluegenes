@@ -172,3 +172,4 @@
      ;; Call the constructor of the bluegenes client and pass in the user's
      ;; optional identity as an object.
      [:script "bluegenes.core.init();"]])))
+
