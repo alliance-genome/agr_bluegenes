@@ -130,7 +130,7 @@
    :external? external})
 
 (defn init-mine-defaults
-  "Load default mine data, as passed from a coupled InterMine or defined in
+  "Load default mine data, as passed from a coupled InterMine or defined
   BlueGenes config."
   []
   {:id (read-default-ns)
@@ -605,14 +605,10 @@
             (assoc db :failed-auth? true)
             db)
       :dispatch (case evt
-                  (:authentication/init :authentication/invalid-token)
-                  [:messages/add
-                   {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
-                    :style "danger"
-                    :timeout 0}]
-
-                  [:messages/add
-                   {:markup [:span "Failed " [:em (utils/kw->str evt)] " from " [:em mine-name] ". "
-                             "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
-                    :style "warning"
-                    :timeout 0}])})))
+                 (:authentication/init :authentication/invalid-token)
+                 [:messages/add
+                  {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                   :style "danger"
+                   :timeout 0}]
+                 nil)})))
+                ;;  TODO, fix backend and re-add the error handling that was removed
