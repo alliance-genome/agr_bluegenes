@@ -113,23 +113,11 @@
    {:label "Tutorials"
     :props {:href "http://intermine.org/intermine-user-docs/"
             :target "_blank"}
-    :body [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] ".  Please " [:a {:on-click #(dispatch [:home/scroll-to-feedback]) :role "button"} "contact us"] " if you can’t find what you need!"]}
+    :body [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] "."]}
    {:label "Web services"
     :props {:href "http://intermine.org/im-docs/docs/web-services/index"
             :target "_blank"}
-    :body [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]}
-   {:label "Submit feedback"
-    :props {:on-click #(dispatch [:home/scroll-to-feedback])
-            :role "button"}
-    :body [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]}
-   {:label "What's new"
-    :props {:href (or @(subscribe [:current-mine/news]) "https://intermineorg.wordpress.com/")
-            :target "_blank"}
-    :body [latest-news]}
-   {:label "Cite us"
-    :props {:href @(subscribe [:current-mine/citation])
-            :target "_blank"}
-    :body [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]}])
+    :body [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]}])
 
 (defn call-to-action []
   (let [custom-cta @(subscribe [:home/custom-cta])
@@ -244,57 +232,6 @@
      "InterMOD Gene Ontology"]
     [:p "This tool searches for homologous genes and " [:strong "associated GO terms"] " across six model organisms (yeast, nematode worm, fruit fly, zebrafish, mouse, rat) and humans, with a heatmap, statistical enrichment, and a GO term relationship graph."]]])
 
-(defn feedback []
-  (let [email* (r/atom "")
-        text* (r/atom "")]
-    (fn []
-      (let [{:keys [type message error]} @(subscribe [:home/feedback-response])]
-        [:div.row.section
-         [:div.col-xs-12
-          [:h2.text-center "We value your opinion"]]
-         (case type
-           :success [:div.feedback-response
-                     [icon "checkmark"]
-                     [:h3 "Thank you!"]
-                     [:p "Your feedback has been submitted."]]
-           [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
-            [:input.form-control
-             {:type "email"
-              :placeholder "Your email (optional)"
-              :value @email*
-              :on-change #(reset! email* (oget % :target :value))}]
-            [:textarea#feedbackform.form-control
-             {:placeholder "Your feedback here"
-              :rows 5
-              :value @text*
-              :on-change #(reset! text* (oget % :target :value))}]
-            [:button.btn.btn-block
-             {:on-click #(dispatch [:home/submit-feedback @email* @text*])}
-             "Submit"]
-            (when (or message error)
-              [:p.failure.text-center message
-               (when error
-                 [:code error])])])]))))
-
-(defn credits-entry [{:keys [text image url]}]
-  (if (not-empty text)
-    [:div.col-xs-12
-     [:div.row.row-center-cols
-      [:div.col-xs-4
-       [:a {:href url :target "_blank"}
-        (if (string? image)
-          [:img.img-responsive
-           {:src image}]
-          image)]]
-      [:div.col-xs-8
-       (md-paragraph text)]]]
-    [:div.col-xs-4
-     [:a {:href url :target "_blank"}
-      (if (string? image)
-        [:img.img-responsive
-         {:src image}]
-        image)]]))
-
 (def credits-intermine
   [{:text "The [InterMine](http://intermine.org/) integrated data warehouse has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
     :image (str (:bluegenes-deploy-path @server-vars) "/images/intermine-logo.png")
@@ -316,6 +253,16 @@
         (if (empty? maintainerOrgName)
           (str "The maintainers and funders of " mine-name)
           (str maintainerOrgName " and its funders"))]])))
+
+(defn credits-entry [{:keys [text image url]}]
+  [:div.col-xs-12.col-sm-6.col-md-4
+   [:div.credits-entry
+    [:a {:href url
+         :target "_blank"}
+     (if (vector? image)
+       image  ; For component images like icon-comp
+       [:img.img-responsive {:src image}])]
+    [md-element text]]])
 
 (defn credits []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -339,5 +286,4 @@
    (when-not @(subscribe [:home/customisation :hideCTA]) [call-to-action])
    (when-not @(subscribe [:home/customisation :hideMineSelector]) [mine-selector])
    (when-not @(subscribe [:home/customisation :hideAlternativeTools]) [external-tools])
-   (when-not @(subscribe [:home/customisation :hideFeedback]) [feedback])
    (when-not @(subscribe [:home/customisation :hideCredits]) [credits])])
