@@ -215,23 +215,6 @@
            [mine-selector-entry mine :active? (= active-ns (key mine))])]]
        [mine-selector-preview]]]]))
 
-(defn external-tools []
-  [:div.row.section
-   [:div.col-xs-12
-    [:h2.text-center "Alternative tools"]]
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:a.btn.btn-home
-     {:href "http://data-browser.apps.intermine.org/"
-      :target "_blank"}
-     "Data Browser"]
-    [:p "A " [:strong "faceted search tool"] " to display the data from InterMine database, allowing the users to search easily within the different mines available around InterMine without the requirement of having an extensive knowledge of the data model."]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:a.btn.btn-home
-     {:href "http://gointermod.apps.intermine.org/"
-      :target "_blank"}
-     "InterMOD Gene Ontology"]
-    [:p "This tool searches for homologous genes and " [:strong "associated GO terms"] " across six model organisms (yeast, nematode worm, fruit fly, zebrafish, mouse, rat) and humans, with a heatmap, statistical enrichment, and a GO term relationship graph."]]])
-
 (def credits-intermine
   [{:text "The [InterMine](http://intermine.org/) integrated data warehouse has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
     :image (str (:bluegenes-deploy-path @server-vars) "/images/intermine-logo.png")
@@ -285,5 +268,4 @@
    (when-not @(subscribe [:home/customisation :hideTemplateQueries]) [template-queries])
    (when-not @(subscribe [:home/customisation :hideCTA]) [call-to-action])
    (when-not @(subscribe [:home/customisation :hideMineSelector]) [mine-selector])
-   (when-not @(subscribe [:home/customisation :hideAlternativeTools]) [external-tools])
    (when-not @(subscribe [:home/customisation :hideCredits]) [credits])])
