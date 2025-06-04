@@ -83,37 +83,49 @@
   the token and store it in the session."
   [{{:keys [username password service]} :params :as _req}]
   (let [service (use-backend-service service)]
-    (try
-      (let [[user+token renamedLists] (login service username password)]
-        (-> (response/ok {:identity user+token
-                          :renamedLists renamedLists})
-            (assoc :session ^:recreate {:identity user+token})))
-      (catch Exception e
-        (let [{:keys [status] :as res} (ex-data e)]
-          (if status
-            res
-            (response/internal-server-error {:error (ex-message e)})))))))
+    (cond
+      (empty? username)
+      (response/bad-request {:error "missing parameters. name and password required"})
+      (empty? password)
+      (response/bad-request {:error "missing parameters. name and password required"})
+      :else
+      (try
+        (let [[user+token renamedLists] (login service username password)]
+          (-> (response/ok {:identity user+token
+                            :renamedLists renamedLists})
+              (assoc :session ^:recreate {:identity user+token})))
+        (catch Exception e
+          (let [{:keys [status] :as res} (ex-data e)]
+            (if status
+              res
+              (response/internal-server-error {:error (ex-message e)}))))))))
 
 (defn register
   "Ring handler for registering a new user with the IM server. If successful,
   perform a regular login to get a proper token and store it in the session."
   [{{:keys [username password service]} :params :as _req}]
   (let [service (use-backend-service service)]
-    (try
-      ;; Registration only returns a temporaryToken valid for 24 hours.
-      (im-auth/register service username password)
-      ;; We call the login service directly after so we can get a proper token.
-      (let [[user+token renamedLists] (login service username password)]
-        ;; We're passing renamedLists although there shouldn't be any due to
-        ;; being a new account.
-        (-> (response/ok {:identity user+token
-                          :renamedLists renamedLists})
-            (assoc :session ^:recreate {:identity user+token})))
-      (catch Exception e
-        (let [{:keys [status] :as res} (ex-data e)]
-          (if status
-            res
-            (response/internal-server-error {:error (ex-message e)})))))))
+    (cond
+      (empty? username)
+      (response/bad-request {:error "missing parameters. name and password required"})
+      (empty? password)
+      (response/bad-request {:error "missing parameters. name and password required"})
+      :else
+      (try
+        ;; Registration only returns a temporaryToken valid for 24 hours.
+        (im-auth/register service username password)
+        ;; We call the login service directly after so we can get a proper token.
+        (let [[user+token renamedLists] (login service username password)]
+          ;; We're passing renamedLists although there shouldn't be any due to
+          ;; being a new account.
+          (-> (response/ok {:identity user+token
+                            :renamedLists renamedLists})
+              (assoc :session ^:recreate {:identity user+token})))
+        (catch Exception e
+          (let [{:keys [status] :as res} (ex-data e)]
+            (if status
+              res
+              (response/internal-server-error {:error (ex-message e)}))))))))
 
 (defn oauth2authenticator
   [{{:keys [service mine-id provider redirect_uri]} :params :as _req}]
