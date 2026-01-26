@@ -15,7 +15,7 @@
                               :name "ratmine"
                               :namespace "ratmine"
                               :external true}
-                             {:root "http://intermine.wormbase.org/tools/wormmine"
+                             {:root "https://wormmine.alliancegenome.org/wormmine"
                               :name "WormMine"
                               :namespace "wormmine"}
                              {:root "https://www.flymine.org/flymine"
