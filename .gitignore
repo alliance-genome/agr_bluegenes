@@ -11,6 +11,9 @@
 /cypress/videos
 /cypress/results
 /cypress/downloads
+/e2e/results
+/test-results
+/playwright-report
 config/**/*.edn
 !config/defaults/config.edn
 .lein-failures
