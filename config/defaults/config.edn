@@ -9,7 +9,8 @@
  :bluegenes-default-namespace "alliancemine"
  ;; Only :root, :name, :namespace and :external survive boot (init-configured-mine);
  ;; per-mine defaults such as the organism come from each mine's service/web-properties.
- ;; MouseMine needs InterMine 5.x web services (API v35); MouseMine 1.8 (API v25) does not load here.
+ ;; MouseMine is :external while mousemine.alliancegenome.org serves 1.8 (API v25), which BlueGenes
+ ;; cannot load: the picker opens the 1.8 site in a new tab. Drop :external once 5.1 (API v35) serves it.
  :bluegenes-additional-mines [{:root "https://wormmine.alliancegenome.org/wormmine"
                                :name "WormMine"
                                :namespace "wormmine"}
@@ -21,5 +22,6 @@
                                :namespace "yeastmine"}
                               {:root "https://mousemine.alliancegenome.org/mousemine"
                                :name "MouseMine"
-                               :namespace "mousemine"}]
+                               :namespace "mousemine"
+                               :external true}]
  :hide-registry-mines true}
