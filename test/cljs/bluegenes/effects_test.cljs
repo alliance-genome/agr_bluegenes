@@ -3,7 +3,9 @@
             [bluegenes.test-utils :as utils]
             [re-frame.core :as rf]
             [day8.re-frame.test :refer-macros [run-test-sync run-test-async wait-for]]
-            [bluegenes.effects]))
+            [cljs.core.async :refer [chan put!]]
+            [cljs-http.client :as http]
+            [bluegenes.effects :as fx]))
 
 (use-fixtures :each utils/fixtures)
 
@@ -19,3 +21,32 @@
    (wait-for [:test-retry-success]
      (let [code @(rf/subscribe [:done])]
        (is (= code "melon") "Retry effect should dispatch event")))))
+
+(defn- assert-http-outcome
+  "Run the :http effect against a stubbed response and check which callback fires."
+  [response request expected]
+  (run-test-async
+   (rf/reg-event-db :test-http-result (fn [db [_ outcome]] (assoc db :outcome outcome)))
+   (rf/reg-sub :outcome (fn [db] (:outcome db)))
+   (with-redefs [http/get (fn [& _]
+                            (let [c (chan 1)]
+                              (put! c response)
+                              c))]
+     (fx/http-fxfn (merge {:method :get
+                           :uri "http://example.org/api"
+                           :on-success [:test-http-result :success]
+                           :on-failure [:test-http-result :failure]}
+                          request)))
+   (wait-for [:test-http-result]
+     (is (= expected @(rf/subscribe [:outcome]))))))
+
+(deftest http-network-error
+  (assert-http-outcome {:status 0 :body ""} {} :failure))
+
+(deftest http-4xx-without-on-unauthorised
+  (assert-http-outcome {:status 404 :body ""} {} :failure))
+
+(deftest http-4xx-with-on-unauthorised
+  (assert-http-outcome {:status 401 :body ""}
+                       {:on-unauthorised [:test-http-result :unauthorised]}
+                       :unauthorised))
