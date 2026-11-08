@@ -36,6 +36,15 @@
 ; Keys from a multipart request that indicate anything other than a reference to a file (see below)
 (def multipart-options ["caseSensitive" "text"])
 
+(defn distinct-by
+  "Like distinct, but compares (f x) and keeps the first x of each group, in order"
+  [f coll]
+  (let [seen (volatile! #{})]
+    (filter (fn [x] (let [k (f x)]
+                      (when-not (contains? @seen k)
+                        (vswap! seen conj k))))
+            coll)))
+
 (defn parse-request-for-ids
   "Multipart params come in as key -> value pairs. We assume that each k/v is a reference to a file [filename filedata]
   unless the keys are words that indicate options, specifically text and caseSensitive"
@@ -53,8 +62,8 @@
         options (select-keys multipart-params multipart-options)
         ; Should the parsing be case sensitive?
         case-sensitive (= "true" (get options "caseSensitive"))]
-    ; Parse the identifiers and remove duplicates (convert to lower case if case-insensitive)
-    (let [total (distinct (map (if case-sensitive lower-case identity) (concat (mapcat parse-file files) (parse-identifiers text))))]
+    ; Parse the identifiers and remove duplicates (ignoring case if case-insensitive, keeping the first occurrence as typed)
+    (let [total (distinct-by (if case-sensitive identity lower-case) (concat (mapcat parse-file files) (parse-identifiers text)))]
       ; Return the parsed identifiers and the total count
       {:identifiers total
        :total (count total)})))
