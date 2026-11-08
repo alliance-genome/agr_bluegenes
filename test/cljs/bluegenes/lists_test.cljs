@@ -1,10 +1,17 @@
 (ns bluegenes.lists-test
   (:require [cljs.test :refer-macros [deftest is are testing]]
-            [bluegenes.pages.lists.utils :as utils]))
+            [bluegenes.pages.lists.utils :as utils]
+            [bluegenes.pages.lists.views :as views]))
 
 (deftest path-title
   (is (= "nested folder" (utils/path-title "bgpath:my folder.nested folder")))
   (is (= "my folder" (utils/path-title "bgpath:my folder"))))
+
+(deftest valid-folder
+  (is (some? (views/valid-folder? "my folder-2")))
+  (is (nil? (views/valid-folder? "a:b")))
+  (is (nil? (views/valid-folder? "a.b")))
+  (is (nil? (views/valid-folder? ""))))
 
 (deftest top-level-predicates
   (is (true? (utils/top-level-folder? {:path "bgpath:my folder"})))

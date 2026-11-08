@@ -552,13 +552,13 @@
      [modal-new-list]]))
 
 (defn valid-folder?
-  "Whether a folder name is valid. Full stops are technically permitted but we
-  use them for nesting."
+  "Whether a folder name is valid. Full stops and colons are excluded since
+  `split-path` treats both as path separators."
   [s]
-  (re-matches #"[A-Za-z0-9 \-:]+" s))
+  (re-matches #"[A-Za-z0-9 \-]+" s))
 
 (def invalid-folder-message
-  "Folder names may only contain letters, numbers, spaces, hyphens and colons.")
+  "Folder names may only contain letters, numbers, spaces and hyphens.")
 
 (defn modal-select-folder []
   (let [folder-path @(subscribe [:lists-modal/folder-path])
