@@ -3,7 +3,7 @@ describe("User Account Test", function() {
       cy.visit("/biotestmine");
     });
 
-    it.only("can create a new user account", function(){
+    it("can create a new user account", function(){
         cy.openRegisterDialogue();
         cy.get(".login-form").should("exist");
         cy.get("input#email").type("test_user_account@mail.com");
@@ -96,7 +96,7 @@ describe("User Account Test", function() {
         cy.get('.lists-item').find(".list-title").should("include.text","List of common genes");
     })
 
-    it.only("can build and save a query", function(){
+    it("can build and save a query", function(){
         cy.loginToUserAccount("test_user_account@mail.com","password");
         cy.visit("/biotestmine/querybuilder");
         cy.get(".model-browser-root").within(() => {
@@ -118,7 +118,7 @@ describe("User Account Test", function() {
 
     
 
-    it.only("can change user password", function(){
+    it("can change user password", function(){
         cy.loginToUserAccount("test_user_account@mail.com","password")
         cy.visit("/biotestmine/profile");
         cy.get('.profile-page > ').eq(2).as("changePassword").within(() => {
@@ -133,7 +133,7 @@ describe("User Account Test", function() {
         
     })
 
-    it.only("can delete an account", function(){
+    it("can delete an account", function(){
         cy.loginToUserAccount("test_user_account@mail.com","newpassword")
         cy.visit("/biotestmine/profile");
         cy.get(".settings-group").eq(3).as("deleteAccountSection").within(() => {
