@@ -342,3 +342,23 @@
       "Returns an empty sequential if string is empty")
   (is (= (utils/highlight-substring "" "") [])
       "Returns an empty sequential if string and substring are empty"))
+
+(deftest resolve-class-name
+  (let [classes {:Gene {:name "Gene"}
+                 :MRNA {:name "MRNA"}
+                 :ThreePrimeUTR {:name "ThreePrimeUTR"}}]
+    (testing "Class names resolve ignoring case"
+      (are [s res] (= (utils/resolve-class-name classes s) res)
+        "gene" "Gene"
+        "GENE" "Gene"
+        "mrna" "MRNA"
+        "MRNA" "MRNA"
+        "threeprimeutr" "ThreePrimeUTR"
+        "ThreePrimeUTR" "ThreePrimeUTR"))
+    (testing "Unknown or blank class names return nil"
+      (are [s] (nil? (utils/resolve-class-name classes s))
+        "Protein"
+        ""
+        nil))
+    (testing "Missing model returns nil"
+      (is (nil? (utils/resolve-class-name nil "Gene"))))))
