@@ -89,6 +89,10 @@
           (oset! script-tag "onload" #(run-script! tool tool-id
                                                    :service service
                                                    :entity entity))
+          ;;remove the tag on a failed load, so the next call fetches it again
+          (oset! script-tag "onerror" (fn []
+                                        (.error js/console "Tool API: Failed to load script for" (get-in tool [:names :npm]))
+                                        (.remove script-tag)))
           ;;append script to dom
           (.appendChild head script-tag))))))
 
