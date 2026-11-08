@@ -342,3 +342,13 @@
       "Returns an empty sequential if string is empty")
   (is (= (utils/highlight-substring "" "") [])
       "Returns an empty sequential if string and substring are empty"))
+
+(deftest sanitize-html
+  (testing "Keeps formatting markup"
+    (is (= (utils/sanitize-html "Genes with <b>GO</b> term <i>x</i>")
+           "Genes with <b>GO</b> term <i>x</i>")))
+  (testing "Strips scripts and event handlers"
+    (is (not (re-find #"(?i)<script" (utils/sanitize-html "a<script>alert(1)</script>b"))))
+    (is (not (re-find #"(?i)onerror" (utils/sanitize-html "<img src=x onerror=alert(1)>"))))
+    (is (not (re-find #"(?i)javascript:" (utils/sanitize-html "<a href=\"javascript:alert(1)\">x</a>")))))
+  (is (nil? (utils/sanitize-html nil)) "Returns nil for nil input"))
