@@ -20,8 +20,16 @@
 (def im-tables-css (cond-> "/css/im-tables.css"
                      (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
 
-(defn escape-quotes [s]
-  (str/replace s #"\"" (str/re-quote-replacement "\\\"")))
+(defn js-string-literal
+  "Returns a JS string literal holding the EDN text of `data`. The literal is
+  safe inside an inline script: quotes and backslashes are JSON-escaped, and
+  non-ASCII (incl. U+2028/U+2029) plus <, > and & are written as \\uXXXX escapes,
+  so no value can close the string or the script element."
+  [data]
+  (-> (generate-string (pr-str data) {:escape-non-ascii true})
+      (str/replace "<" "\\u003C")
+      (str/replace ">" "\\u003E")
+      (str/replace "&" "\\u0026")))
 
 ; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
 (def loader-style
@@ -111,11 +119,11 @@
                                                      :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
                                                      :bluegenes-additional-mines :hide-registry-mines :bluegenes-deploy-path])
                                    {:version bundle-hash})]
-            (str \" (escape-quotes (pr-str server-vars)) \"))
+            (js-string-literal server-vars))
           ";")
      (str "var initVars="
           (if (map? init-vars)
-            (str \" (escape-quotes (pr-str init-vars)) \")
+            (js-string-literal init-vars)
             "null")
           ";")]
   ; Javascript:
