@@ -4,6 +4,7 @@
             [re-frame.core :as rf]
             [re-frame.db :refer [app-db]]
             [day8.re-frame.test :refer-macros [run-test-sync]]
+            [bluegenes.events]
             [bluegenes.components.search.events]))
 
 (use-fixtures :each utils/fixtures)
@@ -43,3 +44,9 @@
    (is (= 2 (get-in @app-db [:search-results :count])))
    (is (false? (get-in @app-db [:search-results :loading-remaining?])))
    (is (= #{:a :b} (get-in @app-db [:search :selected-results])))))
+
+(deftest new-suggestions-reset-selection
+  (run-test-sync
+   (rf/dispatch [::seed-db {:quicksearch-selected-index 3}])
+   (rf/dispatch [:handle-suggestions {:results [:x]}])
+   (is (= -1 (:quicksearch-selected-index @app-db)))))
