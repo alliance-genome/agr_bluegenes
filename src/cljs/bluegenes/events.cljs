@@ -182,7 +182,8 @@
  :handle-suggestions
  (fn [db [_ results]]
    (-> db
-       (assoc :suggestion-results (:results results))
+       (assoc :suggestion-results (:results results)
+              :quicksearch-selected-index -1)
        (dissoc :suggestion-error))))
 
 (reg-event-fx
@@ -192,8 +193,11 @@
      (if (empty? term)
        {:db (assoc db
                    :search-term term
-                   :suggestion-results nil)}
-       {:db (assoc db :search-term term)
+                   :suggestion-results nil
+                   :quicksearch-selected-index -1)}
+       {:db (assoc db
+                   :search-term term
+                   :quicksearch-selected-index -1)
         :im-chan {:chan (fetch/quicksearch service term {:size 5})
                   :abort :quicksearch
                   :on-success [:handle-suggestions]
