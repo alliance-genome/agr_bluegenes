@@ -51,6 +51,8 @@ jobs:
     steps:
     - run: sudo apt-get update -y
     - run: sudo apt-get install -y openjdk-17-jdk-headless leiningen
+    ## Cypress 6 (Electron) runtime libraries; libgconf-2-4 no longer exists on 22.04.
+    - run: sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
     - run: sudo update-java-alternatives --set java-1.17.0-openjdk-amd64 || true
     - run: java -version
     - run: python3 --version
@@ -60,6 +62,15 @@ jobs:
     - restore_cache:
         keys:
         - biotestmine-e756d26
+    ## intermine-boot shells out to the standalone docker-compose binary, which the image may lack.
+    - run:
+        name: Ensure docker-compose is available
+        command: |
+          if ! command -v docker-compose >/dev/null 2>&1; then
+            sudo curl -fsSL "https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          docker-compose version
     - run: intermine_boot start local
     - save_cache:
         key: biotestmine-e756d26
