@@ -9,7 +9,9 @@
             [goog.string :as gstring]
             [oops.core :refer [ocall]]
             [clojure.data.xml :as xml]
-            [bluegenes.config :refer [server-vars]]))
+            [bluegenes.config :refer [server-vars]])
+  (:import [goog.html SafeHtml]
+           [goog.html.sanitizer HtmlSanitizer]))
 
 (defn hiccup-anchors-newtab
   "Add target=_blank to all anchor elements, so all links open in new tabs."
@@ -35,6 +37,12 @@
   [md-string]
   (->> (some-> md-string md/md->hiccup md/component)
        (hiccup-anchors-newtab)))
+
+(defn sanitize-html
+  "Strips scripts, event handlers and unsafe URLs from an HTML string so it
+  can be passed to `:dangerouslySetInnerHTML`. Returns nil for nil input."
+  [html]
+  (some->> html str (.sanitize HtmlSanitizer) (.unwrap SafeHtml)))
 
 ;; Please do not use this for model classes. You can get results like:
 ;;     "ThreePrimeUTR" -> "Three primeutr"

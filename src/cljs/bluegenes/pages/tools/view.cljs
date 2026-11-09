@@ -173,7 +173,7 @@
            [:h4 "Available tools"]
            [:button.btn.btn-primary.btn-raised
             {:on-click (action #(dispatch [::events/install-all-tools]))}
-            "Install all tools"]])
+            "Install all official tools"]])
         [available-tool-list remaining-tools]
         (when (seq all-viz)
           [:div.info
