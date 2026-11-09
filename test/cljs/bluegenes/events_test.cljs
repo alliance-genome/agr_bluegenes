@@ -108,3 +108,24 @@
        (testing "remove invalid login from localstorage"
          (let [login (get @utils/stubbed-storage ":bluegenes/login")]
            (is (empty? login))))))))
+
+(deftest keep-login-on-failed-token-check
+  (run-test-async
+   (utils/stub-local-storage)
+   (rf/dispatch-sync [:save-login nil {:token "login-token"}])
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {:statusCode 500})
+                 config/init-vars (delay nil)]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:assets/failure]
+       (testing "keep persisted login when token check fails without 401"
+         (let [login (get @utils/stubbed-storage ":bluegenes/login")]
+           (is (= {nil {:token "login-token"}} login))))))))
+
+(deftest clear-fetching-lists-on-failure
+  (run-test-async
+   (rf/reg-sub ::fetching-lists? (fn [db] (get-in db [:lists :fetching-lists?])))
+   (with-redefs [fetch/lists (utils/stub-fetch-fn {:statusCode 500})]
+     (rf/dispatch-sync [:assets/fetch-lists])
+     (wait-for [:assets/failure]
+       (testing "failed list fetch clears fetching-lists?"
+         (is (false? @(rf/subscribe [::fetching-lists?]))))))))

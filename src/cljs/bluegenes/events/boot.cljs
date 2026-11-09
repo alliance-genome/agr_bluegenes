@@ -352,7 +352,7 @@
                  {:chan (auth/who-am-i? service token)
                   :on-success [:authentication/store-token token oauth2-identity]
                   :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
-                  :on-failure [:authentication/invalid-token (boolean auth-token)]}
+                  :on-failure [:assets/failure evt]}
                  {:chan (fetch/session service)
                   :on-success [:authentication/store-token]
                   :on-failure [:assets/failure evt]})})))
@@ -603,12 +603,18 @@
      {:db (case evt
             (:authentication/init :authentication/invalid-token)
             (assoc db :failed-auth? true)
+            :assets/fetch-lists
+            (assoc-in db (concat lists/root [:fetching-lists?]) false)
             db)
       :dispatch (case evt
-                 (:authentication/init :authentication/invalid-token)
-                 [:messages/add
-                  {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
-                   :style "danger"
-                   :timeout 0}]
-                 nil)})))
+                  (:authentication/init :authentication/invalid-token)
+                  [:messages/add
+                   {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                    :style "danger"
+                    :timeout 0}]
+                  :assets/fetch-lists
+                  [:messages/add
+                   {:markup [:span "Failed to fetch lists from " mine-name "."]
+                    :style "warning"}]
+                  nil)})))
                 ;;  TODO, fix backend and re-add the error handling that was removed
