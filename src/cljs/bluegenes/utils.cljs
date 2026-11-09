@@ -56,6 +56,17 @@
       (string/capitalize $))
     s))
 
+(defn resolve-class-name
+  "Return the model class name matching `class-name` ignoring case, or nil.
+  Example: \"threeprimeutr\" -> \"ThreePrimeUTR\""
+  [model-classes class-name]
+  (when-not (string/blank? class-name)
+    (let [target (string/lower-case class-name)]
+      (some (fn [k]
+              (let [n (name k)]
+                (when (= target (string/lower-case n)) n)))
+            (keys model-classes)))))
+
 ;; You may think update-in serves you just fine
 ;;     (update-in {} [:foo :bar] dissoc :baz)
 ;; but this ends up creating nested maps all the way until the inner nil.
