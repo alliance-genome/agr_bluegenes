@@ -224,6 +224,7 @@
               :suggestion-results ; Avoid showing old results belonging to previous mine.
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?       ; Clear flag for failing to auth with mine.
+              :failed-assets      ; Failed asset events per mine, shown in one message.
               :profile)           ; All profile page data should be cleared.
       ;; Clear chosen template category as it may not be present in new mine.
       (update :home dissoc :active-template-category)
@@ -596,25 +597,38 @@
                     :type (:class data)
                     :organism (:extraValue data)}]})))))
 
+(defn- asset-label
+  "Short name for a failed asset event, e.g. :assets/fetch-lists -> \"lists\"."
+  [evt]
+  (str/replace (name evt) #"^fetch-" ""))
+
+(defn assets-failure-message
+  "One warning message for a mine, listing every asset that failed to load.
+  The fixed `:id` makes `:messages/add` replace the previous message."
+  [mine-kw mine-name failed-evts]
+  {:id (keyword "assets-failure" (name mine-kw))
+   :markup [:span "Failed to load " (str/join ", " (map asset-label failed-evts))
+            " from " [:em mine-name] ". "
+            "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
+   :style "warning"
+   :timeout 0})
+
 (reg-event-fx
  :assets/failure
  (fn [{db :db} [_ evt]]
-   (let [mine-name (get-in db [:mines (:current-mine db) :name])]
-     {:db (case evt
-            (:authentication/init :authentication/invalid-token)
-            (assoc db :failed-auth? true)
-            :assets/fetch-lists
-            (assoc-in db (concat lists/root [:fetching-lists?]) false)
-            db)
-      :dispatch (case evt
-                  (:authentication/init :authentication/invalid-token)
+   (let [mine-kw (:current-mine db)
+         mine-name (get-in db [:mines mine-kw :name])
+         auth? (contains? #{:authentication/init :authentication/invalid-token} evt)
+         failed (cond-> (get-in db [:failed-assets mine-kw] [])
+                  (and (not auth?) (not (some #{evt} (get-in db [:failed-assets mine-kw]))))
+                  (conj evt))]
+     {:db (cond-> db
+            auth? (assoc :failed-auth? true)
+            (= evt :assets/fetch-lists) (assoc-in (concat lists/root [:fetching-lists?]) false)
+            (not auth?) (assoc-in [:failed-assets mine-kw] failed))
+      :dispatch (if auth?
                   [:messages/add
                    {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
                     :style "danger"
                     :timeout 0}]
-                  :assets/fetch-lists
-                  [:messages/add
-                   {:markup [:span "Failed to fetch lists from " mine-name "."]
-                    :style "warning"}]
-                  nil)})))
-                ;;  TODO, fix backend and re-add the error handling that was removed
+                  [:messages/add (assets-failure-message mine-kw mine-name failed)])})))

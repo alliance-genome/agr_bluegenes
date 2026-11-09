@@ -129,3 +129,18 @@
      (wait-for [:assets/failure]
        (testing "failed list fetch clears fetching-lists?"
          (is (false? @(rf/subscribe [::fetching-lists?]))))))))
+
+(deftest asset-failures-share-one-warning
+  (run-test-sync
+   (rf/reg-sub ::warnings
+               (fn [db]
+                 (filter #(= "warning" (:style %)) (vals (:messages db)))))
+   (rf/dispatch-sync [:assets/failure :assets/fetch-lists])
+   (rf/dispatch-sync [:assets/failure :assets/fetch-templates])
+   (rf/dispatch-sync [:assets/failure :assets/fetch-templates])
+   (let [warnings @(rf/subscribe [::warnings])
+         text (pr-str (:markup (first warnings)))]
+     (testing "exactly one warning for the mine"
+       (is (= 1 (count warnings))))
+     (testing "warning names both failed assets once"
+       (is (re-find #"lists, templates" text))))))
