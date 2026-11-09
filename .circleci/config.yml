@@ -2,10 +2,10 @@ version: 2.1
 executors:
   bluegenes_exec:
     docker:
-    - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
+    - image: 'cimg/clojure:1.12-openjdk-21.0-browsers'
   intermine_exec:
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2204:current
     environment:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://localhost:9999/biotestmine"
       BLUEGENES_DEFAULT_MINE_NAME: Biotestmine
@@ -50,10 +50,13 @@ jobs:
     resource_class: large
     steps:
     - run: sudo apt-get update -y
-    - run: sudo apt-get install -y libgconf-2-4
-    - run: pyenv versions
-    - run: pyenv global 3.8.5
-    - run: pip3 install intermine-boot
+    - run: sudo apt-get install -y openjdk-17-jdk-headless leiningen
+    - run: sudo update-java-alternatives --set java-1.17.0-openjdk-amd64 || true
+    - run: java -version
+    - run: python3 --version
+    ## intermine-boot imports pkg_resources, removed from setuptools 81.
+    - run: python3 -m pip install --user "setuptools<81" intermine-boot
+    - run: echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$BASH_ENV"
     - restore_cache:
         keys:
         - biotestmine-e756d26

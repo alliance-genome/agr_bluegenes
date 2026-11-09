@@ -2,7 +2,7 @@
   "name": "bluegenes",
   "version": "1.0.0",
   "engines": {
-    "node": "10.x"
+    "node": ">=16"
   },
   "description": "Clojure-based GUI for InterMine",
   "scripts": {

@@ -170,7 +170,6 @@
              :uberjar {:resource-paths ^:replace ["config/defaults" "resources"]
                        :prep-tasks ["build" "compile"]
                        :aot :all}
-             :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}
              :biotestmine {;; We'd prefer to have resource path config/defaults here, but for some reason that makes the envvars below not apply.
                            :env {:bluegenes-default-service-root "http://localhost:9999/biotestmine"
                                  :bluegenes-default-mine-name "Biotestmine"
