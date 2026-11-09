@@ -240,10 +240,17 @@
       ;; Clear admin page manage templates panel.
       (assoc-in [:admin :manage-templates] nil)))
 
+(defn- remove-assets-failure-messages
+  "Drop the timeout-less asset failure warnings so a clean reboot does not keep a stale one."
+  [messages]
+  (into {} (remove (fn [[id _]] (= "assets-failure" (some-> id namespace)))) messages))
+
 (reg-event-fx
  :reboot
  (fn [{db :db}]
-   {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
+   {:db (-> (remove-stateful-keys-from-db db)
+            (assoc :fetching-assets? true)
+            (update :messages remove-assets-failure-messages))
     :dispatch [:authentication/init]
     :async-flow (boot-flow :wait-registry? false)}))
 
@@ -606,7 +613,7 @@
   "One warning message for a mine, listing every asset that failed to load.
   The fixed `:id` makes `:messages/add` replace the previous message."
   [mine-kw mine-name failed-evts]
-  {:id (keyword "assets-failure" (name mine-kw))
+  {:id (keyword "assets-failure" (if mine-kw (name mine-kw) "unknown"))
    :markup [:span "Failed to load " (str/join ", " (map asset-label failed-evts))
             " from " [:em mine-name] ". "
             "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
