@@ -1,7 +1,7 @@
 (ns bluegenes.pages.querybuilder.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx dispatch]]
-            [cljs.core.async :as a :refer [<! close! chan]]
+            [cljs.core.async :as a :refer [<!]]
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
@@ -79,21 +79,23 @@
                 :store-in view-vec}}
        {:dispatch [:qb/store-possible-values view-vec false]}))))
 
-(reg-event-db
- :qb/update-constraint-logic
- (fn [db [_ logic]]
-   (assoc-in db [:qb :constraint-logic] (str "(" logic ")"))))
-
 (reg-event-fx
  :qb/format-constraint-logic
- (fn [{db :db} [_]]
-   (let [enhance-query (get-in db [:qb :enhance-query])
-         logic-vec (get-in db [:qb :constraint-logic])
-         used-codes (set (used-const-code enhance-query))
-         codes-in-logic-vec (set (map name (remove #{'or 'and} (flatten (read-logic-string logic-vec)))))
-         codes-to-append (into (sorted-set) (difference used-codes codes-in-logic-vec))]
-     {:db (assoc-in db [:qb :constraint-logic] (reduce append-code (read-logic-string logic-vec) (map symbol codes-to-append)))
-      :dispatch [:qb/enhance-query-build-im-query true]})))
+ (fn [{db :db} [_ logic-text]]
+   (let [used-codes (set (remove nil? (used-const-code (get-in db [:qb :enhance-query]))))
+         logic-vec (logic/parse-logic-string logic-text)
+         unknown-codes (when logic-vec (difference (logic/logic-codes logic-vec) used-codes))]
+     (if (and logic-vec (empty? unknown-codes))
+       (let [codes-to-append (into (sorted-set) (difference used-codes (logic/logic-codes logic-vec)))]
+         {:db (assoc-in db [:qb :constraint-logic] (reduce append-code logic-vec (map symbol codes-to-append)))
+          :dispatch [:qb/enhance-query-build-im-query true]})
+       {:dispatch [:messages/add
+                   {:markup [:span "Invalid constraint logic "
+                             [:code logic-text] ". "
+                             (if (seq unknown-codes)
+                               (str "Unknown constraint codes: " (join ", " (sort unknown-codes)) ".")
+                               "Use constraint codes joined by and/or, with balanced parentheses.")]
+                    :style "warning"}]}))))
 
 (defn serialize-views [[k value] total views]
   (let [new-total (vec (conj total k))]
@@ -212,7 +214,9 @@
                   :template-meta (-> template-query
                                      (select-keys [:name :title :comment :description])
                                      ;; As we treeify the query, and :im-query:where is derived from that tree, we lose the ordering of constraints. Ideally, we want template constraints to appear in the same order they did in the template view, but supporting this ordering with the way the QB has been implemented with a tree, seems to be very error prone and difficult. The proper way to achieve that would be to change the QB to support ordering of constraints, which takes much more time. For now, we won't do this, so the ordering will be different, and we'll have to map each constraint to their corresponsive meta, which is done with this map.
-                                     (assoc :const->meta (zipmap consts consts-meta))))
+                                     ;; Sterilizing keeps the order of :where but can add codes
+                                     ;; and root-class prefixes, so key by the sterilized constraints.
+                                     (assoc :const->meta (zipmap (map logic/constraint-key (:where query)) consts-meta))))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-db
@@ -459,10 +463,9 @@
  (fn [{db :db} [_ path-vec]]
    (let [trimmed (trim-subclasses (dissoc-in (get-in db [:qb :enhance-query]) path-vec))
          remaining-views (map (partial join ".") (all-views trimmed))
-         new-order (->> remaining-views
-                        (reduce add-if-missing (get-in db [:qb :order]))
-                        (remove (partial (complement within?) remaining-views))
-                        vec)
+         ;; Constraint-only nodes count as views in all-views, so keep only
+         ;; paths that were already selected.
+         new-order (filterv (set remaining-views) (get-in db [:qb :order]))
          new-joins (into #{} (filter #(get-in trimmed (split % #"\."))) (get-in db [:qb :joins]))
          current-codes (set (remove nil? (used-const-code (get-in db [:qb :enhance-query]))))
          remaining-codes (set (used-const-code trimmed))
@@ -524,7 +527,7 @@
    (let [dropped-code (get-in db (concat [:qb :enhance-query] (conj path :constraints) [idx :code]))]
      {:db (-> db
               (update-in [:qb :enhance-query] update-in (conj path :constraints) drop-nth idx)
-              (update-in [:qb :constraint-logic] remove-code (when dropped-code (symbol dropped-code))))
+              (cond-> dropped-code (update-in [:qb :constraint-logic] remove-code (symbol dropped-code))))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 ;:dispatch [:qb/build-im-query]
 
@@ -632,13 +635,12 @@
  :qb/fetch-preview
  (fn [{db :db} [_ service query]]
    (let [new-request (fetch/table-rows service query {:size 5})]
-     {:db (-> db
-              (assoc-in [:qb :fetching-preview?] true)
-              (update-in [:qb :preview-chan] (fnil close! (chan)))
-              (assoc-in [:qb :preview-chan] new-request))
+     {:db (assoc-in db [:qb :fetching-preview?] true)
+      ;; :abort replaces a pending preview request without calling on-failure.
       :im-chan {:on-success [:qb/save-preview]
                 :on-failure [:qb/failure-preview]
-                :chan new-request}})))
+                :chan new-request
+                :abort :qb/preview}})))
 
 (reg-event-db
  :qb/enhance-query-success-summary
@@ -654,13 +656,18 @@
    (let [service (get-in db [:mines (:current-mine db) :service])
          query (get-in db [:qb :im-query])]
      {:im-chan {:chan (save/query service (assoc query :title title))
-                :on-success [:qb/save-query-success]
-                :on-failure [:qb/save-query-failure title]}
-      :dispatch [:messages/add
-                 {:markup [:span "Your query titled " [:em title]
-                           " has been saved. You can access it under the "
-                           [:strong "Saved Queries"] " tab."]}
-                 :style "success"]})))
+                :on-success [:qb/save-new-query-success title]
+                :on-failure [:qb/save-query-failure title]}})))
+
+(reg-event-fx
+ :qb/save-new-query-success
+ (fn [_ [_ title]]
+   {:dispatch-n [[:qb/save-query-success]
+                 [:messages/add
+                  {:markup [:span "Your query titled " [:em title]
+                            " has been saved. You can access it under the "
+                            [:strong "Saved Queries"] " tab."]
+                   :style "success"}]]}))
 
 (reg-event-fx
  :qb/save-query-success
