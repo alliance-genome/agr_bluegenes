@@ -85,6 +85,8 @@
 		if (!el || !service || !imEntity) {
 			throw new Error('Call main with correct signature');
 		}
+		// main runs again on every entity change; a response for an older gene must not overwrite the newer one.
+		var token = (el.__agrReq = (el.__agrReq || 0) + 1);
 		var gene = imEntity.Gene;
 		var id = gene && gene.value;
 		if (Array.isArray(id)) id = id[0];
@@ -95,6 +97,7 @@
 		show(el, 'Loading...');
 		fetchGene(service.root, id)
 			.then(function (row) {
+				if (el.__agrReq !== token) return;
 				var curie = row && toCurie(row.primaryIdentifier, row.organism);
 				if (curie) {
 					show(el, 'View ' + row.primaryIdentifier + ' on the Alliance of Genome Resources', curie);
@@ -103,6 +106,7 @@
 				}
 			})
 			.catch(function () {
+				if (el.__agrReq !== token) return;
 				show(el, 'Could not load the gene from the mine');
 			});
 	}

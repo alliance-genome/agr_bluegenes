@@ -8,6 +8,13 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tool_path="${BLUEGENES_TOOL_PATH:-./tools}"
 src_root="$repo/alliance-tools"
 
+# bluegenes-tool-store installs the official tools only when tools.edn is missing,
+# so the server must create tools.edn (start it once) before this script writes one.
+if [ ! -f "$tool_path/tools.edn" ]; then
+  echo "error: $tool_path/tools.edn not found. Start BlueGenes once so it installs the official tools, then rerun." >&2
+  exit 1
+fi
+
 mkdir -p "$tool_path/@alliance"
 
 for src in "$src_root"/*/; do
@@ -25,10 +32,7 @@ pkg = json.load(open(sys.argv[1]))
 edn_path = sys.argv[2]
 entry = '"%s" "%s"' % (pkg["name"], pkg["version"])
 
-try:
-    text = open(edn_path).read()
-except FileNotFoundError:
-    text = ""
+text = open(edn_path).read()
 
 if not text.strip():
     text = "{:tools {}}\n"
