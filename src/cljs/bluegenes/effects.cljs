@@ -179,8 +179,7 @@
            on-unauthorised
            on-progress-upload
            progress]}]
-  (let [token nil
-        http-fn (case method
+  (let [http-fn (case method
                   :get http/get
                   :post http/post
                   :delete http/delete
@@ -198,13 +197,14 @@
                        form-params (assoc :form-params form-params)
                        multipart-params (assoc :multipart-params multipart-params)
                        headers (update :headers #(merge % headers))
-                       (and token @token) (update :headers assoc "X-Auth-Token" @token)
                        progress (assoc :progress progress)))]
       (go (let [{:keys [status body] :as response} (<! c)]
             (cond
               (<= 200 status 399) (when on-success (dispatch (conj on-success body)))
-              (<= 400 status 499) (when on-unauthorised (dispatch (conj on-unauthorised response)))
-              (<= 500 status 599) (when on-failure (dispatch (conj on-failure response)))
+              (and (<= 400 status 499)
+                   on-unauthorised) (dispatch (conj on-unauthorised response))
+              ;; Status 0 means a network error or timeout.
+              on-failure (dispatch (conj on-failure response))
               :else nil)))
       (when on-progress-upload
         (go-loop []

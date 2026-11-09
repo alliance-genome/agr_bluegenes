@@ -6,7 +6,8 @@
             [taoensso.timbre :as timbre]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
-            [config.core :refer [env]]))
+            [config.core :refer [env]]
+            [bluegenes.utils :refer [env->mines]]))
 
 ;; You may notice that we keep session data on the backend, although this data
 ;; is currently not used (except for OAuth 2.0, which only depends on the
@@ -48,6 +49,32 @@
       (nil? backend) service
       (= (:root service) default) (assoc service :root backend)
       :else service)))
+
+(defn- configured-roots
+  "Service roots of the mines in config. The frontend sends the default service
+  root, which `env->mines` replaces with the backend root when one is set."
+  []
+  (-> (set (map :root (env->mines env)))
+      (conj (:bluegenes-default-service-root env))))
+
+(defn- wrap-configured-service
+  "Reject requests whose service root is not one of the configured mines, so the
+  backend only sends credentials and tokens to those InterMine instances."
+  [handler]
+  (fn [{{:keys [service]} :params :as req}]
+    (if (contains? (configured-roots) (:root service))
+      (handler req)
+      (response/bad-request {:error "Service root is not a configured mine"}))))
+
+(defn- mine-path
+  "Path to redirect to for a mine, using the default namespace when the mine is
+  not configured."
+  [mine-id]
+  (let [namespaces (set (map :namespace (env->mines env)))]
+    (str (:bluegenes-deploy-path env) "/"
+         (if (contains? namespaces mine-id)
+           mine-id
+           (:bluegenes-default-namespace env)))))
 
 (defn logout
   "Log the user out by clearing the session. Also sends a request to the InterMine
@@ -136,7 +163,7 @@
           user+token (assoc user
                             :token token
                             :login-method :oauth2)]
-      (-> (response/found (str (:bluegenes-deploy-path env) "/" mine-id))
+      (-> (response/found (mine-path mine-id))
           (assoc :session ^:recreate {:identity user+token
                                       :init {:identity user+token
                                              :renamedLists renamedLists}})))
@@ -145,7 +172,7 @@
       (let [{:keys [body]} (ex-data e)
             error (or (:error (cheshire/parse-string body true))
                       (ex-message e))]
-        (-> (response/found (str (:bluegenes-deploy-path env) "/" mine-id))
+        (-> (response/found (mine-path mine-id))
             (assoc :session {:init {:events [[:messages/add
                                               {:style "warning"
                                                :markup (str "Failed to login using OAuth 2.0"
@@ -153,10 +180,10 @@
                                                               (str ": " error)))}]]}}))))))
 
 (defroutes routes
-  (POST "/logout" [] logout)
-  (POST "/login" [] handle-auth)
-  (POST "/register" [] register)
-  (POST "/oauth2authenticator" [] oauth2authenticator)
+  (POST "/logout" [] (wrap-configured-service logout))
+  (POST "/login" [] (wrap-configured-service handle-auth))
+  (POST "/register" [] (wrap-configured-service register))
+  (POST "/oauth2authenticator" [] (wrap-configured-service oauth2authenticator))
   (wrap-params
    (wrap-keyword-params
     (GET "/oauth2callback" [] oauth2callback))))

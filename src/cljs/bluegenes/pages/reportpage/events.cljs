@@ -25,6 +25,12 @@
     (mapv (partial zipmap concise-views)
           results)))
 
+(defn current-report?
+  "Whether `report-key` identifies the report currently loaded by
+  `:load-report`. Responses for an earlier report must not overwrite it."
+  [db report-key]
+  (= report-key (get-in db [:report :key])))
+
 (reg-event-fx
  :fetch-fasta
  (fn [{db :db} [_ mine-kw type id]]
@@ -38,16 +44,18 @@
      ;; spinner shows after clicking LOAD FASTA, which dispatches this event.
      {:db (assoc-in db [:report :fasta] :fasta/fetch)
       :im-chan {:chan (fetch/fasta service q)
-                :on-success [:handle-fasta]}})))
+                :on-success [:handle-fasta [mine-kw type id]]}})))
 
 (reg-event-db
  :handle-fasta
- (fn [db [_ fasta]]
+ (fn [db [_ report-key fasta]]
    ;; If there's no FASTA the API will return "Nothing was found for export".
-   (assoc-in db [:report :fasta]
-             (if (string/starts-with? fasta ">")
-               fasta
-               :fasta/none))))
+   (cond-> db
+     (current-report? db report-key)
+     (assoc-in [:report :fasta]
+               (if (string/starts-with? fasta ">")
+                 fasta
+                 :fasta/none)))))
 
 (reg-event-fx
  ::fetch-strand
@@ -59,12 +67,14 @@
                      :op "="
                      :value id}]}]
      {:im-chan {:chan (fetch/rows service q {:format "json"})
-                :on-success [::handle-strand]}})))
+                :on-success [::handle-strand [mine-kw type id]]}})))
 
 (reg-event-db
  ::handle-strand
- (fn [db [_ {:keys [results]}]]
-   (assoc-in db [:report :strand] (get-in results [0 0]))))
+ (fn [db [_ report-key {:keys [results]}]]
+   (cond-> db
+     (current-report? db report-key)
+     (assoc-in [:report :strand] (get-in results [0 0])))))
 
 (defn class-has-fasta? [hier class-kw]
   (or (= class-kw :Protein)
@@ -99,7 +109,11 @@
  :handle-report-summary
  [document-title]
  (fn [{db :db} [_ mine-kw type id summary]]
-   (if (seq (:results summary))
+   (cond
+     (not (current-report? db [mine-kw type id]))
+     {}
+
+     (seq (:results summary))
      (let [hier (get-in db [:mines mine-kw :model-hier])
            class-kw (keyword type)
            fasta-action (check-fasta hier class-kw summary)]
@@ -113,21 +127,23 @@
                      (when (= fasta-action :fasta/fetch)
                        [:fetch-fasta mine-kw type id])
                      (when (= type "Gene")
-                       [::fetch-homologues mine-kw (lookup-value summary)])
+                       [::fetch-homologues [mine-kw type id] (lookup-value summary)])
                      (when (isa? hier class-kw :SequenceFeature)
                        [::fetch-strand mine-kw type id])]})
      ;; No results mean the object ID likely doesn't exist.
+     :else
      {:db (-> db
               (assoc-in [:report :error] {:type :not-found})
               (assoc :fetching-report? false))})))
 
 (reg-event-db
  :fetch-report-failure
- (fn [db [_ res]]
-   (-> db
-       (assoc-in [:report :error] {:type :ws-failure
-                                   :message (get-in res [:body :error])})
-       (assoc :fetching-report? false))))
+ (fn [db [_ report-key res]]
+   (cond-> db
+     (current-report? db report-key)
+     (-> (assoc-in [:report :error] {:type :ws-failure
+                                     :message (get-in res [:body :error])})
+         (assoc :fetching-report? false)))))
 
 (defn outer-join-classes
   "Primitive approach to creating outer join consisting of all parent classes
@@ -157,7 +173,7 @@
                            :value id}]}]
      {:im-chan {:chan (fetch/rows service q {:format "json"})
                 :on-success [:handle-report-summary mine-kw type id]
-                :on-failure [:fetch-report-failure]}})))
+                :on-failure [:fetch-report-failure [mine-kw type id]]}})))
 
 (defn class-has-dataset? [model-classes class-kw]
   (contains? (get-in model-classes [class-kw :collections])
@@ -171,31 +187,33 @@
                  :value id}]
      {:db (-> db
               (assoc :fetching-report? true)
-              (dissoc :report)
+              (assoc :report {:key [(keyword mine) type id]})
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
-                   [::fetch-lists (keyword mine) id]
+                   [::fetch-lists [(keyword mine) type id]]
                    (when (compatible-version? "5.0.0" (get-in db [:assets :intermine-version (keyword mine)]))
-                     [::fetch-external-links (keyword mine) id])
+                     [::fetch-external-links [(keyword mine) type id]])
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))
-                     [::fetch-sources (keyword mine) type id])]})))
+                     [::fetch-sources [(keyword mine) type id]])]})))
 
 (reg-event-fx
  ::fetch-lists
- (fn [{db :db} [_ mine-kw id]]
+ (fn [{db :db} [_ [mine-kw _type id :as report-key]]]
    (let [service (get-in db [:mines mine-kw :service])]
      {:im-chan {:chan (fetch/lists-containing service {:id id})
-                :on-success [::handle-lists]}})))
+                :on-success [::handle-lists report-key]}})))
 
 (reg-event-db
  ::handle-lists
- (fn [db [_ lists]]
-   (assoc-in db [:report :lists] lists)))
+ (fn [db [_ report-key lists]]
+   (cond-> db
+     (current-report? db report-key)
+     (assoc-in [:report :lists] lists))))
 
 (reg-event-fx
  ::fetch-sources
- (fn [{db :db} [_ mine-kw class id]]
+ (fn [{db :db} [_ [mine-kw class id :as report-key]]]
    (let [service (get-in db [:mines mine-kw :service])
          q {:from class
             :select ["dataSets.description"
@@ -206,12 +224,14 @@
                      :op "="
                      :value id}]}]
      {:im-chan {:chan (fetch/rows service q {:format "json"})
-                :on-success [::handle-sources]}})))
+                :on-success [::handle-sources report-key]}})))
 
 (reg-event-db
  ::handle-sources
- (fn [db [_ res]]
-   (assoc-in db [:report :sources] (views->results res))))
+ (fn [db [_ report-key res]]
+   (cond-> db
+     (current-report? db report-key)
+     (assoc-in [:report :sources] (views->results res)))))
 
 (reg-event-fx
  ::open-in-region-search
@@ -313,15 +333,17 @@
 
 (reg-event-fx
  ::fetch-external-links
- (fn [{db :db} [_ mine-kw id]]
+ (fn [{db :db} [_ [mine-kw _type id :as report-key]]]
    (let [service (get-in db [:mines mine-kw :service])]
      {:im-chan {:chan (fetch/external-links service id)
-                :on-success [::handle-external-links]}})))
+                :on-success [::handle-external-links report-key]}})))
 
 (reg-event-db
  ::handle-external-links
- (fn [db [_ links]]
-   (assoc-in db [:report :external-links] links)))
+ (fn [db [_ report-key links]]
+   (cond-> db
+     (current-report? db report-key)
+     (assoc-in [:report :external-links] links))))
 
 (defn env->registry
   "Adds keys where they're expected for a registry mine to a configured mine."
@@ -355,7 +377,7 @@
 
 (reg-event-fx
  ::fetch-homologues
- (fn [{db :db} [_ mine-kw lookup]]
+ (fn [{db :db} [_ [mine-kw :as report-key] lookup]]
    (let [env-mines (into {} (map #(update % 1 env->registry)
                                  (get-in db [:env :mines])))
          registry-mines (get db :registry)
@@ -381,6 +403,7 @@
                                        env-mines))]
      {:dispatch-n (for [mine (-> neighbour-mines (dissoc mine-kw) vals)]
                     [::fetch-mine-homologues
+                     report-key
                      {:root (:url mine)
                       :model {:name "genomic"}}
                      (homologue-query lookup mine)
@@ -388,27 +411,31 @@
 
 (reg-event-fx
  ::fetch-mine-homologues
- (fn [{db :db} [_ service query mine]]
+ (fn [{db :db} [_ report-key service query mine]]
    (let [mine-kw (-> mine :namespace keyword)]
      {:db (assoc-in db [:report :homologues mine-kw]
                     {:mine mine
                      :loading? true})
       :im-chan {:chan (fetch/rows service query {:format "json"})
-                :on-success [::handle-mine-homologues mine-kw]
-                :on-failure [::handle-mine-homologues-failure mine-kw]}})))
+                :on-success [::handle-mine-homologues report-key mine-kw]
+                :on-failure [::handle-mine-homologues-failure report-key mine-kw]}})))
 
 (reg-event-db
  ::handle-mine-homologues
- (fn [db [_ mine-kw res]]
-   (update-in db [:report :homologues mine-kw] assoc
-              :loading? false
-              :homologues (when (seq (:results res))
-                            (group-by :organism.shortName (views->results res))))))
+ (fn [db [_ report-key mine-kw res]]
+   (cond-> db
+     (current-report? db report-key)
+     (update-in [:report :homologues mine-kw] assoc
+                :loading? false
+                :homologues (when (seq (:results res))
+                              (group-by :organism.shortName (views->results res)))))))
 
 (reg-event-db
  ::handle-mine-homologues-failure
- (fn [db [_ mine-kw res]]
-   (update-in db [:report :homologues mine-kw] assoc
-              :loading? false
-              :error (or (get-in res [:body :error])
-                         "Error response to query"))))
+ (fn [db [_ report-key mine-kw res]]
+   (cond-> db
+     (current-report? db report-key)
+     (update-in [:report :homologues mine-kw] assoc
+                :loading? false
+                :error (or (get-in res [:body :error])
+                           "Error response to query")))))

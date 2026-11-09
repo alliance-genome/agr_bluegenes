@@ -41,10 +41,8 @@
           (into [:div.list-group-item-text]
                 (highlight-substring info @search-term :highlight))]]))))
 
-(defn monitor-enter-key [e]
+(defn monitor-enter-key [e results active-selection]
   (let [keycode          (.-charCode e)
-        active-selection (subscribe [:quicksearch-selected-index])
-        results          (subscribe [:suggestion-results])
         selected-result  (nth @results @active-selection nil)]
     (cond
       (= keycode 13) ;;enter key is 13
@@ -86,6 +84,7 @@
 (defn main []
   (reagent/create-class
    (let [results     (subscribe [:suggestion-results])
+         active-selection (subscribe [:quicksearch-selected-index])
          error       (subscribe [:suggestion-error])
          search-term (subscribe [:search-term])]
      {:component-did-mount
@@ -104,7 +103,7 @@
            :placeholder  "Search for any term"
            :on-change    (fn [e] (dispatch [:bounce-search (oget e :target :value)]))
            ;; Navigate to the main search results page if the user presses enter.
-           :on-key-press (fn [e] (monitor-enter-key e))
+           :on-key-press (fn [e] (monitor-enter-key e results active-selection))
            ;; Why is this separate from on-key-press, you ask?
            ;; Arrow keys don't trigger keypress events apparently. What meanies.
            :on-key-up    (fn [e] (monitor-arrow-keys e))

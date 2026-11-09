@@ -131,7 +131,8 @@
     [""
      {:name ::home
       :controllers
-      [{:start (fn []
+      [{:parameters {:path [:mine]}
+        :start (fn []
                  (dispatch [:home/clear])
                  (dispatch [:set-active-panel :home-panel
                             nil
@@ -139,7 +140,8 @@
     ["/admin"
      {:name ::admin
       :controllers
-      [{:start (fn []
+      [{:parameters {:path [:mine]}
+        :start (fn []
                  (dispatch [:set-active-panel :admin-panel
                             nil
                             [:bluegenes.pages.admin.events/init]])
@@ -147,20 +149,22 @@
     ["/tools"
      {:name ::tools
       :controllers
-      [{:start (fn []
+      [{:parameters {:path [:mine]}
+        :start (fn []
                  (dispatch [:set-active-panel :tools-panel
                             nil
                             [:bluegenes.pages.tools.events/init]]))}]}]
     ["/profile"
      {:name ::profile
       :controllers
-      [{:start #(dispatch [:set-active-panel :profile-panel
+      [{:parameters {:path [:mine]}
+        :start #(dispatch [:set-active-panel :profile-panel
                            nil
                            [:bluegenes.pages.profile.events/load-profile]])}]}]
     ["/debug/:panel"
      {:name ::debug
       :controllers
-      [{:parameters {:path [:panel]}
+      [{:parameters {:path [:mine :panel]}
         :start (fn [{{:keys [panel]} :path}]
                  (dispatch [:set-active-panel :debug-panel
                             nil
@@ -168,11 +172,12 @@
     ["/templates"
      {:name ::templates
       :controllers
-      [{:start #(dispatch [:set-active-panel :templates-panel])}]}]
+      [{:parameters {:path [:mine]}
+        :start #(dispatch [:set-active-panel :templates-panel])}]}]
     ["/templates/:template"
      {:name ::template
       :controllers
-      [{:parameters {:path [:template]}
+      [{:parameters {:path [:mine :template]}
         :start (fn [{{:keys [template]} :path}]
                  (dispatch [:template-chooser/open-template (keyword template)]))
         :stop (fn []
@@ -181,11 +186,12 @@
      [""
       {:name ::upload
        :controllers
-       [{:start #(dispatch [:set-active-panel :upload-panel])}]}]
+       [{:parameters {:path [:mine]}
+         :start #(dispatch [:set-active-panel :upload-panel])}]}]
      ["/:step"
       {:name ::upload-step
        :controllers
-       [{:parameters {:path [:step]}
+       [{:parameters {:path [:mine :step]}
          :start (fn [{{:keys [step]} :path}]
                   (dispatch [:set-active-panel :upload-panel
                              {:step (keyword step)}])
@@ -194,7 +200,7 @@
     ["/upgrade"
      {:name ::upgrade
       :controllers
-      [{:parameters {:query [:name]}
+      [{:parameters {:path [:mine] :query [:name]}
         :start (fn [{{:keys [name]} :query}]
                  (dispatch [:set-active-panel :upgrade-panel
                             {:upgrade-list name}
@@ -202,7 +208,7 @@
     ["/search"
      {:name ::search
       :controllers
-      [{:parameters {:query [:keyword]}
+      [{:parameters {:path [:mine] :query [:keyword]}
         :start (fn [{{:keys [keyword]} :query}]
                  (dispatch [:search/start-scroll-handling])
                  (dispatch [:set-active-panel :search-panel
@@ -212,13 +218,14 @@
     ["/querybuilder"
      {:name ::querybuilder
       :controllers
-      [{:start #(dispatch [:set-active-panel :querybuilder-panel
+      [{:parameters {:path [:mine]}
+        :start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
                            [:bluegenes.pages.querybuilder.events/load-querybuilder]])}]}]
     ["/results/:title"
      {:name ::results
       :controllers
-      [{:parameters {:path [:title]}
+      [{:parameters {:path [:mine :title]}
         :start (fn [{{:keys [title]} :path}]
                  ;; We have to clear the previous query and tools entity, as
                  ;; otherwise we may show old results and tools from the
@@ -237,13 +244,15 @@
     ["/regions"
      {:name ::regions
       :controllers
-      [{:start (fn []
+      [{:parameters {:path [:mine]}
+        :start (fn []
                  (dispatch [:regions/fetch-organisms])
                  (dispatch [:set-active-panel :regions-panel]))}]}]
     ["/lists"
      {:name ::lists
       :controllers
-      [{:start (fn []
+      [{:parameters {:path [:mine]}
+        :start (fn []
                  (dispatch [:set-active-panel :lists-panel
                             nil
                             [:lists/initialize]]))}]}]
@@ -268,7 +277,7 @@
     ["/resetpassword"
      {:name ::resetpassword
       :controllers
-      [{:parameters {:query [:token]}
+      [{:parameters {:path [:mine] :query [:token]}
         :start (fn [{{:keys [token]} :query}]
                  (dispatch [:bluegenes.events.auth/clear-reset-password-page])
                  (dispatch [:set-active-panel :reset-password-panel

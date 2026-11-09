@@ -62,12 +62,23 @@
     (let [keep-facets (->> filters keys (select-keys old-facets))]
       (merge facets keep-facets))))
 
+(defn search-query
+  "Identifies the search a response belongs to. `:search/full-search`
+  increments `:generation`, so responses for an earlier search are dropped."
+  [search-results]
+  (:generation search-results 0))
+
+(defn current-search? [db query]
+  (= query (search-query (:search-results db))))
+
 (reg-event-db
  :search/save-facets
- (fn [db [_ {:keys [facets]}]]
-   (let [{filters :active-filters, old-facets :facets} (:search-results db)
-         new-facets (merge-filtered-facets filters old-facets facets :fresh true)]
-     (assoc-in db [:search-results :facets] new-facets))))
+ (fn [db [_ query {:keys [facets]}]]
+   (if (current-search? db query)
+     (let [{filters :active-filters, old-facets :facets} (:search-results db)
+           new-facets (merge-filtered-facets filters old-facets facets :fresh true)]
+       (assoc-in db [:search-results :facets] new-facets))
+     db)))
 
 (reg-event-db
  :search/failure
@@ -84,7 +95,8 @@
                 {:keys [results facets totalHits]}]]
    (let [db (assoc-in db [:search-results :count] totalHits)
          service (get-in db [:mines (get db :current-mine) :service])
-         search-term (get-in db [:search-results :keyword])]
+         search-term (get-in db [:search-results :keyword])
+         query (search-query (:search-results db))]
      (cond
        (and new-search? active-filter?)
        ;; We had a filter activated when we performed a new search, so we want
@@ -98,7 +110,8 @@
                     :error nil
                     :facets facets)
         :im-chan {:chan (fetch/quicksearch service search-term {:size 0})
-                  :on-success [:search/save-facets]}}
+                  :abort :search-facets
+                  :on-success [:search/save-facets query]}}
 
        active-filter?
        ;; We fetched the results for activating a filter, so leave the old
@@ -114,7 +127,8 @@
            ;; to get the correct facets for the activated filters.
            removed-filter? (assoc :im-chan
                                   {:chan (fetch/quicksearch service search-term {:size 0})
-                                   :on-success [:search/save-facets]})))
+                                   :abort :search-facets
+                                   :on-success [:search/save-facets query]})))
 
        :else
        ;; We fetched the results for a new plain search.
@@ -160,6 +174,11 @@
      {:db (-> db
               (assoc :search-term search-term)
               (assoc-in [:search-results :keyword] search-term)
+              ;; Pending page requests belong to the previous search.
+              (update-in [:search-results :generation] (fnil inc 0))
+              (update :search-results assoc
+                      :loading-more? false
+                      :loading-remaining? false)
               (cond-> new-search?
                 (-> (update :search-results dissoc :results)
                     (assoc-in [:search-results :loading?] true))))
@@ -169,6 +188,7 @@
                                           {:size results-batch-size}
                                           (when active-filters?
                                             (active-filters->facet-query filters))))
+                :abort :search
                 :on-success [:search/save-results
                              {:new-search? new-search?
                               :active-filter? active-filters?
@@ -252,21 +272,41 @@
 
 (declare scrolled-past?)
 
+(defn clamp-count-on-empty-page
+  "An empty page while fewer than `:count` results are loaded means the server
+  has no more results. Lower `:count` so no further pages are requested."
+  [db results]
+  (cond-> db
+    (empty? results)
+    (assoc-in [:search-results :count]
+              (count (get-in db [:search-results :results])))))
+
 (reg-event-fx
  :search/save-more-results
- (fn [{db :db} [_ {:keys [results]}]]
-   ;; You may think it very sneaky to dispatch an event from a setTimeout
-   ;; callback, but this is to counter very eager scrollers whom sit at the
-   ;; bottom of the page before rateLimit has a chance to reset. This means we
-   ;; need to check their scroll position once we're sure the results have been
-   ;; added to the DOM, lest we keep them waiting for the rest of their lives!
-   (js/setTimeout (fn []
-                    (when (scrolled-past?)
-                      (dispatch [:search/more-results])))
-                  1000)
-   {:db (-> db
-            (assoc-in [:search-results :loading-more?] false)
-            (update-in [:search-results :results] into results))}))
+ (fn [{db :db} [_ query {:keys [results]}]]
+   (if (current-search? db query)
+     (do
+       ;; You may think it very sneaky to dispatch an event from a setTimeout
+       ;; callback, but this is to counter very eager scrollers whom sit at the
+       ;; bottom of the page before rateLimit has a chance to reset. This means we
+       ;; need to check their scroll position once we're sure the results have been
+       ;; added to the DOM, lest we keep them waiting for the rest of their lives!
+       (js/setTimeout (fn []
+                        (when (scrolled-past?)
+                          (dispatch [:search/more-results])))
+                      1000)
+       {:db (-> db
+                (assoc-in [:search-results :loading-more?] false)
+                (update-in [:search-results :results] into results)
+                (clamp-count-on-empty-page results))})
+     {})))
+
+(reg-event-db
+ :search/more-results-failure
+ (fn [db [_ query _res]]
+   (cond-> db
+     (current-search? db query)
+     (assoc-in [:search-results :loading-more?] false))))
 
 (reg-event-fx
  :search/more-results
@@ -285,14 +325,26 @@
                                              :start (count results)}
                                             (when (some? (seq filters))
                                               (active-filters->facet-query filters))))
-                  :on-success [:search/save-more-results]}}
+                  :on-success [:search/save-more-results (search-query (:search-results db))]
+                  :on-failure [:search/more-results-failure (search-query (:search-results db))]}}
        {}))))
 
 (reg-event-fx
  :search/save-remaining-results
- (fn [{db :db} [_ {:keys [on-success]} {:keys [results]}]]
-   {:db (update-in db [:search-results :results] into results)
-    :dispatch on-success}))
+ (fn [{db :db} [_ query {:keys [on-success]} {:keys [results]}]]
+   (if (current-search? db query)
+     {:db (-> db
+              (update-in [:search-results :results] into results)
+              (clamp-count-on-empty-page results))
+      :dispatch on-success}
+     {})))
+
+(reg-event-db
+ :search/remaining-results-failure
+ (fn [db [_ query _res]]
+   (cond-> db
+     (current-search? db query)
+     (assoc-in [:search-results :loading-remaining?] false))))
 
 ;; You could get duplicate results if you manage to click the "Select all"
 ;; button just as you scrolled to the bottom of the page, with more results to
@@ -313,7 +365,10 @@
                                             (when (some? (seq filters))
                                               (active-filters->facet-query filters))))
                   :on-success [:search/save-remaining-results
-                               {:on-success on-success}]}}
+                               (search-query (:search-results db))
+                               {:on-success on-success}]
+                  :on-failure [:search/remaining-results-failure
+                               (search-query (:search-results db))]}}
        {:dispatch on-success}))))
 
 (defn scrolled-past?

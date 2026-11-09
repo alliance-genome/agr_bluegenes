@@ -29,9 +29,16 @@
            (map (partial (comp last (partial take-while some?))))))))
 
 (defn parse-file
-  "Parse identifiers from a file on disk"
-  [[file-name {:keys [filename content-type tempfile size]}]]
-  (parse-identifiers (slurp tempfile)))
+  "Parse identifiers from an uploaded file on disk"
+  [{:keys [tempfile]}]
+  (when tempfile
+    (parse-identifiers (slurp tempfile))))
+
+(defn uploaded-files
+  "Ring turns repeated multipart field names into a vector, so a field value
+  is either one upload map or a vector of them."
+  [[_field-name value]]
+  (filter map? (if (sequential? value) value [value])))
 
 ; Keys from a multipart request that indicate anything other than a reference to a file (see below)
 (def multipart-options ["caseSensitive" "text"])
@@ -63,7 +70,7 @@
         ; Should the parsing be case sensitive?
         case-sensitive (= "true" (get options "caseSensitive"))]
     ; Parse the identifiers and remove duplicates (ignoring case if case-insensitive, keeping the first occurrence as typed)
-    (let [total (distinct-by (if case-sensitive identity lower-case) (concat (mapcat parse-file files) (parse-identifiers text)))]
+    (let [total (distinct-by (if case-sensitive identity lower-case) (concat (mapcat parse-file (mapcat uploaded-files files)) (parse-identifiers text)))]
       ; Return the parsed identifiers and the total count
       {:identifiers total
        :total (count total)})))

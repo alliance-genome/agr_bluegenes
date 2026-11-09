@@ -1,7 +1,6 @@
 (ns bluegenes.components.idresolver.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]
-            [oops.core :refer [oget]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [imcljs.path :as path]
@@ -32,7 +31,9 @@
     ::fx/http {:uri "/api/ids/parse"
                :method :post
                :multipart-params
-               (cond-> (map (fn [f] [(oget f :name) f]) js-Files)
+               ; Every file goes under the same field name, so file names
+               ; cannot collide with each other or with the option fields.
+               (cond-> (map (fn [f] ["file" f]) js-Files)
                  ; After creating multipart params for files,
                  ; create one for text
                  ; if there's a value
@@ -40,7 +41,21 @@
                  (conj ["text" text])
                  ; And also a param for the case sensitive option
                  true (conj ["caseSensitive" (:case-sensitive options)]))
-               :on-success [::store-parsed-response options]}}))
+               :on-success [::store-parsed-response options]
+               :on-failure [::parse-staged-files-failure]
+               :on-unauthorised [::parse-staged-files-failure]}}))
+
+(reg-event-fx
+ ::parse-staged-files-failure
+ (fn [{db :db} [_ res]]
+   {:db (assoc-in db [:idresolver :stage :status :action] nil)
+    :dispatch [:messages/add
+               {:markup [:span [:strong "Failed to parse identifiers. "]
+                         [:code (if-let [err (not-empty (get-in res [:body :error]))]
+                                  err
+                                  "Please check your files and try again.")]]
+                :timeout 10000
+                :style "danger"}]}))
 
 (reg-event-fx
  ::store-parsed-response

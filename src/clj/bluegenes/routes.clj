@@ -29,15 +29,26 @@
       (response/charset "utf-8")
       (assoc :session (dissoc session :init))))
 
+(defn favicon-fallback []
+  (found (str (:bluegenes-deploy-path env) "/favicon-fallback.ico")))
+
 (defn get-favicon
-  "Get a favicon for when one isn't configured."
+  "Get a favicon for when one isn't configured. Returns nil when the mine
+  could not be reached, so a later request can try again."
   []
-  (let [mine-favicon (str (get-service-root env) "/model/images/favicon.ico")]
-    (if (-> (client/get mine-favicon)
-            (get-in [:headers "Content-Type"])
-            (= "image/x-icon"))
-      (found mine-favicon)
-      (found (str (:bluegenes-deploy-path env) "/favicon-fallback.ico")))))
+  (let [favicon-path "/model/images/favicon.ico"]
+    (try
+      (let [res (client/get (str (get-service-root env) favicon-path)
+                            {:connection-timeout 3000
+                             :socket-timeout 3000
+                             :throw-exceptions false})
+            content-type (str (get-in res [:headers "Content-Type"]))]
+        (if (and (= 200 (:status res))
+                 (or (str/starts-with? content-type "image/x-icon")
+                     (str/starts-with? content-type "image/vnd.microsoft.icon")))
+          (found (str (:bluegenes-default-service-root env) favicon-path))
+          (favicon-fallback)))
+      (catch Exception _ nil))))
 
 (defn not-found-page [{:keys [request-method uri] :as _req}]
   (let [bg-path (or (:bluegenes-deploy-path env) "/")]
@@ -55,7 +66,7 @@
 ; Define the top level URL routes for the server
 (def routes
   (compojure/let-routes [mines (env->mines env)
-                         favicon* (delay (get-favicon))]
+                         favicon* (atom nil)]
     (context (:bluegenes-deploy-path env) []
       ;;serve compiled files, i.e. js, css, from the resources folder
       (resources "/")
@@ -65,7 +76,10 @@
       ;; 2. `/<mine>/model/images/favicon.ico` being present on the default mine.
       ;; 3. `public/favicon-fallback.ico` which is always present.
       ;; Hence it follows that the following route won't be matched if [1] is true.
-      (GET "/favicon.ico" [] @favicon*)
+      (GET "/favicon.ico" []
+        (or @favicon*
+            (some->> (get-favicon) (reset! favicon*))
+            (favicon-fallback)))
 
       (GET "/version" [] (response {:version "0.1.0"}))
 

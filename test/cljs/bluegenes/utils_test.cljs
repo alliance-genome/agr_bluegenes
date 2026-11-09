@@ -352,3 +352,23 @@
     (is (not (re-find #"(?i)onerror" (utils/sanitize-html "<img src=x onerror=alert(1)>"))))
     (is (not (re-find #"(?i)javascript:" (utils/sanitize-html "<a href=\"javascript:alert(1)\">x</a>")))))
   (is (nil? (utils/sanitize-html nil)) "Returns nil for nil input"))
+
+(deftest resolve-class-name
+  (let [classes {:Gene {:name "Gene"}
+                 :MRNA {:name "MRNA"}
+                 :ThreePrimeUTR {:name "ThreePrimeUTR"}}]
+    (testing "Class names resolve ignoring case"
+      (are [s res] (= (utils/resolve-class-name classes s) res)
+        "gene" "Gene"
+        "GENE" "Gene"
+        "mrna" "MRNA"
+        "MRNA" "MRNA"
+        "threeprimeutr" "ThreePrimeUTR"
+        "ThreePrimeUTR" "ThreePrimeUTR"))
+    (testing "Unknown or blank class names return nil"
+      (are [s] (nil? (utils/resolve-class-name classes s))
+        "Protein"
+        ""
+        nil))
+    (testing "Missing model returns nil"
+      (is (nil? (utils/resolve-class-name nil "Gene"))))))
