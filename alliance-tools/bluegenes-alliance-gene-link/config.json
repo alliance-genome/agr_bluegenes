@@ -1,0 +1,17 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Alliance gene page",
+    "cljs": "bluegenesAllianceGeneLink"
+  },
+  "version": 2
+}
