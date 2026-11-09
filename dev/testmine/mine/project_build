@@ -1,0 +1,12 @@
+#!/bin/sh
+# The intermine/builder image runs ./project_build and only fetches the stock script
+# when this file is missing. This wrapper first compiles and installs the bio-sources
+# in bio-sources/ into ~/.m2 (bound to the host "packages" dir), then hands over to
+# the stock script (project_build_im) with the same arguments.
+set -e
+here="$(cd "$(dirname "$0")" && pwd)"
+
+echo "$(date +%Y/%m/%d-%H:%M) Installing test mine bio-sources"
+(cd "$here/bio-sources" && ./gradlew --no-daemon --stacktrace install -x test)
+
+exec "$here/project_build_im" "$@"

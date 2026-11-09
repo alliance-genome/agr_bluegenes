@@ -1,0 +1,10 @@
+rootProject.name = 'bio-sources'
+
+// Subset of the AllianceMine bio-sources needed by the test mine.
+def sources = ['alliance-genes', 'alliance-orthologs', 'alliance-ortholog-detail',
+               'alliance-disease', 'alliance-disease-detail', 'alliance-phenotypes',
+               'alliance-alleles', 'testmine-organisms']
+sources.each { name ->
+    include ":bio-source-${name}"
+    project(":bio-source-${name}").projectDir = new File(settingsDir, "./${name}")
+}

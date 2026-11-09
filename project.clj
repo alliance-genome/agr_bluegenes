@@ -129,6 +129,8 @@
                        ["with-profile" "prod" "run"]]
                "biotestmine" ["do" "build,"
                               ["with-profile" "biotestmine" "run"]]
+               "testmine" ["do" "build,"
+                           ["with-profile" "testmine" "run"]]
                "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
                "format" ["cljfmt" "fix"]
                "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
@@ -175,7 +177,12 @@
                            :env {:bluegenes-default-service-root "http://localhost:9999/biotestmine"
                                  :bluegenes-default-mine-name "Biotestmine"
                                  :bluegenes-default-namespace "biotestmine"
-                                 :bluegenes-additional-mines [{:root "https://www.flymine.org/flymine" :name "FlyMine" :namespace "flymine"}]}}}
+                                 :bluegenes-additional-mines [{:root "https://www.flymine.org/flymine" :name "FlyMine" :namespace "flymine"}]}}
+             ;; Local AllianceMine data model test mine, see dev/testmine/README.md.
+             :testmine {:env {:bluegenes-default-service-root "http://localhost:9999/alliancetestmine"
+                              :bluegenes-default-mine-name "AllianceMine Test Mine"
+                              :bluegenes-default-namespace "alliancetestmine"
+                              :bluegenes-additional-mines []}}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}

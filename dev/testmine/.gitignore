@@ -1,0 +1,3 @@
+bio-sources/**/build/
+bio-sources/**/bin/
+bio-sources/.gradle/
