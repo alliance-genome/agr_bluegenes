@@ -152,15 +152,22 @@
   below. Optionally takes pagination data."
   [filterf sortf {:keys [by-id expanded-paths] :as denormalized}
    & [{:keys [per-page current-page] :as pagination}]]
-  (let [top-level-maps (vals by-id)]
+  (let [top-level-maps (vals by-id)
+        expandf (partial expand-folders filterf sortf denormalized)
+        ;; Strip empty folders before paginating, so each page gets `per-page`
+        ;; rows and the slices agree with `:lists/page-count`.
+        top-level-items (reduce-folders
+                         (constantly false)
+                         expandf
+                         (sortf
+                          (concat (filterf (filter top-level-list? top-level-maps))
+                                  (filter top-level-folder? top-level-maps))))]
     (reduce-folders
      expanded-paths
-     (partial expand-folders filterf sortf denormalized)
-     (cond-> (sortf
-              (concat (filterf (filter top-level-list? top-level-maps))
-                      (filter top-level-folder? top-level-maps)))
-       pagination (->> (drop (* per-page (dec current-page)))
-                       (take per-page))))))
+     expandf
+     (cond->> top-level-items
+       pagination (drop (* per-page (dec current-page)))
+       pagination (take per-page)))))
 
 (defn ->filterf
   "Create a filter function from the filters map in controls, to be passed to
@@ -262,14 +269,12 @@
   grab the one with the highest number. The increment of this number will then
   be used as postfix for the new list name."
   [lists list-name]
-  (let [greatest-postfix-num (->> lists
+  (let [prefix (str list-name "_")
+        ;; Only an all-digit postfix counts, so names like foo_bar are ignored.
+        greatest-postfix-num (->> lists
                                   (map :name)
-                                  (filter #(str/starts-with? % (str list-name "_")))
-                                  (map #(-> % (str/split #"_") peek js/parseInt))
-                                  (apply max))
-        ;; We need to handle nil (no lists with postfix) and NaN (empty after postfix).
-        new-postfix (if (or (not (number? greatest-postfix-num))
-                            (.isNaN js/Number greatest-postfix-num))
-                      1
-                      (inc greatest-postfix-num))]
-    (str list-name "_" new-postfix)))
+                                  (filter #(str/starts-with? % prefix))
+                                  (keep #(re-matches #"\d+" (subs % (count prefix))))
+                                  (map js/parseInt)
+                                  (reduce max 0))]
+    (str prefix (inc greatest-postfix-num))))

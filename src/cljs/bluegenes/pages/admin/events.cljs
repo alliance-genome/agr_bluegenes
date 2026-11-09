@@ -226,7 +226,7 @@
  (fn [admin [_ cat-index child-index]]
    (let [children (to-children admin cat-index :get)
          last-index (dec (count children))]
-     (if (>= cat-index last-index)
+     (if (>= child-index last-index)
        admin
        (let [child (nth children child-index)]
          (to-children admin cat-index :assoc
