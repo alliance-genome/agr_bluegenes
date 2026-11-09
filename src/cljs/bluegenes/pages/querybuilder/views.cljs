@@ -1040,7 +1040,7 @@
                          (reset! error* err)
                          (do (reset! error* nil)
                              (dispatch [:qb/save-template (collect-inputs)
-                                        (mapv #(merge % (meta-of %)) @constraints*)])))}
+                                        (mapv (fn [c] (merge c (meta-of c))) @constraints*)])))}
            "Save template"]
           [:button.btn.btn-default.btn-raised
            {:on-click (fn []
