@@ -45,8 +45,10 @@ const ok = (results) => ({ ok: true, json: async () => ({ results }) });
 
 test('main renders rows, links and summary', async () => {
 	let requested;
-	globalThis.fetch = async (url) => {
+	let init;
+	globalThis.fetch = async (url, i) => {
 		requested = url;
+		init = i;
 		return ok([
 			row('HGNC:1', 11, 'MGI:98834', 'Ptx', 'M. musculus', 5, 6, true),
 			row('HGNC:1', 12, 'FBgn0039044', 'dx', 'D. melanogaster', 3, 6, false)
@@ -56,8 +58,10 @@ test('main renders rows, links and summary', async () => {
 	const calls = [];
 	tool.main(el, { root: 'http://h/mine/service/' }, { Gene: { value: '42' } }, {}, {}, (...a) => calls.push(a));
 	await tick();
-	assert.ok(requested.startsWith('http://h/mine/service/query/results?format=json'));
-	assert.ok(decodeURIComponent(requested).includes('value="42"'));
+	assert.strictEqual(requested, 'http://h/mine/service/query/results');
+	assert.strictEqual(init.method, 'POST');
+	assert.ok(init.body.startsWith('format=json&size=2000&query='));
+	assert.ok(decodeURIComponent(init.body).includes('value="42"'));
 	assert.ok(el.textContent.includes('2 orthologs in 2 species: D. melanogaster 1, M. musculus 1'));
 	const anchors = el.find('a');
 	assert.strictEqual(anchors.length, 4);
@@ -122,4 +126,24 @@ test('several ids add a query gene column', async () => {
 	await tick();
 	assert.ok(el.textContent.includes('Query gene'));
 	assert.ok(el.textContent.includes('HGNC:1'));
+});
+
+test('500 ids go in a POST body, not the URL', async () => {
+	let requested, init;
+	globalThis.fetch = async (url, i) => {
+		requested = url;
+		init = i;
+		return ok([]);
+	};
+	const ids = Array.from({ length: 500 }, (_, i) => String(100000 + i));
+	tool.main(fakeEl(), { root: 'http://h/mine/service' }, { Gene: { value: ids } }, {}, {}, () => {});
+	await tick();
+	assert.strictEqual(init.method, 'POST');
+	assert.ok(!requested.includes('?'));
+	assert.strictEqual(requested, 'http://h/mine/service/query/results');
+	assert.strictEqual(init.headers['Content-Type'], 'application/x-www-form-urlencoded');
+	const params = new URLSearchParams(init.body);
+	assert.strictEqual(params.get('format'), 'json');
+	assert.strictEqual(params.get('size'), '2000');
+	assert.strictEqual((params.get('query').match(/<value>/g) || []).length, 500);
 });

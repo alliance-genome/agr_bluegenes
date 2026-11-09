@@ -46,12 +46,13 @@
 		);
 	}
 
-	function queryUrl(serviceRoot, ids) {
-		return (
-			serviceRoot.replace(/\/+$/, '') +
-			'/query/results?format=json&size=' + MAX_ROWS +
-			'&query=' + encodeURIComponent(buildQuery(ids))
-		);
+	function resultsUrl(serviceRoot) {
+		return serviceRoot.replace(/\/+$/, '') + '/query/results';
+	}
+
+	// The id list goes in a POST body: a GET query string fails above about 250 ids.
+	function requestBody(ids) {
+		return 'format=json&size=' + MAX_ROWS + '&query=' + encodeURIComponent(buildQuery(ids));
 	}
 
 	function toRow(r) {
@@ -205,7 +206,11 @@
 	}
 
 	function fetchRows(serviceRoot, ids) {
-		return fetch(queryUrl(serviceRoot, ids))
+		return fetch(resultsUrl(serviceRoot), {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+			body: requestBody(ids)
+		})
 			.then(function (res) {
 				if (!res.ok) throw new Error('HTTP ' + res.status);
 				return res.json();
@@ -245,7 +250,8 @@
 	var api = {
 		main: main,
 		buildQuery: buildQuery,
-		queryUrl: queryUrl,
+		resultsUrl: resultsUrl,
+		requestBody: requestBody,
 		escapeXml: escapeXml,
 		toRow: toRow,
 		groupRows: groupRows,
