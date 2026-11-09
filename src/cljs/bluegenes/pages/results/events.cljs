@@ -351,6 +351,7 @@
  (fn [db]
    (-> db
        (assoc-in [:results :query] nil)
+       (assoc-in [:results :orthologs] nil)
        (clear-widget-options))))
 
 (reg-event-db

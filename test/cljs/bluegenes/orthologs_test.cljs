@@ -138,6 +138,14 @@
      (is (= "danger" (:style (first @messages))))
      (is (= [:code "boom"] (last (:markup (first @messages))))))))
 
+(deftest results-clear-resets-panel
+  (run-test-sync
+   (rf/dispatch [::seed (assoc seeded-db :results
+                               {:orthologs {:open? true :list-source "A"}})])
+   (rf/dispatch [:results/clear])
+   (is (nil? @(rf/subscribe [::orthologs]))
+       "panel state of list A is gone after navigating away")))
+
 (deftest save-needs-count-and-name
   (run-test-sync
    (rf/dispatch [::seed (assoc seeded-db :results
