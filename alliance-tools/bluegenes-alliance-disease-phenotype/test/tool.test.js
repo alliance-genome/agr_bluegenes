@@ -163,6 +163,40 @@ test('main shows a Gene column for lists', async () => {
 	assert.match(el.textContent, /G2/);
 });
 
+test('Gene column shows for a list when only one gene has annotations', async () => {
+	stubFetch((url, opts) => (/phenotypeAnnotations/.test(opts.body) ? ok([]) : ok([D(1, 'E', 'S', 'DOID:1', 'a', null, 1)])));
+	const el = new FakeNode('div');
+	tool.main(el, service(), { Gene: { value: [1, 2] } });
+	await tick();
+	assert.ok(el.find('th').some((t) => t.textContent === 'Gene'));
+});
+
+test('single gene report page has no Gene column', async () => {
+	stubFetch((url, opts) => (/phenotypeAnnotations/.test(opts.body) ? ok([]) : ok([D(1, 'E', 'S')])));
+	const el = new FakeNode('div');
+	tool.main(el, service(), { Gene: { value: 1 } });
+	await tick();
+	assert.ok(!el.find('th').some((t) => t.textContent === 'Gene'));
+});
+
+test('notice when rows reach the 20000 cap', async () => {
+	const rows = [];
+	for (let i = 0; i < 20000; i++) rows.push(P(i, 'p' + i, '1'));
+	stubFetch((url, opts) => (/phenotypeAnnotations/.test(opts.body) ? ok(rows) : ok([])));
+	const el = new FakeNode('div');
+	tool.main(el, service(), { Gene: { value: 5 } });
+	await tick();
+	assert.match(el.textContent, /Showing first 20000 rows, results are incomplete/);
+});
+
+test('no cap notice below 20000 rows', async () => {
+	stubFetch((url, opts) => (/phenotypeAnnotations/.test(opts.body) ? ok([P(1, 'x', '1')]) : ok([])));
+	const el = new FakeNode('div');
+	tool.main(el, service(), { Gene: { value: 5 } });
+	await tick();
+	assert.doesNotMatch(el.textContent, /incomplete/);
+});
+
 test('empty states per section', async () => {
 	stubFetch(() => ok([]));
 	const el = new FakeNode('div');

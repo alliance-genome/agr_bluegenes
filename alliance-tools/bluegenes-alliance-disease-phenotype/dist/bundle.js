@@ -360,14 +360,6 @@
 		return table;
 	}
 
-	function distinctGenes(groups) {
-		var seen = {};
-		groups.forEach(function (g) {
-			seen[g.geneId] = true;
-		});
-		return Object.keys(seen).length;
-	}
-
 	function totalCount(groups) {
 		return groups.reduce(function (n, g) {
 			return n + g.count;
@@ -375,11 +367,13 @@
 	}
 
 	// kind: { title, headers, cellsFor, empty }
-	function renderSection(box, kind, groups) {
-		var showGene = distinctGenes(groups) > 1;
+	function renderSection(box, kind, groups, showGene, truncated) {
 		function draw(expanded) {
 			clear(box);
 			box.appendChild(make('h4', null, kind.title + ' (' + totalCount(groups) + ')'));
+			if (truncated) {
+				box.appendChild(make('p', 'text-warning', 'Showing first ' + MAX_ROWS + ' rows, results are incomplete'));
+			}
 			if (groups.length === 0) {
 				box.appendChild(make('p', 'text-muted', kind.empty));
 				return;
@@ -426,7 +420,7 @@
 		fetchRows(serviceRoot, kind.build(ids))
 			.then(function (rows) {
 				if (el.__agrReq !== token) return;
-				renderSection(box, kind, kind.group(rows));
+				renderSection(box, kind, kind.group(rows), ids.length > 1, rows.length >= MAX_ROWS);
 			})
 			.catch(function () {
 				if (el.__agrReq !== token) return;
