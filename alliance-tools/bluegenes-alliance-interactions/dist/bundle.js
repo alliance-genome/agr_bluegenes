@@ -182,6 +182,11 @@
 		return (o && o.name) || '';
 	}
 
+	function taxonIdOf(taxon) {
+		var m = taxon && typeof taxon.curie === 'string' && /^NCBITaxon:(\d+)$/.exec(taxon.curie);
+		return m ? m[1] : '';
+	}
+
 	// One API result to a table row. The partner is the end that is not the query gene.
 	function toRow(result, queryCurie) {
 		var d = result && (result.geneMolecularInteraction || result.geneGeneticInteraction);
@@ -193,6 +198,7 @@
 		if (!curie) return null;
 		return {
 			curie: curie,
+			taxon: taxonIdOf(partner.taxon),
 			symbol: plain(partner.geneSymbol && partner.geneSymbol.displayText) || curie,
 			species: (partner.taxon && partner.taxon.name) || '',
 			type: nameOf(d.interactionType),
@@ -202,27 +208,37 @@
 		};
 	}
 
-	// Mine identifiers that could hold a partner: the CURIE itself and its bare form.
+	// Prefixes whose mines store the id without the prefix (FBgn..., WBGene..., S000..., ZDB-GENE-...).
+	// Bare numeric ids (HGNC:20 as 20) are not tried: they collide across species.
+	var BARE_PREFIXES = { FB: true, WB: true, SGD: true, ZFIN: true };
+
+	// Mine identifiers that could hold a partner: the CURIE, plus the bare form for BARE_PREFIXES.
 	function candidateIds(curie) {
 		var out = [curie];
 		var i = curie.indexOf(':');
-		if (i > 0 && curie.slice(i + 1)) out.push(curie.slice(i + 1));
+		if (i > 0 && curie.slice(i + 1) && BARE_PREFIXES[curie.slice(0, i)]) out.push(curie.slice(i + 1));
 		return out;
 	}
 
-	// Returns {curie: internal Gene.id} for the partners present in the mine.
-	function lookupPartners(mineRoot, curies) {
-		if (!curies.length) return Promise.resolve({});
+	// partners: [{curie, taxon}]. Returns {curie: internal Gene.id} for the partners present in the mine.
+	// A bare-id match counts only when Gene.organism.taxonId equals the partner taxon.
+	function lookupPartners(mineRoot, partners) {
+		if (!partners.length) return Promise.resolve({});
 		var byCandidate = {};
-		curies.forEach(function (c) {
-			candidateIds(c).forEach(function (id) { byCandidate[id] = c; });
+		partners.forEach(function (p) {
+			candidateIds(p.curie).forEach(function (id) {
+				(byCandidate[id] = byCandidate[id] || []).push(p);
+			});
 		});
-		var q = buildQuery(['Gene.id', 'Gene.primaryIdentifier'], 'Gene.primaryIdentifier', Object.keys(byCandidate));
+		var q = buildQuery(['Gene.id', 'Gene.primaryIdentifier', 'Gene.organism.taxonId'], 'Gene.primaryIdentifier', Object.keys(byCandidate));
 		return postRows(mineRoot, q).then(function (rows) {
 			var found = {};
 			rows.forEach(function (r) {
-				var c = byCandidate[r[1]];
-				if (c && found[c] === undefined) found[c] = r[0];
+				(byCandidate[r[1]] || []).forEach(function (p) {
+					var exact = r[1] === p.curie;
+					if (!exact && (!p.taxon || String(r[2]) !== p.taxon)) return;
+					if (found[p.curie] === undefined) found[p.curie] = r[0];
+				});
 			});
 			return found;
 		});
@@ -395,7 +411,7 @@
 			panel.appendChild(node('p', 'Showing ' + s.rows.length + ' of ' + s.total, 'alliance-interactions-summary'));
 			panel.appendChild(table(s.rows, mineIds, ctx.navigate));
 			if (s.status === 'error') panel.appendChild(node('p', 'Could not load more ' + active + ' interactions'));
-			if (s.rows.length < s.total) {
+			if (!s.done && s.rows.length < s.total) {
 				var more = node('button', s.status === 'loading' ? 'Loading...' : 'Load more', 'btn btn-default');
 				more.type = 'button';
 				more.disabled = s.status === 'loading';
@@ -415,7 +431,8 @@
 					if (ctx.stale()) return null;
 					var rows = res.results.map(function (r) { return toRow(r, ctx.curie); }).filter(Boolean);
 					s.total = res.total;
-					return lookupPartners(ctx.mineRoot, rows.map(function (r) { return r.curie; }))
+					if (res.results.length < PAGE_SIZE) s.done = true;
+					return lookupPartners(ctx.mineRoot, rows.map(function (r) { return { curie: r.curie, taxon: r.taxon }; }))
 						.catch(function (err) {
 							console.error('interactions: partner lookup failed', err);
 							return {};
@@ -450,7 +467,7 @@
 		}
 
 		TABS.forEach(function (t) {
-			st[t.key] = { status: 'idle', rows: [], total: null, page: 0 };
+			st[t.key] = { status: 'idle', rows: [], total: null, page: 0, done: false };
 			var b = node('button', t.label, 'btn btn-default');
 			b.type = 'button';
 			b.setAttribute('role', 'tab');

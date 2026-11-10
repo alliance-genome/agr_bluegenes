@@ -83,7 +83,7 @@ function fakes(opts) {
 			const query = new URLSearchParams(init.body).get('query');
 			log.mine.push({ url, query });
 			if (opts.mineFail && query.includes('ONE OF')) return { ok: false, status: 500 };
-			if (query.includes('Gene.organism.taxonId')) {
+			if (!query.includes('ONE OF')) {
 				return { ok: true, json: async () => ({ results: [opts.gene || ['HGNC:11998', 'TP53', 'H. sapiens', 9606]] }) };
 			}
 			const rows = (opts.mineGenes || []).filter((g) => query.includes('<value>' + g[1] + '</value>') || query.includes('value="' + g[1] + '"'));
@@ -147,10 +147,10 @@ test('main: first page 50, count for both tabs, Load more fetches page 2', async
 	assert.strictEqual(outside.href, 'https://www.alliancegenome.org/gene/HGNC:1004');
 	assert.ok(links.some((a) => a.href === 'https://pubmed.ncbi.nlm.nih.gov/32807901'));
 
-	// One batched ONE OF lookup per page, holding the CURIE and bare id of each partner.
+	// One batched ONE OF lookup per page, holding the CURIE of each partner (HGNC has no bare form).
 	const lookups = log.mine.filter((m) => m.query.includes('ONE OF'));
 	assert.strictEqual(lookups.length, 1);
-	assert.strictEqual((lookups[0].query.match(/<value>/g) || []).length, 100);
+	assert.strictEqual((lookups[0].query.match(/<value>/g) || []).length, 50);
 
 	const more = el.find('button').find((b) => b.textContent === 'Load more');
 	more.listeners.click();
@@ -159,6 +159,51 @@ test('main: first page 50, count for both tabs, Load more fetches page 2', async
 	assert.strictEqual(el.find('tr').length, 101);
 	assert.ok(el.textContent.includes('Showing 100 of 120'));
 	assert.ok(el.find('button').some((b) => b.textContent === 'Load more'));
+});
+
+test('main: an empty page 2 ends Load more although rows < total', async () => {
+	const log = fakes({
+		molecular: async (url) => {
+			const page = Number(/page=(\d+)/.exec(url)[1]);
+			return json({ total: 120, results: page === 1 ? manyMolecular(50, 0) : [] });
+		},
+		genetic: async () => json({ total: 0, results: [] })
+	});
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
+	await tick();
+	const more = el.find('button').find((b) => b.textContent === 'Load more');
+	more.listeners.click();
+	await tick();
+	assert.strictEqual(log.api.filter((u) => u.includes('molecular')).length, 2);
+	assert.ok(!el.find('button').some((b) => b.textContent === 'Load more'));
+	assert.strictEqual(el.find('tr').length, 51);
+});
+
+test('candidateIds adds bare ids only for prefixes that mines store bare', () => {
+	assert.deepStrictEqual(tool.candidateIds('HGNC:20'), ['HGNC:20']);
+	assert.deepStrictEqual(tool.candidateIds('RGD:20'), ['RGD:20']);
+	assert.deepStrictEqual(tool.candidateIds('FB:FBgn0003731'), ['FB:FBgn0003731', 'FBgn0003731']);
+});
+
+test('main: partners sharing a bare number never match another species gene', async () => {
+	const mk = (curie, sym, taxon) => {
+		const r = JSON.parse(JSON.stringify(MOL.results[0]));
+		const o = r.geneMolecularInteraction.geneGeneAssociationObject;
+		o.primaryExternalId = curie; o.geneSymbol.displayText = sym; o.taxon = { curie: 'NCBITaxon:' + taxon, name: 'x' };
+		return r;
+	};
+	fakes({
+		molecular: async () => json({ total: 2, results: [mk('HGNC:20', 'HSYM', 9606), mk('RGD:20', 'RSYM', 10116)] }),
+		genetic: async () => json({ total: 0, results: [] }),
+		mineGenes: [[555, 'RGD:20']]
+	});
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
+	await tick();
+	const links = el.find('a');
+	assert.strictEqual(links.find((a) => a.textContent === 'HSYM').href, 'https://www.alliancegenome.org/gene/HGNC:20');
+	assert.strictEqual(links.find((a) => a.textContent === 'RSYM').href, '#');
 });
 
 test('main: Load more disappears when all rows are shown', async () => {
