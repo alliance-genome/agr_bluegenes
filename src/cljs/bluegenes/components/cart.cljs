@@ -99,6 +99,67 @@
        :symbol (pick (str class ".symbol"))
        :organism (pick (str class ".organism.shortName") (str class ".organism.name"))})))
 
+;;; Identifier mapping between mines ;;;
+;;
+;; AllianceMine stores curies (WB:WBGene00000001, FB:FBgn0000001,
+;; SGD:S000000001). WormMine, FlyMine and YeastMine store the bare accession
+;; in Gene.primaryIdentifier. Stripping any prefix would turn an HGNC or MGI
+;; curie into a number that can match an unrelated NCBI-keyed gene in a MOD
+;; mine, so mapping goes by the accession pattern of the three MOD mines.
+
+(def mod-prefixes
+  "Curie prefix per MOD mine namespace."
+  {:wormmine "WB" :flymine "FB" :yeastmine "SGD"})
+
+(def accession-patterns
+  "Bare accession pattern to its curie prefix."
+  [[#"^WBGene\d{8}$" "WB"]
+   [#"^FBgn\d{7}$" "FB"]
+   [#"^S\d{9}$" "SGD"]])
+
+(defn id->curie
+  "Curie for a bare MOD accession, nil when the id is not one."
+  [id]
+  (some (fn [[re prefix]] (when (re-find re id) (str prefix ":" id)))
+        accession-patterns))
+
+(defn id-candidates
+  "Identifiers to try in `target` for one source identifier, best first.
+  AllianceMine gets the id as is, then the curie of a bare MOD accession.
+  A MOD mine gets the id as is, then the bare accession when the id carries
+  that mine's own prefix. Other mines keep the as-is and prefix-stripped forms
+  of send-to-mine."
+  [target id]
+  (cond
+    (str/blank? id) []
+    (= target :alliancemine) (cond-> [id] (id->curie id) (conj (id->curie id)))
+    (contains? mod-prefixes target)
+    (let [prefix (str (get mod-prefixes target) ":")]
+      (cond-> [id] (str/starts-with? id prefix) (conj (subs id (count prefix)))))
+    :else (stm/id-candidates id)))
+
+(defn all-candidates [target ids]
+  (vec (distinct (mapcat #(id-candidates target %) ids))))
+
+(defn classify-resolution
+  "Splits `source-ids` into resolved and unresolved given an id resolution
+  response from `target`. Each source id uses its first candidate with hits, so
+  one source id never adds genes from two forms. Returns :object-ids (distinct
+  target ids), :resolved, :source-count and :unresolved."
+  [target source-ids response]
+  (let [{:keys [MATCH OTHER]} (:matches response)
+        by-input (reduce (fn [m {:keys [input id]}]
+                           (if (some? id)
+                             (reduce (fn [m i] (update m i (fnil conj []) id)) m input)
+                             m))
+                         {} (concat MATCH OTHER))
+        hits (fn [id] (some #(some-> (get by-input %) distinct seq) (id-candidates target id)))
+        chosen (map (juxt identity hits) source-ids)]
+    {:source-count (count source-ids)
+     :resolved (count (filter second chosen))
+     :unresolved (vec (keep (fn [[id h]] (when-not h id)) chosen))
+     :object-ids (->> chosen (mapcat second) distinct vec)}))
+
 (defn item-label [{:keys [symbol primaryIdentifier id]}]
   (or symbol primaryIdentifier (str id)))
 
@@ -202,7 +263,7 @@
          (if (seq source-ids)
            {:db db
             :im-chan {:chan (stm/with-timeout
-                              (fetch/resolve-identifiers svc {:identifiers (stm/all-candidates source-ids)
+                              (fetch/resolve-identifiers svc {:identifiers (all-candidates target source-ids)
                                                               :type cart-class
                                                               :timeout-ms stm/resolve-timeout-ms})
                               stm/resolve-guard-ms)
@@ -217,7 +278,7 @@
  ::resolved
  (fn [{db :db} [_ {:keys [scope target] :as ctx} svc own-ids source-ids res]]
    (when (current? db ctx)
-     (let [{:keys [object-ids unresolved] :as result} (stm/classify-resolution source-ids res)
+     (let [{:keys [object-ids unresolved] :as result} (classify-resolution target source-ids res)
            ids (combine-object-ids own-ids object-ids)
            db (assoc-in db (ui-path scope :result) (select-keys result [:resolved :source-count :unresolved]))]
        (if (empty? ids)

@@ -217,6 +217,50 @@
          (is (= {:name "Gene cart, 2 genes" :mine :main}
                 (:saved @(rf/subscribe [::ui :all])))))))))
 
+(deftest id-candidates-per-target-mine
+  (testing "MOD accessions get a curie in AllianceMine"
+    (is (= ["WBGene00000001" "WB:WBGene00000001"] (cart/id-candidates :alliancemine "WBGene00000001")))
+    (is (= ["FBgn0000001" "FB:FBgn0000001"] (cart/id-candidates :alliancemine "FBgn0000001")))
+    (is (= ["S000000001" "SGD:S000000001"] (cart/id-candidates :alliancemine "S000000001"))))
+  (testing "curies stay as they are in AllianceMine"
+    (is (= ["HGNC:11998"] (cart/id-candidates :alliancemine "HGNC:11998")))
+    (is (= ["WB:WBGene00000001"] (cart/id-candidates :alliancemine "WB:WBGene00000001"))))
+  (testing "numeric ids and other MOD ids are not turned into curies"
+    (is (= ["110292"] (cart/id-candidates :alliancemine "110292")))
+    (is (= ["AFLA_000690"] (cart/id-candidates :alliancemine "AFLA_000690")))
+    (is (= ["L000003336"] (cart/id-candidates :alliancemine "L000003336"))))
+  (testing "MOD mines strip only their own prefix"
+    (is (= ["WB:WBGene00000001" "WBGene00000001"] (cart/id-candidates :wormmine "WB:WBGene00000001")))
+    (is (= ["FB:FBgn0000001" "FBgn0000001"] (cart/id-candidates :flymine "FB:FBgn0000001")))
+    (is (= ["SGD:S000000001" "S000000001"] (cart/id-candidates :yeastmine "SGD:S000000001")))
+    (is (= ["HGNC:11998"] (cart/id-candidates :wormmine "HGNC:11998")) "no numeric fallback")
+    (is (= ["FB:FBgn0000001"] (cart/id-candidates :wormmine "FB:FBgn0000001")))
+    (is (= ["FBgn0000001"] (cart/id-candidates :flymine "FBgn0000001"))))
+  (testing "other mines keep the send-to-mine candidates"
+    (is (= ["MGI:104537" "104537"] (cart/id-candidates :mousemine "MGI:104537"))))
+  (is (= ["WB:WBGene00000001" "WBGene00000001" "HGNC:11998"]
+         (cart/all-candidates :wormmine ["WB:WBGene00000001" "WBGene00000001" "HGNC:11998"]))))
+
+(deftest classify-resolution-per-target
+  (do
+    (testing "WormMine target resolves a curie through its bare accession"
+      (is (= {:source-count 2 :resolved 1 :unresolved ["HGNC:11998"] :object-ids [5]}
+             (cart/classify-resolution :wormmine ["WB:WBGene00000001" "HGNC:11998"]
+                                       {:matches {:MATCH [{:input ["WBGene00000001"] :id 5}]}}))))
+    (testing "AllianceMine target resolves a bare accession through its curie"
+      (is (= {:source-count 1 :resolved 1 :unresolved [] :object-ids [5]}
+             (cart/classify-resolution :alliancemine ["WBGene00000001"]
+                                       {:matches {:MATCH [{:input ["WB:WBGene00000001"] :id 5}]}}))))
+    (testing "the first form with hits wins, so one id never adds two genes"
+      (is (= [5] (:object-ids (cart/classify-resolution :alliancemine ["WBGene00000001"]
+                                                        {:matches {:MATCH [{:input ["WBGene00000001"] :id 5}
+                                                                           {:input ["WB:WBGene00000001"] :id 6}]}})))))
+    (is (= 3 (count (:object-ids (cart/classify-resolution :alliancemine
+                                                           ["WB:WBGene00000001" "WBGene00000002" "HGNC:11998"]
+                                                           {:matches {:MATCH [{:input ["WB:WBGene00000001"] :id 5}
+                                                                              {:input ["WB:WBGene00000002"] :id 6}
+                                                                              {:input ["HGNC:11998"] :id 9}]}})))))))
+
 (deftest clear-during-save-drops-late-responses
   (run-test-sync
    (utils/stub-local-storage)
