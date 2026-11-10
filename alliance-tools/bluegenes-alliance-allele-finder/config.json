@@ -1,6 +1,32 @@
 {
   "accepts": ["id"],
   "classes": ["Gene"],
+  "depends": [
+    "Gene.symbol",
+    "Gene.primaryIdentifier",
+    "Gene.organism.shortName",
+    "Gene.alleles.id",
+    "Gene.alleles.primaryIdentifier",
+    "Gene.alleles.symbol",
+    "Gene.alleles.organism.shortName",
+    "Gene.alleles.diseaseAnnotations.id",
+    "Gene.alleles.diseaseAnnotations.ontologyTerm.identifier",
+    "Gene.alleles.diseaseAnnotations.ontologyTerm.name",
+    "Gene.alleles.diseaseAnnotations.qualifier",
+    "Gene.alleles.diseaseAnnotations.evidence.publications.pubMedId",
+    "Gene.homologues.homologue.symbol",
+    "Gene.homologues.homologue.primaryIdentifier",
+    "Gene.homologues.homologue.organism.shortName",
+    "Gene.homologues.homologue.alleles.id",
+    "Gene.homologues.homologue.alleles.primaryIdentifier",
+    "Gene.homologues.homologue.alleles.symbol",
+    "Gene.homologues.homologue.alleles.organism.shortName",
+    "Gene.homologues.homologue.alleles.diseaseAnnotations.id",
+    "Gene.homologues.homologue.alleles.diseaseAnnotations.ontologyTerm.identifier",
+    "Gene.homologues.homologue.alleles.diseaseAnnotations.ontologyTerm.name",
+    "Gene.homologues.homologue.alleles.diseaseAnnotations.qualifier",
+    "Gene.homologues.homologue.alleles.diseaseAnnotations.evidence.publications.pubMedId"
+  ],
   "columnMapping": {
     "Gene": {
       "id": "primaryIdentifier"

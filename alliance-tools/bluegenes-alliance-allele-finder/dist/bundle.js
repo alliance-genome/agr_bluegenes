@@ -263,18 +263,22 @@
 		);
 	}
 
-	function render(el, all, navigate, truncated) {
+	function render(el, all, navigate, truncated, missing) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-allele-finder');
 		el.appendChild(wrap);
+		var gaps = missingSummary(missing || []);
+		var kinds = KINDS.filter(function (k) { return gaps.gone.indexOf(k) < 0; });
 		var byKind = {};
 		KINDS.forEach(function (k) {
 			byKind[k] = aggregate(all.filter(function (r) { return r.kind === k; }));
 		});
 		if (!byKind.disease.length && !byKind.phenotype.length) {
 			wrap.appendChild(node('span', 'No alleles with disease or phenotype annotations for this gene or its orthologs'));
+			if (gaps.note) wrap.appendChild(node('p', gaps.note, 'alliance-allele-finder-note'));
 			return;
 		}
+		if (gaps.note) wrap.appendChild(node('p', gaps.note, 'alliance-allele-finder-note'));
 		if (truncated) wrap.appendChild(node('p', 'Partial result: a query stopped after ' + (PAGE_SIZE * MAX_PAGES) + ' rows, so allele and term counts are incomplete.'));
 
 		var state = { kind: byKind.disease.length ? 'disease' : 'phenotype', term: '', filter: '' };
@@ -318,12 +322,12 @@
 		}
 
 		function refreshButtons() {
-			KINDS.forEach(function (k) {
+			kinds.forEach(function (k) {
 				buttons[k].className = 'btn btn-default' + (k === state.kind ? ' active' : '');
 			});
 		}
 
-		KINDS.forEach(function (k) {
+		kinds.forEach(function (k) {
 			var b = node('button', KIND_LABEL[k] + ' (' + byKind[k].length + ')', 'btn btn-default');
 			b.type = 'button';
 			b.addEventListener('click', function () {
@@ -366,7 +370,11 @@
 			body: requestBody(source, kind, geneId, start)
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) {
+					var err = new Error('HTTP ' + res.status);
+					err.status = res.status;
+					throw err;
+				}
 				return res.json();
 			})
 			.then(function (json) {
@@ -388,17 +396,47 @@
 		return next(0);
 	}
 
+	// missing lists the { source, kind } pairs the mine rejected with HTTP 400 (its
+	// model lacks that path). Any other failure still rejects the whole load.
 	function fetchAll(serviceRoot, geneId) {
 		var jobs = [];
+		var missing = [];
 		SOURCES.forEach(function (s) {
-			KINDS.forEach(function (k) { jobs.push(fetchRows(serviceRoot, s, k, geneId)); });
+			KINDS.forEach(function (k) {
+				jobs.push(
+					fetchRows(serviceRoot, s, k, geneId).catch(function (err) {
+						if (err && err.status === 400) {
+							missing.push({ source: s.name, kind: k });
+							return { rows: [], full: false };
+						}
+						throw err;
+					})
+				);
+			});
 		});
 		return Promise.all(jobs).then(function (parts) {
 			return {
 				rows: parts.reduce(function (acc, p) { return acc.concat(p.rows); }, []),
-				truncated: parts.some(function (p) { return p.full; })
+				truncated: parts.some(function (p) { return p.full; }),
+				missing: missing
 			};
 		});
+	}
+
+	// kinds with no query working for any source, and a note for what is missing.
+	function missingSummary(missing) {
+		var gone = KINDS.filter(function (k) {
+			return SOURCES.every(function (s) {
+				return missing.some(function (m) { return m.kind === k && m.source === s.name; });
+			});
+		});
+		var parts = missing.map(function (m) {
+			return (m.source === 'self' ? 'this gene' : 'orthologs') + ' ' + m.kind;
+		});
+		return {
+			gone: gone,
+			note: parts.length ? 'This mine has no allele annotations for: ' + parts.join(', ') + '.' : ''
+		};
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -418,7 +456,7 @@
 		fetchAll(serviceRoot(service.root), String(id))
 			.then(function (res) {
 				if (el.__agrAlleleFinderReq !== token) return;
-				render(el, res.rows, navigate, res.truncated);
+				render(el, res.rows, navigate, res.truncated, res.missing);
 			})
 			.catch(function (err) {
 				console.error('allele-finder: load failed', err);
