@@ -1,0 +1,18 @@
+.alliance-expression { overflow-x: auto; }
+.alliance-expression-summary { margin: 0 0 8px; }
+.alliance-expression-grid { border-collapse: collapse; font-size: 12px; }
+.alliance-expression-grid th,
+.alliance-expression-grid td { border: 1px solid #fff; padding: 0; text-align: center; min-width: 34px; height: 26px; }
+.alliance-expression-grid thead th { padding: 2px 6px; font-weight: 600; vertical-align: bottom; }
+.alliance-expression-grid tbody th { padding: 2px 8px; text-align: left; font-weight: 400; white-space: nowrap; }
+.alliance-expression-cell { display: block; width: 100%; height: 100%; min-height: 26px; border: 0; padding: 0 4px; font: inherit; cursor: pointer; background: transparent; color: inherit; }
+.alliance-expression-cell:focus { outline: 2px solid #1a4f8b; outline-offset: -2px; }
+.alliance-expression-cell[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #1a1a1a; }
+.alliance-expression-l0 { background: #f4f4f4; }
+.alliance-expression-l1 { background: #d6e6f5; color: #1a1a1a; }
+.alliance-expression-l2 { background: #9cc3e6; color: #1a1a1a; }
+.alliance-expression-l3 { background: #4f8fcc; color: #fff; }
+.alliance-expression-l4 { background: #1a4f8b; color: #fff; }
+.alliance-expression-more { margin: 8px 0; }
+.alliance-expression-details { margin-top: 12px; }
+.alliance-expression-details h4 { font-size: 14px; margin: 0 0 6px; }
