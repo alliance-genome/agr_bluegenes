@@ -1,0 +1,17 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Alleles across orthologs",
+    "cljs": "bluegenesAllianceAlleleFinder"
+  },
+  "version": 2
+}
