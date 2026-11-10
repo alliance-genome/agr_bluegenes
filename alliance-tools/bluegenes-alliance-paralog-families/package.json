@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-paralog-families",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Groups the genes of a list into paralog families by identity threshold and builds a list with one gene per family.",
   "main": "dist/bundle.js",
   "scripts": {

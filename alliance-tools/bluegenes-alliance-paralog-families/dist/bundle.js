@@ -204,7 +204,11 @@
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
 		}).then(function (res) {
-			if (!res.ok) throw new Error('HTTP ' + res.status);
+			if (!res.ok) {
+				var err = new Error('HTTP ' + res.status);
+				err.status = res.status;
+				throw err;
+			}
 			return res.json();
 		});
 	}
@@ -237,16 +241,32 @@
 		});
 	}
 
+	var ANNOTATION_KINDS = [
+		{ collection: 'diseaseAnnotation', label: 'disease' },
+		{ collection: 'phenotypeAnnotations', label: 'phenotype' }
+	];
+
 	// Disease plus phenotype annotation rows per gene id, for the given genes only.
+	// A collection the mine rejects (HTTP 400) is skipped. Resolves to { counts, used }
+	// where used lists the labels of the collections that were counted.
 	function loadAnnotationCounts(sr, ids) {
-		if (!ids.length) return Promise.resolve({});
-		return Promise.all([
-			rows(sr, annotationQuery(ids, 'diseaseAnnotation')),
-			rows(sr, annotationQuery(ids, 'phenotypeAnnotations'))
-		]).then(function (res) {
+		if (!ids.length) return Promise.resolve({ counts: {}, used: [] });
+		return Promise.all(
+			ANNOTATION_KINDS.map(function (k) {
+				return rows(sr, annotationQuery(ids, k.collection)).catch(function (err) {
+					if (err && err.status === 400) return null;
+					throw err;
+				});
+			})
+		).then(function (res) {
 			var counts = {};
-			res[0].concat(res[1]).forEach(function (r) { counts[r[0]] = (counts[r[0]] || 0) + 1; });
-			return counts;
+			var used = [];
+			res.forEach(function (rs, i) {
+				if (!rs) return;
+				used.push(ANNOTATION_KINDS[i].label);
+				rs.forEach(function (r) { counts[r[0]] = (counts[r[0]] || 0) + 1; });
+			});
+			return { counts: counts, used: used };
 		});
 	}
 
@@ -315,15 +335,17 @@
 		});
 	}
 
-	function showReduced(out, ctx, reduced, withAnnotations) {
+	// used: labels of the annotation collections counted ('disease', 'phenotype'); empty when none.
+	function showReduced(out, ctx, reduced, used) {
 		clear(out);
 		var text = reduced.map(function (g) { return g.primaryIdentifier || g.id; }).join('\n');
 		out.appendChild(
 			node(
 				'p',
 				'Reduced list: ' + reduced.length + ' of ' + ctx.data.genes.length + ' genes. Kept per family: ' +
-					(withAnnotations
-						? 'the member with the most disease plus phenotype annotation rows, first by symbol on ties.'
+					(used.length
+						? 'the member with the most ' + used.join(' plus ') + ' annotation rows, first by symbol on ties.' +
+							(used.length < ANNOTATION_KINDS.length ? ' This mine has no ' + ANNOTATION_KINDS.filter(function (k) { return used.indexOf(k.label) < 0; }).map(function (k) { return k.label; }).join(' or ') + ' annotations.' : '')
 						: 'the first member by symbol (annotation counts unavailable).')
 			)
 		);
@@ -444,12 +466,12 @@
 			var ids = [];
 			clusters.forEach(function (c) { c.members.forEach(function (g) { ids.push(g.id); }); });
 			ctx.loadCounts(ids)
-				.then(function (counts) {
-					if (mine === runToken) showReduced(out, ctx, reduceList(data.genes, clusters, counts), true);
+				.then(function (res) {
+					if (mine === runToken) showReduced(out, ctx, reduceList(data.genes, clusters, res.counts), res.used);
 				})
 				.catch(function (err) {
 					console.error('Annotation counts failed', err);
-					if (mine === runToken) showReduced(out, ctx, reduceList(data.genes, clusters, null), false);
+					if (mine === runToken) showReduced(out, ctx, reduceList(data.genes, clusters, null), []);
 				});
 		});
 
