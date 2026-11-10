@@ -1,0 +1,194 @@
+{
+ "results": [
+  {
+   "category": "affected_genomic_model_annotation",
+   "searchable": false,
+   "model": {
+    "type": "AffectedGenomicModel",
+    "curie": "AGRKB:108000000549486",
+    "primaryExternalId": "FB:FBgo0499844",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "abbreviation": "FB"
+    },
+    "dataProviderCrossReference": {
+     "referencedCurie": "FB:FBgo0499844",
+     "resourceDescriptorPage": {
+      "name": "homepage",
+      "urlTemplate": "https://flybase.org/"
+     }
+    },
+    "subtype": {
+     "name": "genotype"
+    },
+    "agmFullName": {
+     "formatText": "PBac{hTP53.G245S}unspecified TI{TI}p53[-ns]/p53[TM3]",
+     "displayText": "PBac{hTP53.G245S}unspecified TI{TI}p53<sup>-ns</sup>/p53<sup>TM3</sup>"
+    }
+   },
+   "gene": {
+    "type": "Gene",
+    "curie": "AGRKB:105000000331364",
+    "primaryExternalId": "HGNC:11998",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "abbreviation": "RGD"
+    },
+    "dataProviderCrossReference": {
+     "referencedCurie": "RGD:70502",
+     "resourceDescriptorPage": {
+      "name": "gene",
+      "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+     }
+    },
+    "geneSymbol": {
+     "formatText": "TP53",
+     "displayText": "TP53"
+    }
+   },
+   "diseaseModels": [
+    {
+     "disease": {},
+     "associationType": "IS_MODEL_OF",
+     "diseaseModel": "cancer"
+    }
+   ],
+   "dataProvider": "FB",
+   "modifierRelationshipTypes": [
+    "ameliorated_by",
+    "exacerbated_by"
+   ],
+   "hasDiseaseAnnotations": true,
+   "hasDiseaseAndPhenotypeAnnotations": false,
+   "hasPhenotypeAnnotations": false
+  },
+  {
+   "category": "affected_genomic_model_annotation",
+   "searchable": false,
+   "model": {
+    "type": "AffectedGenomicModel",
+    "curie": "AGRKB:108000000549485",
+    "primaryExternalId": "FB:FBgo0499843",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "abbreviation": "FB"
+    },
+    "dataProviderCrossReference": {
+     "referencedCurie": "FB:FBgo0499843",
+     "resourceDescriptorPage": {
+      "name": "homepage",
+      "urlTemplate": "https://flybase.org/"
+     }
+    },
+    "subtype": {
+     "name": "genotype"
+    },
+    "agmFullName": {
+     "formatText": "PBac{hTP53.R175H}unspecified TI{TI}p53[-ns]/p53[TM3]",
+     "displayText": "PBac{hTP53.R175H}unspecified TI{TI}p53<sup>-ns</sup>/p53<sup>TM3</sup>"
+    }
+   },
+   "gene": {
+    "type": "Gene",
+    "curie": "AGRKB:105000000331364",
+    "primaryExternalId": "HGNC:11998",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "abbreviation": "RGD"
+    },
+    "dataProviderCrossReference": {
+     "referencedCurie": "RGD:70502",
+     "resourceDescriptorPage": {
+      "name": "gene",
+      "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+     }
+    },
+    "geneSymbol": {
+     "formatText": "TP53",
+     "displayText": "TP53"
+    }
+   },
+   "diseaseModels": [
+    {
+     "disease": {},
+     "associationType": "IS_MODEL_OF",
+     "diseaseModel": "cancer"
+    }
+   ],
+   "dataProvider": "FB",
+   "modifierRelationshipTypes": [
+    "ameliorated_by",
+    "exacerbated_by"
+   ],
+   "hasDiseaseAnnotations": true,
+   "hasDiseaseAndPhenotypeAnnotations": false,
+   "hasPhenotypeAnnotations": false
+  },
+  {
+   "category": "affected_genomic_model_annotation",
+   "searchable": false,
+   "model": {
+    "type": "AffectedGenomicModel",
+    "curie": "AGRKB:108000000549487",
+    "primaryExternalId": "FB:FBgo0499845",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "abbreviation": "FB"
+    },
+    "dataProviderCrossReference": {
+     "referencedCurie": "FB:FBgo0499845",
+     "resourceDescriptorPage": {
+      "name": "homepage",
+      "urlTemplate": "https://flybase.org/"
+     }
+    },
+    "subtype": {
+     "name": "genotype"
+    },
+    "agmFullName": {
+     "formatText": "PBac{hTP53.R248Q}unspecified TI{TI}p53[-ns]/p53[TM3]",
+     "displayText": "PBac{hTP53.R248Q}unspecified TI{TI}p53<sup>-ns</sup>/p53<sup>TM3</sup>"
+    }
+   },
+   "gene": {
+    "type": "Gene",
+    "curie": "AGRKB:105000000331364",
+    "primaryExternalId": "HGNC:11998",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "abbreviation": "RGD"
+    },
+    "dataProviderCrossReference": {
+     "referencedCurie": "RGD:70502",
+     "resourceDescriptorPage": {
+      "name": "gene",
+      "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+     }
+    },
+    "geneSymbol": {
+     "formatText": "TP53",
+     "displayText": "TP53"
+    }
+   },
+   "diseaseModels": [
+    {
+     "disease": {},
+     "associationType": "IS_MODEL_OF",
+     "diseaseModel": "cancer"
+    }
+   ],
+   "dataProvider": "FB",
+   "modifierRelationshipTypes": [
+    "ameliorated_by",
+    "exacerbated_by"
+   ],
+   "hasDiseaseAnnotations": true,
+   "hasDiseaseAndPhenotypeAnnotations": false,
+   "hasPhenotypeAnnotations": false
+  }
+ ],
+ "total": 5,
+ "returnedRecords": 3,
+ "requestDuration": "0s",
+ "requestDate": "2026/11/10 19:40:04"
+}

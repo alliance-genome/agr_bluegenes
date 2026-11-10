@@ -8,6 +8,7 @@
             [bluegenes.pages.results.orthologs-compare :as orthologs-compare]
             [bluegenes.pages.results.send-to-mine :as send-to-mine]
             [bluegenes.pages.results.bundle :as bundle]
+            [bluegenes.pages.results.cite :as cite]
             [bluegenes.pages.results.enrichment.views :as enrichment]
             [bluegenes.pages.results.widgets.views :as widgets]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
@@ -214,7 +215,9 @@
             [:h2.results-heading "Query Results"]
             [:div.results-actions
              [back-button]
-             [query-history]]
+             [query-history]
+             [cite/cite-button]]
+            [cite/cite-panel]
             ;; Query details is only interesting if it's a saved list.
             (when (= @intent :list)
               [query-details])
