@@ -166,6 +166,12 @@
  (fn [db [_ scope value]]
    (assoc-in db (ui-path scope :list-name) value)))
 
+(defn- current?
+  "True while the save that carries `run` is the one the tray shows. Clearing
+  the cart empties the ui state, so responses of an earlier save are dropped."
+  [db {:keys [scope run]}]
+  (= run (get-in db (ui-path scope :run))))
+
 (reg-event-fx
  ::save
  [(inject-cofx :local-store :bluegenes/login)]
@@ -176,97 +182,112 @@
          own (mine-items items target)
          others (if (= scope :all) (foreign-items items target) [])
          source-ids (source-identifiers others)
-         base (assoc-in db (ui-path scope)
-                        {:list-name (get-in db (ui-path scope :list-name))
-                         :default-name (default-list-name (count (concat own others)))})]
+         prev (get-in db (ui-path scope))
+         default-name (default-list-name (count (concat own others)))
+         list-name (effective-list-name {:list-name (:list-name prev) :default-name default-name})
+         run (inc (or (get-in db [:gene-cart :run]) 0))
+         ctx {:scope scope :target target :run run :list-name list-name}
+         base (-> db
+                  (assoc-in [:gene-cart :run] run)
+                  (assoc-in (ui-path scope)
+                            {:list-name (:list-name prev)
+                             :default-name default-name
+                             :run run}))]
      (cond
        (not (contains? svc :token)) {:db (assoc-in base (ui-path scope :logged-in?) false)}
-       (get-in db (ui-path scope :saving?)) {}
+       (:saving? prev) {}
        (empty? (concat own source-ids)) {}
        :else
        (let [db (update-in base (ui-path scope) assoc :logged-in? true :saving? true)]
          (if (seq source-ids)
            {:db db
-            :im-chan {:chan (fetch/resolve-identifiers svc {:identifiers (stm/all-candidates source-ids)
-                                                            :type cart-class
-                                                            :timeout-ms stm/resolve-timeout-ms})
+            :im-chan {:chan (stm/with-timeout
+                              (fetch/resolve-identifiers svc {:identifiers (stm/all-candidates source-ids)
+                                                              :type cart-class
+                                                              :timeout-ms stm/resolve-timeout-ms})
+                              stm/resolve-guard-ms)
                       :abort ::resolve
-                      :on-success [::resolved scope target svc (object-ids own) source-ids]
-                      :on-failure [::save-failure scope target]
-                      :on-unauthorised [::unauthorised scope target]}}
+                      :on-success [::resolved ctx svc (object-ids own) source-ids]
+                      :on-failure [::save-failure ctx]
+                      :on-unauthorised [::unauthorised ctx]}}
            {:db db
-            :dispatch [::fetch-lists scope target svc (object-ids own) 0]}))))))
+            :dispatch [::fetch-lists ctx svc (object-ids own) 0]}))))))
 
 (reg-event-fx
  ::resolved
- (fn [{db :db} [_ scope target svc own-ids source-ids res]]
-   (let [{:keys [object-ids unresolved] :as result} (stm/classify-resolution source-ids res)
-         ids (combine-object-ids own-ids object-ids)
-         db (assoc-in db (ui-path scope :result) (select-keys result [:resolved :source-count :unresolved]))]
-     (if (empty? ids)
-       {:db (assoc-in db (ui-path scope :saving?) false)
-        :dispatch [:messages/add
-                   {:markup [:span "None of the " [:strong (count source-ids)]
-                             " genes could be found in " [:strong (mine-label db target)] "."]
-                    :timeout 10000
-                    :style "warning"}]}
-       {:db db
-        :dispatch [::fetch-lists scope target svc ids (count unresolved)]}))))
+ (fn [{db :db} [_ {:keys [scope target] :as ctx} svc own-ids source-ids res]]
+   (when (current? db ctx)
+     (let [{:keys [object-ids unresolved] :as result} (stm/classify-resolution source-ids res)
+           ids (combine-object-ids own-ids object-ids)
+           db (assoc-in db (ui-path scope :result) (select-keys result [:resolved :source-count :unresolved]))]
+       (if (empty? ids)
+         {:db (assoc-in db (ui-path scope :saving?) false)
+          :dispatch [:messages/add
+                     {:markup [:span "None of the " [:strong (count source-ids)]
+                               " genes could be found in " [:strong (mine-label db target)] "."]
+                      :timeout 10000
+                      :style "warning"}]}
+         {:db db
+          :dispatch [::fetch-lists ctx svc ids (count unresolved)]})))))
 
 (reg-event-fx
  ::fetch-lists
- (fn [_ [_ scope target svc ids unresolved-count]]
-   {:im-chan {:chan (fetch/lists svc)
-              :on-success [::create scope target svc ids unresolved-count]
-              :on-failure [::save-failure scope target]
-              :on-unauthorised [::unauthorised scope target]}}))
+ (fn [{db :db} [_ ctx svc ids unresolved-count]]
+   (when (current? db ctx)
+     {:im-chan {:chan (fetch/lists svc)
+                :on-success [::create ctx svc ids unresolved-count]
+                :on-failure [::save-failure ctx]
+                :on-unauthorised [::unauthorised ctx]}})))
 
 (reg-event-fx
  ::create
- (fn [{db :db} [_ scope target svc ids unresolved-count lists]]
-   (let [typed (effective-list-name (get-in db (ui-path scope)))
-         list-name (if (some (comp #{typed} :name) lists)
-                     (copy-list-name lists typed)
-                     typed)]
-     {:im-chan {:chan (save/im-list-from-query svc list-name (stm/object-ids-query ids))
-                :on-success [::saved scope target unresolved-count]
-                :on-failure [::save-failure scope target]
-                :on-unauthorised [::unauthorised scope target]}})))
+ (fn [{db :db} [_ {:keys [list-name] :as ctx} svc ids unresolved-count lists]]
+   (when (current? db ctx)
+     (let [final-name (if (some (comp #{list-name} :name) lists)
+                        (copy-list-name lists list-name)
+                        list-name)]
+       {:im-chan {:chan (save/im-list-from-query svc final-name (stm/object-ids-query ids))
+                  :on-success [::saved ctx unresolved-count]
+                  :on-failure [::save-failure ctx]
+                  :on-unauthorised [::unauthorised ctx]}}))))
 
 (reg-event-fx
  ::saved
- (fn [{db :db} [_ scope target unresolved-count {:keys [listName]}]]
-   {:db (update-in db (ui-path scope) assoc
-                   :saving? false
-                   :saved {:name listName :mine target})
-    :dispatch [:messages/add
-               {:markup [:span "Saved list " [:strong listName] " in "
-                         [:strong (mine-label db target)] "."
-                         (when (pos? unresolved-count)
-                           (str " " unresolved-count " genes could not be resolved and were skipped."))]
-                :timeout 10000
-                :style "success"}]}))
+ (fn [{db :db} [_ {:keys [scope target] :as ctx} unresolved-count {:keys [listName]}]]
+   (when (current? db ctx)
+     {:db (update-in db (ui-path scope) assoc
+                     :saving? false
+                     :saved {:name listName :mine target})
+      :dispatch [:messages/add
+                 {:markup [:span "Saved list " [:strong listName] " in "
+                           [:strong (mine-label db target)] "."
+                           (when (pos? unresolved-count)
+                             (str " " unresolved-count " genes could not be resolved and were skipped."))]
+                  :timeout 10000
+                  :style "success"}]})))
 
 (reg-event-fx
  ::save-failure
- (fn [{db :db} [_ scope target res]]
-   {:db (assoc-in db (ui-path scope :saving?) false)
-    :dispatch (orthologs/failure-message
-               (str "Failed to save list in " (mine-label db target) ".") res)}))
+ (fn [{db :db} [_ {:keys [scope target] :as ctx} res]]
+   (when (current? db ctx)
+     {:db (assoc-in db (ui-path scope :saving?) false)
+      :dispatch (orthologs/failure-message
+                 (str "Failed to save list in " (mine-label db target) ".") res)})))
 
 (reg-event-fx
  ::unauthorised
  ;; Handled here so the generic invalid-token flow leaves the login of the
  ;; current mine alone.
- (fn [{db :db} [_ scope target _res]]
-   {:db (-> db
-            (assoc-in (ui-path scope :saving?) false)
-            (assoc-in (ui-path scope :logged-in?) false))
-    :dispatch [:messages/add
-               {:markup [:span "Your login for " [:strong (mine-label db target)]
-                         " has expired. Log in there again to save the list."]
-                :timeout 10000
-                :style "warning"}]}))
+ (fn [{db :db} [_ {:keys [scope target] :as ctx} _res]]
+   (when (current? db ctx)
+     {:db (-> db
+              (assoc-in (ui-path scope :saving?) false)
+              (assoc-in (ui-path scope :logged-in?) false))
+      :dispatch [:messages/add
+                 {:markup [:span "Your login for " [:strong (mine-label db target)]
+                           " has expired. Log in there again to save the list."]
+                  :timeout 10000
+                  :style "warning"}]})))
 
 ;;; Subscriptions ;;;
 

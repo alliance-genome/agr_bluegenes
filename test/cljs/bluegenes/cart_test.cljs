@@ -1,5 +1,6 @@
 (ns bluegenes.cart-test
   (:require [cljs.test :refer-macros [deftest is testing use-fixtures]]
+            [clojure.core.async :as async]
             [bluegenes.test-utils :as utils :refer [stub-fetch-fn]]
             [re-frame.core :as rf]
             [day8.re-frame.test :refer-macros [run-test-sync run-test-async wait-for]]
@@ -215,3 +216,28 @@
              "own ids first, then the resolved ids")
          (is (= {:name "Gene cart, 2 genes" :mine :main}
                 (:saved @(rf/subscribe [::ui :all])))))))))
+
+(deftest clear-during-save-drops-late-responses
+  (run-test-sync
+   (utils/stub-local-storage)
+   (let [called (atom false)
+         orig-lists fetch/lists
+         orig-save save/im-list-from-query]
+     (rf/reg-event-fx :messages/add (fn [_ _] {}))
+     (rf/dispatch-sync [::seed seeded-db])
+     (rf/dispatch-sync [:save-login :human {:token "human-token"}])
+     (rf/dispatch-sync [::cart/add tp53])
+     (rf/dispatch-sync [::cart/set-list-name :human "mine"])
+     (set! fetch/lists (fn [& _] (async/chan)))
+     (set! save/im-list-from-query (fn [& _] (reset! called true) (async/chan)))
+     (swap! utils/stubbed-variables conj #(set! fetch/lists orig-lists))
+     (swap! utils/stubbed-variables conj #(set! save/im-list-from-query orig-save))
+     (rf/dispatch-sync [::cart/save :human])
+     (let [run (:run @(rf/subscribe [::ui :human]))
+           ctx {:scope :human :target :human :run run :list-name "mine"}]
+       (is (true? (:saving? @(rf/subscribe [::ui :human]))))
+       (rf/dispatch-sync [::cart/clear])
+       (rf/dispatch-sync [::cart/create ctx {:root "http://human.example" :token "human-token"} ["8000038"] 0 []])
+       (rf/dispatch-sync [::cart/saved ctx 0 {:listName "mine"}])
+       (is (false? @called) "no list is created after a clear")
+       (is (nil? @(rf/subscribe [::ui :human])) "late responses leave the cleared ui alone")))))
