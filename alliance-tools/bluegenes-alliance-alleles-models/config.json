@@ -1,0 +1,17 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Alleles, models and paralogs",
+    "cljs": "bluegenesAllianceAllelesModels"
+  },
+  "version": 2
+}
