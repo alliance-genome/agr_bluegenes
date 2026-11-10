@@ -1,5 +1,6 @@
 (ns bluegenes.config
-  (:require [cljs.reader :as reader]))
+  (:require [cljs.reader :as reader]
+            [clojure.string :as str]))
 
 (def debug?
   ^boolean js/goog.DEBUG)
@@ -16,3 +17,11 @@
 
 (defn read-default-ns []
   (keyword (:bluegenes-default-namespace @server-vars)))
+
+(def default-alliance-api-base "https://www.alliancegenome.org/api")
+
+(defn alliance-api-base
+  "Base URL of the Alliance of Genome Resources API, without a trailing slash."
+  []
+  (-> (or (:bluegenes-alliance-api-base @server-vars) default-alliance-api-base)
+      (str/replace #"/+$" "")))

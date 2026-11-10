@@ -7,6 +7,7 @@
             [oops.core :refer [oget ocall]]
             [imcljs.fetch :as fetch]
             [bluegenes.cite :as cite]
+            [bluegenes.alliance-release :as alliance-release]
             [bluegenes.utils :refer [encode-file]]))
 
 ;;; Pure helpers ;;;
@@ -53,6 +54,12 @@
   [db]
   (or (get-in db [:results :package :source]) (:current-mine db)))
 
+(defn alliance-source?
+  "True when the mine behind the results is an Alliance mine."
+  [db mine-kw]
+  (or (cite/alliance-mine? (get-in db [:mines mine-kw :service :root]))
+      (cite/alliance-mine? (name mine-kw))))
+
 (reg-event-fx
  ::toggle
  (fn [{db :db} _]
@@ -74,8 +81,10 @@
  (fn [{db :db} _]
    (let [mine-kw (source-mine db)]
      {:db (update-in db [:results :cite] dissoc :version-error?)
-      :dispatch-n (for [asset-key (missing-versions db mine-kw)]
-                    [::fetch-version asset-key mine-kw])})))
+      :dispatch-n (concat (for [asset-key (missing-versions db mine-kw)]
+                            [::fetch-version asset-key mine-kw])
+                          (when (alliance-source? db mine-kw)
+                            [[::alliance-release/ensure]]))})))
 
 (reg-event-db
  ::version-success
@@ -141,7 +150,9 @@
                                    (filter #(= (get-in db [:results :query :title]) (:title %)))
                                    first)
                         :query (get-in db [:results :query])})]
-     (assoc (texts (mine-info db mine-kw)
+     (assoc (texts (cond-> (mine-info db mine-kw)
+                     (alliance-source? db mine-kw)
+                     (assoc :alliance (alliance-release/release db)))
                    (or (get-in db [:results :cite :date]) (today))
                    subj)
             :mine-kw mine-kw
