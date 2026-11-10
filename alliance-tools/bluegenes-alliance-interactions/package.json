@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-interactions",
+  "version": "0.1.0",
+  "description": "Molecular and genetic interactions of a gene from the Alliance of Genome Resources API, for Gene report pages.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}

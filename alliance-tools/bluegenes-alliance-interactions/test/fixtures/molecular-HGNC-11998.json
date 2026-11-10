@@ -1,0 +1,235 @@
+{
+ "results": [
+  {
+   "category": "gene_molecular_interaction",
+   "searchable": false,
+   "geneMolecularInteraction": {
+    "evidence": [
+     {
+      "type": "Reference",
+      "curie": "AGRKB:101000001018078",
+      "shortCitation": "Liu J (2020) Nat Cell Biol 22(9):1056-1063",
+      "pubModID": "MGI:6716449",
+      "referenceID": "PMID:32807901",
+      "crossReferences": [
+       {
+        "referencedCurie": "PMID:32807901",
+        "displayName": "PMID:32807901"
+       }
+      ]
+     }
+    ],
+    "geneAssociationSubject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000331364",
+     "primaryExternalId": "HGNC:11998",
+     "taxon": {
+      "curie": "NCBITaxon:9606",
+      "name": "Homo sapiens",
+      "species": {
+       "fullName": "Homo sapiens",
+       "abbreviation": "Hsa",
+       "displayName": "HUMAN",
+       "phylogeneticOrder": 10
+      }
+     },
+     "geneSymbol": {
+      "formatText": "TP53",
+      "displayText": "TP53"
+     }
+    },
+    "geneGeneAssociationObject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000439385",
+     "primaryExternalId": "HGNC:20",
+     "taxon": {
+      "curie": "NCBITaxon:9606",
+      "name": "Homo sapiens",
+      "species": {
+       "fullName": "Homo sapiens",
+       "abbreviation": "Hsa",
+       "displayName": "HUMAN",
+       "phylogeneticOrder": 10
+      }
+     },
+     "geneSymbol": {
+      "formatText": "AARS1",
+      "displayText": "AARS1"
+     }
+    },
+    "relation": {
+     "name": "physically_interacts_with"
+    },
+    "uniqueId": "biogrid:2976333|HGNC:11998|physically_interacts_with|HGNC:20|AGRKB:101000001018078|MI:0915|MI:0496|MI:0498|MI:0326|MI:0326|MI:0004",
+    "interactionId": "biogrid:2976333",
+    "interactionSource": {
+     "curie": "MI:0463",
+     "name": "biogrid"
+    },
+    "interactionType": {
+     "curie": "MI:0915",
+     "name": "physical association"
+    },
+    "interactorARole": {
+     "curie": "MI:0496",
+     "name": "bait"
+    },
+    "interactorBRole": {
+     "curie": "MI:0498",
+     "name": "prey"
+    },
+    "interactorAType": {
+     "curie": "MI:0326",
+     "name": "protein"
+    },
+    "interactorBType": {
+     "curie": "MI:0326",
+     "name": "protein"
+    },
+    "aggregationDatabase": {
+     "curie": "MI:0463",
+     "name": "biogrid"
+    },
+    "detectionMethod": {
+     "curie": "MI:0004",
+     "name": "affinity chromatography technology"
+    }
+   }
+  },
+  {
+   "category": "gene_molecular_interaction",
+   "searchable": false,
+   "geneMolecularInteraction": {
+    "evidence": [
+     {
+      "type": "Reference",
+      "curie": "AGRKB:101000001038557",
+      "shortCitation": "L\u00fc Y (2024) Mol Syst Biol 20(6):719-740",
+      "pubModID": "AGRKB:101000001038557",
+      "referenceID": "PMID:38580884",
+      "crossReferences": [
+       {
+        "referencedCurie": "PMID:38580884",
+        "displayName": "PMID:38580884"
+       }
+      ]
+     }
+    ],
+    "geneAssociationSubject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000331364",
+     "primaryExternalId": "HGNC:11998",
+     "taxon": {
+      "curie": "NCBITaxon:9606",
+      "name": "Homo sapiens",
+      "species": {
+       "fullName": "Homo sapiens",
+       "abbreviation": "Hsa",
+       "displayName": "HUMAN",
+       "phylogeneticOrder": 10
+      }
+     },
+     "geneSymbol": {
+      "formatText": "TP53",
+      "displayText": "TP53"
+     }
+    },
+    "geneGeneAssociationObject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000217588",
+     "primaryExternalId": "HGNC:23993",
+     "taxon": {
+      "curie": "NCBITaxon:9606",
+      "name": "Homo sapiens",
+      "species": {
+       "fullName": "Homo sapiens",
+       "abbreviation": "Hsa",
+       "displayName": "HUMAN",
+       "phylogeneticOrder": 10
+      }
+     },
+     "geneSymbol": {
+      "formatText": "AASDH",
+      "displayText": "AASDH"
+     }
+    },
+    "relation": {
+     "name": "physically_interacts_with"
+    },
+    "uniqueId": "biogrid:3713332|HGNC:11998|physically_interacts_with|HGNC:23993|AGRKB:101000001038557|MI:0915|MI:0496|MI:0498|MI:0326|MI:0326|MI:1313",
+    "interactionId": "biogrid:3713332",
+    "interactionSource": {
+     "curie": "MI:0463",
+     "name": "biogrid"
+    },
+    "interactionType": {
+     "curie": "MI:0915",
+     "name": "physical association"
+    },
+    "interactorARole": {
+     "curie": "MI:0496",
+     "name": "bait"
+    },
+    "interactorBRole": {
+     "curie": "MI:0498",
+     "name": "prey"
+    },
+    "interactorAType": {
+     "curie": "MI:0326",
+     "name": "protein"
+    },
+    "interactorBType": {
+     "curie": "MI:0326",
+     "name": "protein"
+    },
+    "aggregationDatabase": {
+     "curie": "MI:0463",
+     "name": "biogrid"
+    },
+    "detectionMethod": {
+     "curie": "MI:1313",
+     "name": "proximity labelling technology"
+    }
+   }
+  }
+ ],
+ "total": 5596,
+ "returnedRecords": 2,
+ "requestDuration": "0s",
+ "requestDate": "2026/11/10 19:40:10",
+ "supplementalData": {
+  "distinctFieldValues": {
+   "filter.moleculeType": [
+    "protein",
+    "ribonucleic acid"
+   ],
+   "filter.interactorSpecies": [
+    "Danio rerio",
+    "Drosophila melanogaster",
+    "Homo sapiens",
+    "Mus musculus",
+    "Rattus norvegicus",
+    "SARS-CoV-2",
+    "Saccharomyces cerevisiae"
+   ],
+   "filter.interactorMoleculeType": [
+    "protein",
+    "ribonucleic acid"
+   ],
+   "filter.detectionMethod": [
+    "affinity chromatography technology",
+    "biochemical",
+    "enzymatic study",
+    "far western blotting",
+    "fluorescent resonance energy transfer",
+    "imaging technique",
+    "protein complementation assay",
+    "proximity labelling technology",
+    "pull down",
+    "two hybrid",
+    "unspecified method",
+    "x-ray crystallography"
+   ]
+  }
+ }
+}
