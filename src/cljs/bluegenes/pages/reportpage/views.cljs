@@ -11,6 +11,7 @@
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
             [bluegenes.pages.reportpage.other-mines :as other-mines]
+            [bluegenes.pages.reportpage.alliance-summary :as alliance-summary]
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
@@ -290,6 +291,34 @@
                {:on-click #(swap! show-more* not)}
                (if @show-more* "Show less" "Show more")])]])))))
 
+(defn alliance-summary-row [label value]
+  [:div.report-table-row
+   [:div.report-table-cell.report-table-header label]
+   [:div.report-table-cell value]])
+
+(defn alliance-summary-block []
+  (let [{:keys [status curie description synonyms gene-type message]}
+        @(subscribe [::alliance-summary/block])]
+    (case status
+      :loading [:div.alliance-summary [mini-loader "tiny"]]
+      :error [:p.text-muted.alliance-summary
+              (str "Alliance summary unavailable (" message ").")]
+      :done [:div.alliance-summary
+             [:div.report-table-body
+              (when description
+                [alliance-summary-row "Alliance summary" description])
+              (when (seq synonyms)
+                [alliance-summary-row "Alliance synonyms" (str/join ", " synonyms)])
+              (when gene-type
+                [alliance-summary-row "Gene type" gene-type])]
+             [:p.text-muted
+              alliance-summary/attribution ": "
+              [:a {:href (alliance-summary/gene-url curie)
+                   :target "_blank"
+                   :rel "noopener noreferrer"}
+               (str curie " at alliancegenome.org")]]]
+      nil)))
+
 (defn summary []
   (let [{:keys [columnHeaders results]} @(subscribe [::subs/report-summary])
         fasta               @(subscribe [::subs/fasta])
@@ -316,6 +345,7 @@
                        :location [summary-location cell]
                        :fasta [summary-fasta cell]
                        [summary-cell cell])))))
+     [alliance-summary-block]
      [:div.hidden-lg.sidebar-collapsed
       [sidebar/main]]]))
 

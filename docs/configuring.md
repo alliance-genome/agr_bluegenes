@@ -10,6 +10,7 @@
 | BLUEGENES_TOOL_PATH | Directory on server where BlueGenes tools are installed | ./tools |
 | BLUEGENES_DEPLOY_PATH | Custom URL path to host BlueGenes. Must start with `/` and **not** end with `/`, e.g. `/bluegenes`. If you wish to host at root, set to `nil`. | nil |
 | BLUEGENES_BACKEND_SERVICE_ROOT | Override BLUEGENES_DEFAULT_SERVICE_ROOT for backend API requests (usually an internal address) | nil |
+| BLUEGENES_ALLIANCE_API_BASE | Base URL of the Alliance of Genome Resources API, used by the Alliance summary block on Gene reports. Empty or `nil` disables the block. | https://www.alliancegenome.org/api |
 | BLUEGENES_DEFAULT_SERVICE_ROOT | Default InterMine service to run API requests against | https://www.flymine.org/flymine |
 | BLUEGENES_DEFAULT_MINE_NAME | Mine name to display for default mine | FlyMine |
 | BLUEGENES_DEFAULT_NAMESPACE | Namespace of the default mine | flymine |
