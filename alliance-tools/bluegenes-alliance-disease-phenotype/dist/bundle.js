@@ -20,6 +20,40 @@
 	var DOID_URL = 'https://disease-ontology.org/?id=';
 	var PUBMED_URL = 'https://pubmed.ncbi.nlm.nih.gov/';
 
+	// BlueGenes passes the mine's model as service.model.classes. Resolves a dotted
+	// path in it, following references and collections and taking fields from the
+	// class and its superclasses. True when no model is passed.
+	function fieldOf(classes, cls, name, seen) {
+		var c = classes[cls];
+		if (!c || seen[cls]) return null;
+		seen[cls] = true;
+		var f = (c.attributes && c.attributes[name]) || (c.references && c.references[name]) || (c.collections && c.collections[name]);
+		if (f) return f;
+		var ext = c.extends || [];
+		for (var i = 0; i < ext.length; i++) {
+			var r = fieldOf(classes, ext[i], name, seen);
+			if (r) return r;
+		}
+		return null;
+	}
+
+	function hasPath(service, path) {
+		var classes = service && service.model && service.model.classes;
+		if (!classes) return true;
+		var parts = String(path).split('.');
+		var cls = parts[0];
+		if (!classes[cls]) return false;
+		for (var i = 1; i < parts.length; i++) {
+			var f = fieldOf(classes, cls, parts[i], {});
+			if (!f) return false;
+			if (i < parts.length - 1) {
+				if (!f.referencedType) return false;
+				cls = f.referencedType;
+			}
+		}
+		return true;
+	}
+
 	// ---- queries -------------------------------------------------------
 
 	function escapeXml(s) {
@@ -76,6 +110,12 @@
 		'Gene.id',
 		'Gene.primaryIdentifier',
 		'Gene.symbol',
+		'Gene.phenotypeAnnotations.id',
+		'Gene.phenotypeAnnotations.phenotypeStatement',
+		'Gene.phenotypeAnnotations.publications.pubMedId'
+	];
+
+	var PHENOTYPE_PATHS = [
 		'Gene.phenotypeAnnotations.id',
 		'Gene.phenotypeAnnotations.phenotypeStatement',
 		'Gene.phenotypeAnnotations.publications.pubMedId'
@@ -455,7 +495,13 @@
 			return;
 		}
 		loadSection(el, token, diseaseBox, DISEASE_KIND, serviceRoot(service.root), ids);
-		loadSection(el, token, phenotypeBox, PHENOTYPE_KIND, serviceRoot(service.root), ids);
+		// Disease is required (config.json depends). FlyMine and YeastMine have no
+		// Gene.phenotypeAnnotations, so the phenotype section says so instead of failing the query.
+		if (PHENOTYPE_PATHS.every(function (p) { return hasPath(service, p); })) {
+			loadSection(el, token, phenotypeBox, PHENOTYPE_KIND, serviceRoot(service.root), ids);
+		} else {
+			showMessage(phenotypeBox, PHENOTYPE_KIND.title, 'Phenotype annotations are not available in this mine');
+		}
 	}
 
 	var api = {
@@ -465,6 +511,7 @@
 		buildPhenotypeQuery: buildPhenotypeQuery,
 		groupDisease: groupDisease,
 		groupPhenotype: groupPhenotype,
+		hasPath: hasPath,
 		COLLAPSE_AFTER: COLLAPSE_AFTER
 	};
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;
