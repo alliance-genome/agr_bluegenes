@@ -47,8 +47,24 @@
       (is (= [11 12 13] (:object-ids result))))
     (is (= 5 (:source-count result))))
   (testing "no identifiers"
-    (is (= {:source-count 0 :resolved 0 :unresolved [] :object-ids []}
+    (is (= {:source-count 0 :resolved 0 :unresolved [] :multi-mapped [] :object-ids []}
            (stm/classify-resolution [] nil)))))
+
+(deftest classification-prefers-as-is-candidate
+  (let [resp {:matches {:MATCH [{:input ["HGNC:3236"] :id 1}
+                                {:input ["3236"] :id 2}
+                                {:input ["77"] :id 3}]}}
+        result (stm/classify-resolution ["HGNC:3236" "HGNC:77"] resp)]
+    (testing "stripped candidate is ignored when the as-is one matched"
+      (is (= [1 3] (:object-ids result))))
+    (is (= 2 (:resolved result)))
+    (is (= [] (:multi-mapped result))))
+  (testing "one identifier hitting two genes is reported"
+    (let [resp {:matches {:MATCH [{:input ["X:1"] :id 1}]
+                          :OTHER [{:input ["X:1"] :id 2}]}}
+          result (stm/classify-resolution ["X:1"] resp)]
+      (is (= ["X:1"] (:multi-mapped result)))
+      (is (= [1 2] (:object-ids result))))))
 
 (deftest queries
   (is (= {:from "Gene"
@@ -109,6 +125,7 @@
 
 (def seeded-db
   {:current-mine :main
+   :send-to-mine-run 1
    :env {:mines {:main {:name "Main" :service {:root "http://main.example"}}
                  :mouse {:name "Mouse" :service {:root "http://mouse.example"}}}}
    :mines {:main {:name "Main" :service {:root "http://main.example"}}}})
@@ -252,3 +269,28 @@
    (rf/dispatch [::seed (assoc seeded-db :results {:send-to-mine open-state})])
    (rf/dispatch [:results/clear])
    (is (nil? @(rf/subscribe [::state])))))
+
+(deftest changing-inputs-invalidates-pending-resolution
+  (doseq [[label event] [["organism" [::stm/select-organism "D. rerio"]]
+                         ["mode" [::stm/set-mode :same]]]]
+    (run-test-sync
+     (rf/dispatch [::seed (assoc seeded-db :results
+                                 {:send-to-mine (assoc open-state :resolving? true :mode :orthologs
+                                                       :organism "M. musculus")})])
+     (rf/dispatch event)
+     (testing (str "old response after changing " label " is dropped")
+       (rf/dispatch [::stm/resolve-success :mouse 1 ["MGI:104537"] response])
+       (let [state @(rf/subscribe [::state])]
+         (is (nil? (:result state)))
+         (is (false? (:resolving? state))))))))
+
+(deftest run-counter-survives-reopening-panel
+  (run-test-sync
+   (utils/stub-local-storage)
+   (rf/dispatch [::seed (assoc seeded-db :results {:send-to-mine open-state})])
+   (rf/dispatch [::stm/toggle "L"])
+   (rf/dispatch [::stm/toggle "L"])
+   (let [run (:run @(rf/subscribe [::state]))]
+     (is (> run 1))
+     (rf/dispatch [::stm/select-mine ""])
+     (is (> (:run @(rf/subscribe [::state])) run)))))

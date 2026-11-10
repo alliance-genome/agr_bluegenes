@@ -3,7 +3,8 @@
   genes (or of their homologues in one organism) are read in the current mine,
   mapped to the target mine's identifier style, resolved there and saved as a
   list under the user's login for the target mine."
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-sub subscribe dispatch inject-cofx]]
+  (:require [cljs.core.async :refer [chan go alts! put! close! timeout]]
+            [re-frame.core :refer [reg-event-db reg-event-fx reg-sub subscribe dispatch inject-cofx]]
             [clojure.string :as str]
             [oops.core :refer [oget]]
             [imcljs.fetch :as fetch]
@@ -15,6 +16,9 @@
 (def organism-path "Gene.organism.shortName")
 (def homologue-identifier-path "Gene.homologues.homologue.primaryIdentifier")
 (def max-shown-unresolved 200)
+(def resolve-timeout-ms 60000)
+;; Longer than imcljs's own job polling timeout, so imcljs answers first when it can.
+(def resolve-guard-ms 65000)
 
 ;;; Pure helpers ;;;
 
@@ -36,21 +40,33 @@
   (let [{:keys [MATCH OTHER]} (:matches response)]
     (concat MATCH OTHER)))
 
+(defn- ids-by-input
+  "Map of each matched input identifier to the distinct target object ids."
+  [response]
+  (reduce (fn [m {:keys [input id]}]
+            (if (some? id)
+              (reduce (fn [m i] (update m i (fnil conj []) id)) m input)
+              m))
+          {}
+          (matched-groups response)))
+
 (defn classify-resolution
   "Splits source identifiers into resolved and unresolved given an id
-  resolution response from the target mine. A source identifier is resolved when
-  any of its candidates was matched. Ambiguous (duplicate) and wildcard hits
-  count as unresolved. `:object-ids` are the distinct target object ids."
+  resolution response from the target mine. For each source identifier the
+  as-is candidate is used when it has hits, otherwise the prefix-stripped one,
+  so one source identifier never adds genes from both forms. Ambiguous
+  (duplicate) and wildcard hits count as unresolved. `:object-ids` are the
+  distinct target object ids. `:multi-mapped` lists source identifiers that hit
+  more than one target gene."
   [source-ids response]
-  (let [matched-inputs (->> (matched-groups response)
-                            (mapcat :input)
-                            set)
-        resolved? (fn [id] (boolean (some matched-inputs (id-candidates id))))
-        unresolved (vec (remove resolved? source-ids))]
+  (let [by-input (ids-by-input response)
+        hits (fn [id] (some (fn [c] (some-> (get by-input c) distinct seq)) (id-candidates id)))
+        chosen (map (juxt identity hits) source-ids)]
     {:source-count (count source-ids)
-     :resolved (- (count source-ids) (count unresolved))
-     :unresolved unresolved
-     :object-ids (->> (matched-groups response) (keep :id) distinct vec)}))
+     :resolved (count (filter second chosen))
+     :unresolved (vec (keep (fn [[id h]] (when-not h id)) chosen))
+     :multi-mapped (vec (keep (fn [[id h]] (when (> (count h) 1) id)) chosen))
+     :object-ids (->> chosen (mapcat second) distinct vec)}))
 
 (defn source-ids-query
   "Query run in the current mine to get the identifiers to send."
@@ -128,6 +144,28 @@
       (get-in db [:mines mine-kw :name])
       (name mine-kw)))
 
+(defn- bump-run
+  "Gives the panel a fresh run number from a counter that outlives the panel
+  state, and drops in-flight work: responses carrying an older run are ignored."
+  [db]
+  (let [run (inc (or (:send-to-mine-run db) 0))]
+    (-> db
+        (assoc :send-to-mine-run run)
+        (update-in (state-path) assoc :run run :resolving? false :saving? false))))
+
+(defn- with-timeout
+  "Channel that carries the value of `ch`, or a 408 response after `ms`, so a
+  request that never answers still reaches the failure handler."
+  [ch ms]
+  (let [out (chan 1)]
+    (go
+      (let [[v port] (alts! [ch (timeout ms)])]
+        (put! out (if (= port ch)
+                    v
+                    {:status 408 :body {:error "Timed out waiting for the identifier resolution job."}}))
+        (close! out)))
+    out))
+
 (defn- current? [db target run]
   (let [state (get-in db (state-path))]
     (and (= target (:target state))
@@ -138,24 +176,28 @@
  (fn [db [_ list-name]]
    (if (get-in db (state-path :open?))
      (assoc-in db (state-path) nil)
-     (assoc-in db (state-path) {:open? true :list-source list-name :run 0}))))
+     (-> db
+         (assoc-in (state-path) {:open? true :list-source list-name})
+         bump-run))))
 
 (reg-event-fx
  ::select-mine
  [(inject-cofx :local-store :bluegenes/login)]
  (fn [{db :db login :local-store} [_ mine]]
-   (let [base (select-keys (get-in db (state-path)) [:open? :list-source :run])]
+   (let [base (select-keys (get-in db (state-path)) [:open? :list-source])]
      (if (str/blank? mine)
-       {:db (assoc-in db (state-path) base)}
+       {:db (bump-run (assoc-in db (state-path) base))}
        (let [target (keyword mine)
              svc (target-service db login target)]
-         {:db (assoc-in db (state-path)
-                        (assoc base
-                               :target target
-                               :target-service svc
-                               :logged-in? (contains? svc :token)
-                               :mode :same
-                               :loading-organisms? true))
+         {:db (-> db
+                  (assoc-in (state-path)
+                            (assoc base
+                                   :target target
+                                   :target-service svc
+                                   :logged-in? (contains? svc :token)
+                                   :mode :same
+                                   :loading-organisms? true))
+                  bump-run)
           :im-chan {:chan (fetch/rows svc (target-organisms-query)
                                       {:summaryPath organism-path
                                        :size 1000
@@ -187,15 +229,19 @@
 (reg-event-db
  ::set-mode
  (fn [db [_ mode]]
-   (update-in db (state-path) assoc
-              :mode (keyword mode) :organism nil :result nil :saved nil)))
+   (-> db
+       (update-in (state-path) assoc
+                  :mode (keyword mode) :organism nil :result nil :saved nil)
+       bump-run)))
 
 (reg-event-db
  ::select-organism
  (fn [db [_ organism]]
-   (update-in db (state-path) assoc
-              :organism (when-not (str/blank? organism) organism)
-              :result nil :saved nil)))
+   (-> db
+       (update-in (state-path) assoc
+                  :organism (when-not (str/blank? organism) organism)
+                  :result nil :saved nil)
+       bump-run)))
 
 (reg-event-db
  ::set-list-name
@@ -205,12 +251,12 @@
 (reg-event-fx
  ::resolve
  (fn [{db :db} _]
-   (let [{:keys [target list-source mode organism run] :as state} (get-in db (state-path))]
+   (let [{:keys [target list-source mode organism] :as state} (get-in db (state-path))]
      (when (ready-to-resolve? state)
-       (let [run (inc (or run 0))
+       (let [db (bump-run db)
+             run (get-in db (state-path :run))
              source-name (mine-label db (:current-mine db))]
          {:db (update-in db (state-path) assoc
-                         :run run
                          :resolving? true
                          :result nil
                          :saved nil
@@ -232,9 +278,11 @@
          {:db (update-in db (state-path) assoc
                          :resolving? false
                          :result (classify-resolution [] nil))}
-         {:im-chan {:chan (fetch/resolve-identifiers svc {:identifiers (all-candidates ids)
-                                                          :type "Gene"
-                                                          :timeout-ms 60000})
+         {:im-chan {:chan (with-timeout
+                            (fetch/resolve-identifiers svc {:identifiers (all-candidates ids)
+                                                            :type "Gene"
+                                                            :timeout-ms resolve-timeout-ms})
+                            resolve-guard-ms)
                     :abort ::target-resolve
                     :on-success [::resolve-success target run ids]
                     :on-failure [::resolve-failure target run]
@@ -411,6 +459,13 @@
           [:div.resolution-result
            [:p [:strong (:resolved result)] " of " [:strong (:source-count result)]
             " identifiers resolved in the target mine."]
+           (when (seq (:multi-mapped result))
+             [:p.text-muted
+              (str (count (:multi-mapped result))
+                   " identifiers matched more than one gene in the target mine: "
+                   (str/join ", " (take 10 (:multi-mapped result)))
+                   (when (> (count (:multi-mapped result)) 10) ", ...")
+                   ". All matched genes are saved.")])
            (when (seq (:unresolved result))
              [unresolved-list (:unresolved result)])
            (when (pos? (count (:object-ids result)))
