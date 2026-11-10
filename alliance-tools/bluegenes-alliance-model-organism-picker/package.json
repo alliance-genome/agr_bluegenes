@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-model-organism-picker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ranks a gene's orthologs by ortholog confidence and by the alleles, phenotypes, disease annotations, disease models and expression data available for each, to pick a model organism.",
   "main": "dist/bundle.js",
   "scripts": {

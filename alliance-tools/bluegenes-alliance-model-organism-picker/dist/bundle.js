@@ -41,6 +41,13 @@
 		expression: ['Gene.id', 'Gene.expressionAnnotations.id']
 	};
 	var RESOURCE_KEYS = ['alleles', 'phenotypes', 'diseases', 'models', 'expression'];
+	var RESOURCE_LABELS = {
+		alleles: 'Alleles',
+		phenotypes: 'Phenotypes',
+		diseases: 'Disease',
+		models: 'Disease models',
+		expression: 'Expression'
+	};
 
 	function escapeXml(s) {
 		return String(s)
@@ -221,7 +228,9 @@
 		return details;
 	}
 
-	function buildSection(orthologs, navigate, truncated) {
+	function buildSection(orthologs, navigate, truncated, unavailable) {
+		unavailable = unavailable || [];
+		var keys = RESOURCE_KEYS.filter(function (k) { return unavailable.indexOf(k) < 0; });
 		var wrap = node('div', null, 'alliance-model-organism-picker');
 		if (!orthologs.length) {
 			wrap.appendChild(node('span', 'No orthologs'));
@@ -243,11 +252,23 @@
 		if (truncated) {
 			wrap.appendChild(node('p', 'A result set was cut at ' + MAX_ROWS + ' rows, so some counts are lower bounds.'));
 		}
+		if (unavailable.length) {
+			wrap.appendChild(
+				node(
+					'p',
+					'This mine has no data for: ' +
+						unavailable.map(function (k) { return RESOURCE_LABELS[k].toLowerCase(); }).join(', ') +
+						'. Those columns are left out of the score.',
+					'alliance-model-organism-picker-note'
+				)
+			);
+		}
 		wrap.appendChild(howRanked());
 
 		var table = node('table', null, 'table table-condensed table-striped');
 		var headRow = node('tr');
-		['Species', 'Symbol', 'Confidence', 'Alleles', 'Phenotypes', 'Disease', 'Disease models', 'Expression', 'Score']
+		['Species', 'Symbol', 'Confidence']
+			.concat(keys.map(function (k) { return RESOURCE_LABELS[k]; }), ['Score'])
 			.forEach(function (h) { headRow.appendChild(node('th', h)); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
@@ -268,7 +289,7 @@
 			symCell.appendChild(a);
 			tr.appendChild(symCell);
 			tr.appendChild(node('td', support(o)));
-			RESOURCE_KEYS.forEach(function (k) { tr.appendChild(node('td', o[k] || 0)); });
+			keys.forEach(function (k) { tr.appendChild(node('td', o[k] || 0)); });
 			tr.appendChild(node('td', formatScore(o.score)));
 			tbody.appendChild(tr);
 		});
@@ -277,9 +298,9 @@
 		return wrap;
 	}
 
-	function render(el, orthologs, navigate, truncated) {
+	function render(el, orthologs, navigate, truncated, unavailable) {
 		clear(el);
-		el.appendChild(buildSection(orthologs, navigate, truncated));
+		el.appendChild(buildSection(orthologs, navigate, truncated, unavailable));
 	}
 
 	// One section per gene. genes: [{ id, label, orthologs, truncated }].
@@ -290,7 +311,7 @@
 		genes.forEach(function (g) {
 			var section = node('div', null, 'alliance-model-organism-picker-gene');
 			section.appendChild(node('h4', g.label));
-			section.appendChild(buildSection(g.orthologs, navigate, g.truncated));
+			section.appendChild(buildSection(g.orthologs, navigate, g.truncated, g.unavailable));
 			outer.appendChild(section);
 		});
 		el.appendChild(outer);
@@ -303,7 +324,11 @@
 			body: requestBody(view, ids)
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) {
+					var err = new Error('HTTP ' + res.status);
+					err.status = res.status;
+					throw err;
+				}
 				return res.json();
 			})
 			.then(function (json) {
@@ -315,21 +340,30 @@
 	function load(sRoot, geneId) {
 		return fetchRows(sRoot, HOMOLOGUE_VIEW, geneId).then(function (rows) {
 			var orthologs = toOrthologs(rows);
-			if (!orthologs.length) return { orthologs: [], truncated: false };
+			if (!orthologs.length) return { orthologs: [], truncated: false, unavailable: [] };
 			var ids = orthologs.map(function (o) { return o.id; });
 			var truncated = rows.length >= MAX_ROWS;
+			var unavailable = [];
 			return Promise.all(
 				RESOURCE_KEYS.map(function (k) {
 					return fetchRows(sRoot, COUNT_QUERIES[k], ids).then(function (r) {
 						if (r.length >= MAX_ROWS) truncated = true;
 						return countByGene(r, k === 'diseases' ? function (row) { return isDirectQualifier(row[2]); } : null);
+					}, function (err) {
+						// HTTP 400 is the mine rejecting the path: its model lacks this data.
+						// Anything else (network, 5xx) still fails the whole tool.
+						if (err && err.status === 400) {
+							unavailable.push(k);
+							return {};
+						}
+						throw err;
 					});
 				})
 			).then(function (counts) {
 				orthologs.forEach(function (o) {
 					RESOURCE_KEYS.forEach(function (k, i) { o[k] = counts[i][String(o.id)] || 0; });
 				});
-				return { orthologs: orthologs, truncated: truncated };
+				return { orthologs: orthologs, truncated: truncated, unavailable: unavailable };
 			});
 		});
 	}
@@ -358,7 +392,8 @@
 					id: id,
 					label: both[0][id] || 'Gene ' + id,
 					orthologs: both[1][i].orthologs,
-					truncated: both[1][i].truncated
+					truncated: both[1][i].truncated,
+					unavailable: both[1][i].unavailable
 				};
 			});
 		});
@@ -402,7 +437,7 @@
 		load(serviceRoot(service.root), String(value))
 			.then(function (result) {
 				if (el.__agrPickerReq !== token) return;
-				render(el, result.orthologs, navigate, result.truncated);
+				render(el, result.orthologs, navigate, result.truncated, result.unavailable);
 			})
 			.catch(function (err) {
 				console.error('Model organism picker failed', err);
