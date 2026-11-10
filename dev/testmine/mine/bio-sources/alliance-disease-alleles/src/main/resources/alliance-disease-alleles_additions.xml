@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- DiseaseAnnotation.alleleSubject reference is declared in
+     alliancemine-global_additions.xml; this file is intentionally empty so
+     the dbmodel plugin still has an additions file to merge. -->
+
+<classes>
+</classes>

@@ -1,0 +1,200 @@
+format-version: 1.2
+data-version: test
+ontology: fbbt
+
+[Term]
+id: FBbt:00000001
+name: organism
+
+[Term]
+id: FBbt:00000004
+name: head
+
+[Term]
+id: FBbt:00000008
+name: labral segment
+
+[Term]
+id: FBbt:00000092
+name: primordial germ cell
+
+[Term]
+id: FBbt:00000093
+name: ventral midline of embryo
+
+[Term]
+id: FBbt:00000097
+name: cephalic furrow
+
+[Term]
+id: FBbt:00000104
+name: mesoderm anlage
+
+[Term]
+id: FBbt:00000109
+name: mesectoderm anlage
+
+[Term]
+id: FBbt:00000126
+name: mesoderm
+
+[Term]
+id: FBbt:00000127
+name: head mesoderm
+
+[Term]
+id: FBbt:00000128
+name: trunk mesoderm
+
+[Term]
+id: FBbt:00000130
+name: visceral trunk mesoderm
+
+[Term]
+id: FBbt:00000156
+name: embryonic ocular segment
+
+[Term]
+id: FBbt:00000160
+name: embryonic antennal segment
+
+[Term]
+id: FBbt:00000161
+name: embryonic intercalary segment
+
+[Term]
+id: FBbt:00000169
+name: embryonic mesothoracic segment
+
+[Term]
+id: FBbt:00000170
+name: embryonic metathoracic segment
+
+[Term]
+id: FBbt:00000210
+name: anterior endoderm anlage
+
+[Term]
+id: FBbt:00000441
+name: hindgut proper primordium
+
+[Term]
+id: FBbt:00000444
+name: anterior midgut primordium
+
+[Term]
+id: FBbt:00000462
+name: larval muscle system
+
+[Term]
+id: FBbt:00000464
+name: larval somatic muscle cell
+
+[Term]
+id: FBbt:00000487
+name: pharyngeal muscle cell
+
+[Term]
+id: FBbt:00001035
+name: larval visceral muscle cell
+
+[Term]
+id: FBbt:00001056
+name: presumptive embryonic/larval central nervous system
+
+[Term]
+id: FBbt:00001058
+name: procephalic neurogenic region
+
+[Term]
+id: FBbt:00001060
+name: embryonic brain
+
+[Term]
+id: FBbt:00001102
+name: larval ventral nerve cord
+
+[Term]
+id: FBbt:00001103
+name: larval longitudinal connective
+
+[Term]
+id: FBbt:00001104
+name: larval ventral nerve cord commissure
+
+[Term]
+id: FBbt:00001134
+name: presumptive embryonic/larval peripheral nervous system
+
+[Term]
+id: FBbt:00001704
+name: embryonic/larval fat body
+
+[Term]
+id: FBbt:00001722
+name: ring gland
+
+[Term]
+id: FBbt:00001761
+name: imaginal disc
+
+[Term]
+id: FBbt:00001766
+name: eye-antennal disc
+
+[Term]
+id: FBbt:00001768
+name: eye disc
+
+[Term]
+id: FBbt:00001778
+name: wing disc
+
+[Term]
+id: FBbt:00001780
+name: leg disc
+
+[Term]
+id: FBbt:00001784
+name: genital disc
+
+[Term]
+id: FBbt:00001842
+name: larval digestive system
+
+[Term]
+id: FBbt:00001862
+name: embryonic/larval foregut
+
+[Term]
+id: FBbt:00001878
+name: embryonic/larval salivary gland
+
+[Term]
+id: FBbt:00001919
+name: larval central nervous system
+
+[Term]
+id: FBbt:00001920
+name: larval brain
+
+[Term]
+id: FBbt:00001930
+name: embryonic/larval optic lobe
+
+[Term]
+id: FBbt:00003007
+name: adult head
+
+[Term]
+id: FBbt:00004954
+name: spermatozoon
+
+[Term]
+id: FBbt:00007594
+name: embryonic/larval salivary gland body
+
+[Term]
+id: FBbt:00100312
+name: medullary zone of lymph gland primary lobe
+

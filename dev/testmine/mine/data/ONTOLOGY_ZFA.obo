@@ -1,0 +1,192 @@
+format-version: 1.2
+data-version: test
+ontology: zfa
+
+[Term]
+id: ZFA:0000001
+name: Kupffer's vesicle
+
+[Term]
+id: ZFA:0000008
+name: brain
+
+[Term]
+id: ZFA:0000012
+name: central nervous system
+
+[Term]
+id: ZFA:0000013
+name: cranial ganglion
+
+[Term]
+id: ZFA:0000014
+name: dorsal aorta
+
+[Term]
+id: ZFA:0000016
+name: ectoderm
+
+[Term]
+id: ZFA:0000017
+name: endoderm
+
+[Term]
+id: ZFA:0000019
+name: epiphysis
+
+[Term]
+id: ZFA:0000022
+name: floor plate
+
+[Term]
+id: ZFA:0000023
+name: forerunner cell group
+
+[Term]
+id: ZFA:0000024
+name: retinal ganglion cell layer
+
+[Term]
+id: ZFA:0000029
+name: hindbrain
+
+[Term]
+id: ZFA:0000032
+name: hypothalamus
+
+[Term]
+id: ZFA:0000033
+name: intermediate cell mass of mesoderm
+
+[Term]
+id: ZFA:0000035
+name: lens
+
+[Term]
+id: ZFA:0000037
+name: anatomical structure
+
+[Term]
+id: ZFA:0000042
+name: midbrain hindbrain boundary
+
+[Term]
+id: ZFA:0000046
+name: retinal neural layer
+
+[Term]
+id: ZFA:0000051
+name: otic vesicle
+
+[Term]
+id: ZFA:0000075
+name: spinal cord
+
+[Term]
+id: ZFA:0000079
+name: telencephalon
+
+[Term]
+id: ZFA:0000095
+name: pharyngeal arch 3-7 skeleton
+
+[Term]
+id: ZFA:0000100
+name: cerebellum
+
+[Term]
+id: ZFA:0000101
+name: diencephalon
+
+[Term]
+id: ZFA:0000107
+name: eye
+
+[Term]
+id: ZFA:0000108
+name: fin
+
+[Term]
+id: ZFA:0000109
+name: forebrain
+
+[Term]
+id: ZFA:0000112
+name: gut
+
+[Term]
+id: ZFA:0000113
+name: head mesenchyme
+
+[Term]
+id: ZFA:0000114
+name: heart
+
+[Term]
+id: ZFA:0000123
+name: liver
+
+[Term]
+id: ZFA:0000128
+name: midbrain
+
+[Term]
+id: ZFA:0000135
+name: notochord
+
+[Term]
+id: ZFA:0000140
+name: pancreas
+
+[Term]
+id: ZFA:0000403
+name: ovary
+
+[Term]
+id: ZFA:0000473
+name: trunk musculature
+
+[Term]
+id: ZFA:0000529
+name: kidney
+
+[Term]
+id: ZFA:0001058
+name: caudal fin
+
+[Term]
+id: ZFA:0001079
+name: blood vasculature
+
+[Term]
+id: ZFA:0001093
+name: unspecified
+
+[Term]
+id: ZFA:0001094
+name: whole organism
+
+[Term]
+id: ZFA:0001109
+name: oocyte
+
+[Term]
+id: ZFA:0001114
+name: head
+
+[Term]
+id: ZFA:0001115
+name: trunk
+
+[Term]
+id: ZFA:0001117
+name: post-vent region
+
+[Term]
+id: ZFA:0001678
+name: immature eye
+
+[Term]
+id: ZFA:0005772
+name: fertilized egg
+

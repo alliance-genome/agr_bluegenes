@@ -1018,3 +1018,48 @@ id: DOID:14450
 name: 46 XX gonadal dysgenesis
 namespace: disease_ontology
 
+[Term]
+id: DOID:13042
+name: persistent fetal circulation syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:2394
+name: ovarian cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:3962
+name: follicular thyroid carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:5409
+name: lung small cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:5520
+name: head and neck squamous cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:6457
+name: Cowden syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:8923
+name: skin melanoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:9452
+name: steatotic liver disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:9952
+name: acute lymphoblastic leukemia
+namespace: disease_ontology
+

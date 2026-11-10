@@ -1,0 +1,75 @@
+subjectGeneId	subjectGeneSymbol	subjectGeneTaxon	paralogGeneId	paralogGeneSymbol	paralogGeneTaxon	identity	similarity	length	rank	predictionMethodsMatched	predictionMethodsNotMatched	predictionMethodsNotCalled
+HGNC:11117	SMN1	NCBITaxon:9606	HGNC:11118	SMN2	NCBITaxon:9606	99	99	358	1	OMA|OrthoFinder|PANTHER|TreeFam|ZFIN	Ensembl Compara|HGNC|PhylomeDB|SonicParanoid	
+HGNC:11118	SMN2	NCBITaxon:9606	HGNC:11117	SMN1	NCBITaxon:9606	99	99	358	1	HGNC|OrthoFinder|PhylomeDB|ZFIN	Ensembl Compara|OMA|PANTHER|SonicParanoid|TreeFam	
+HGNC:11138	SNCA	NCBITaxon:9606	HGNC:11140	SNCB	NCBITaxon:9606	53	65	1349	1	HGNC|OrthoFinder|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|OMA|PANTHER|TreeFam	
+HGNC:11138	SNCA	NCBITaxon:9606	HGNC:11141	SNCG	NCBITaxon:9606	35	48	1395	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:11140	SNCB	NCBITaxon:9606	HGNC:11138	SNCA	NCBITaxon:9606	53	65	1349	1	Ensembl Compara|HGNC|OrthoFinder|SonicParanoid	OMA|PANTHER|PhylomeDB|TreeFam|ZFIN	
+HGNC:11141	SNCG	NCBITaxon:9606	HGNC:11138	SNCA	NCBITaxon:9606	35	48	1395	1	Ensembl Compara|OMA|PANTHER|ZFIN	HGNC|OrthoFinder|PhylomeDB|SonicParanoid|TreeFam	
+HGNC:11179	SOD1	NCBITaxon:9606	HGNC:11181	SOD3	NCBITaxon:9606	34	44	751	1	Ensembl Compara|OMA|OrthoFinder|PhylomeDB|SonicParanoid|ZFIN	HGNC|PANTHER|TreeFam	
+HGNC:11181	SOD3	NCBITaxon:9606	HGNC:11179	SOD1	NCBITaxon:9606	34	44	751	1	Ensembl Compara|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	HGNC	
+HGNC:11998	TP53	NCBITaxon:9606	HGNC:12003	TP73	NCBITaxon:9606	58	70	1494	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+HGNC:11998	TP53	NCBITaxon:9606	HGNC:15979	TP63	NCBITaxon:9606	33	43	1501	2	Ensembl Compara|HGNC|PANTHER|ZFIN	OMA|OrthoFinder|PhylomeDB|SonicParanoid|TreeFam	
+HGNC:12003	TP73	NCBITaxon:9606	HGNC:11998	TP53	NCBITaxon:9606	58	70	1494	1	HGNC|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder	
+HGNC:15979	TP63	NCBITaxon:9606	HGNC:11998	TP53	NCBITaxon:9606	33	43	1501	1	Ensembl Compara|HGNC|OMA|OrthoFinder|SonicParanoid	PANTHER|PhylomeDB|TreeFam|ZFIN	
+HGNC:18608	LRRK1	NCBITaxon:9606	HGNC:18618	LRRK2	NCBITaxon:9606	51	63	1000	1	HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+HGNC:18618	LRRK2	NCBITaxon:9606	HGNC:18608	LRRK1	NCBITaxon:9606	51	63	1000	1	HGNC|OMA|PANTHER|SonicParanoid|ZFIN	Ensembl Compara|OrthoFinder|PhylomeDB|TreeFam	
+HGNC:3236	EGFR	NCBITaxon:9606	HGNC:3432	ERBB4	NCBITaxon:9606	62	79	1273	1	Ensembl Compara|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam	HGNC|SonicParanoid|ZFIN	
+HGNC:3236	EGFR	NCBITaxon:9606	HGNC:3431	ERBB3	NCBITaxon:9606	30	47	707	2	Ensembl Compara|HGNC|OMA|PANTHER|PhylomeDB|SonicParanoid|ZFIN	OrthoFinder|TreeFam	
+HGNC:3236	EGFR	NCBITaxon:9606	HGNC:3430	ERBB2	NCBITaxon:9606	24	33	1192	3	HGNC|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|OMA|TreeFam	
+HGNC:3430	ERBB2	NCBITaxon:9606	HGNC:3236	EGFR	NCBITaxon:9606	24	33	1192	1	OMA|PANTHER|PhylomeDB|TreeFam	Ensembl Compara|HGNC|OrthoFinder|SonicParanoid|ZFIN	
+HGNC:3431	ERBB3	NCBITaxon:9606	HGNC:3236	EGFR	NCBITaxon:9606	30	47	707	1	HGNC|OMA|OrthoFinder|PhylomeDB|ZFIN	Ensembl Compara|PANTHER|SonicParanoid|TreeFam	
+HGNC:3432	ERBB4	NCBITaxon:9606	HGNC:3236	EGFR	NCBITaxon:9606	62	79	1273	1	HGNC|OMA|PANTHER|TreeFam	Ensembl Compara|OrthoFinder|PhylomeDB|SonicParanoid|ZFIN	
+HGNC:3775	FMR1	NCBITaxon:9606	HGNC:4024	FXR2	NCBITaxon:9606	59	75	570	1	Ensembl Compara|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	HGNC	
+HGNC:3775	FMR1	NCBITaxon:9606	HGNC:4023	FXR1	NCBITaxon:9606	37	46	1076	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:4023	FXR1	NCBITaxon:9606	HGNC:3775	FMR1	NCBITaxon:9606	37	46	1076	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:4024	FXR2	NCBITaxon:9606	HGNC:3775	FMR1	NCBITaxon:9606	59	75	570	1	HGNC|OMA|OrthoFinder|PANTHER|SonicParanoid	Ensembl Compara|PhylomeDB|TreeFam|ZFIN	
+HGNC:5173	HRAS	NCBITaxon:9606	HGNC:6407	KRAS	NCBITaxon:9606	86	97	1338	1	HGNC|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder|PANTHER	
+HGNC:597	APLP1	NCBITaxon:9606	HGNC:620	APP	NCBITaxon:9606	33	44	1449	1	HGNC|OMA|PANTHER|TreeFam	Ensembl Compara|OrthoFinder|PhylomeDB|SonicParanoid|ZFIN	
+HGNC:598	APLP2	NCBITaxon:9606	HGNC:620	APP	NCBITaxon:9606	37	45	1346	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER	PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+HGNC:620	APP	NCBITaxon:9606	HGNC:598	APLP2	NCBITaxon:9606	37	45	1346	1	HGNC|OMA|PANTHER|SonicParanoid|ZFIN	Ensembl Compara|OrthoFinder|PhylomeDB|TreeFam	
+HGNC:620	APP	NCBITaxon:9606	HGNC:597	APLP1	NCBITaxon:9606	33	44	1449	2	Ensembl Compara|PANTHER|SonicParanoid|ZFIN	HGNC|OMA|OrthoFinder|PhylomeDB|TreeFam	
+HGNC:6407	KRAS	NCBITaxon:9606	HGNC:5173	HRAS	NCBITaxon:9606	86	97	1338	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+HGNC:6407	KRAS	NCBITaxon:9606	HGNC:7989	NRAS	NCBITaxon:9606	85	99	1481	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:6839	MAP2	NCBITaxon:9606	HGNC:6893	MAPT	NCBITaxon:9606	59	71	407	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:6862	MAP4	NCBITaxon:9606	HGNC:6893	MAPT	NCBITaxon:9606	34	42	1442	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:6893	MAPT	NCBITaxon:9606	HGNC:6839	MAP2	NCBITaxon:9606	59	71	407	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:6893	MAPT	NCBITaxon:9606	HGNC:6862	MAP4	NCBITaxon:9606	34	42	1442	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+HGNC:7881	NOTCH1	NCBITaxon:9606	HGNC:7883	NOTCH3	NCBITaxon:9606	60	76	770	1	OrthoFinder|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|HGNC|OMA|PANTHER|ZFIN	
+HGNC:7881	NOTCH1	NCBITaxon:9606	HGNC:7882	NOTCH2	NCBITaxon:9606	50	65	1051	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	TreeFam	
+HGNC:7882	NOTCH2	NCBITaxon:9606	HGNC:7881	NOTCH1	NCBITaxon:9606	50	65	1051	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam	SonicParanoid|ZFIN	
+HGNC:7883	NOTCH3	NCBITaxon:9606	HGNC:7881	NOTCH1	NCBITaxon:9606	60	76	770	1	OMA|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|HGNC|OrthoFinder|PANTHER|TreeFam	
+HGNC:7989	NRAS	NCBITaxon:9606	HGNC:6407	KRAS	NCBITaxon:9606	85	99	1481	1	Ensembl Compara|HGNC|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam	OMA|ZFIN	
+MGI:103181	Sod3	NCBITaxon:10090	MGI:98351	Sod1	NCBITaxon:10090	24	40	1341	1	OMA|OrthoFinder|PANTHER|TreeFam	Ensembl Compara|HGNC|PhylomeDB|SonicParanoid|ZFIN	
+MGI:104860	Fxr1	NCBITaxon:10090	MGI:95564	Fmr1	NCBITaxon:10090	33	44	1175	1	Ensembl Compara|OrthoFinder|PANTHER|TreeFam|ZFIN	HGNC|OMA|PhylomeDB|SonicParanoid	
+MGI:1277151	Snca	NCBITaxon:10090	MGI:1889011	Sncb	NCBITaxon:10090	56	73	1137	1	HGNC|OMA|PhylomeDB|ZFIN	Ensembl Compara|OrthoFinder|PANTHER|SonicParanoid|TreeFam	
+MGI:1330810	Trp63	NCBITaxon:10090	MGI:98834	Trp53	NCBITaxon:10090	55	69	1115	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam	SonicParanoid|ZFIN	
+MGI:1336991	Trp73	NCBITaxon:10090	MGI:98834	Trp53	NCBITaxon:10090	55	69	346	1	OMA|OrthoFinder|PANTHER|PhylomeDB|ZFIN	Ensembl Compara|HGNC|SonicParanoid|TreeFam	
+MGI:1346074	Fxr2	NCBITaxon:10090	MGI:95564	Fmr1	NCBITaxon:10090	35	43	564	1	Ensembl Compara|HGNC|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OMA|OrthoFinder|PANTHER	
+MGI:1889011	Sncb	NCBITaxon:10090	MGI:1277151	Snca	NCBITaxon:10090	56	73	1137	1	HGNC|PANTHER|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder|PhylomeDB	
+MGI:1913975	Lrrk2	NCBITaxon:10090	MGI:2142227	Lrrk1	NCBITaxon:10090	24	41	1514	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+MGI:2142227	Lrrk1	NCBITaxon:10090	MGI:1913975	Lrrk2	NCBITaxon:10090	24	41	1514	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam|ZFIN	SonicParanoid	
+MGI:88046	Aplp1	NCBITaxon:10090	MGI:88059	App	NCBITaxon:10090	48	60	593	1	Ensembl Compara|OMA|PhylomeDB|TreeFam	HGNC|OrthoFinder|PANTHER|SonicParanoid|ZFIN	
+MGI:88047	Aplp2	NCBITaxon:10090	MGI:88059	App	NCBITaxon:10090	45	61	1347	1	OMA|OrthoFinder|PhylomeDB|SonicParanoid	Ensembl Compara|HGNC|PANTHER|TreeFam|ZFIN	
+MGI:88059	App	NCBITaxon:10090	MGI:88046	Aplp1	NCBITaxon:10090	48	60	593	1	HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|TreeFam	
+MGI:88059	App	NCBITaxon:10090	MGI:88047	Aplp2	NCBITaxon:10090	45	61	1347	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+MGI:95294	Egfr	NCBITaxon:10090	MGI:95410	Erbb2	NCBITaxon:10090	56	68	978	1	HGNC|OMA|OrthoFinder|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|PANTHER|ZFIN	
+MGI:95294	Egfr	NCBITaxon:10090	MGI:95411	Erbb3	NCBITaxon:10090	27	40	229	2	Ensembl Compara|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	HGNC|PhylomeDB	
+MGI:95410	Erbb2	NCBITaxon:10090	MGI:95294	Egfr	NCBITaxon:10090	56	68	978	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+MGI:95411	Erbb3	NCBITaxon:10090	MGI:95294	Egfr	NCBITaxon:10090	27	40	229	1	HGNC|PANTHER|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder|PhylomeDB|SonicParanoid	
+MGI:95564	Fmr1	NCBITaxon:10090	MGI:1346074	Fxr2	NCBITaxon:10090	35	43	564	1	Ensembl Compara|HGNC|OMA|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+MGI:95564	Fmr1	NCBITaxon:10090	MGI:104860	Fxr1	NCBITaxon:10090	33	44	1175	2	Ensembl Compara|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	HGNC|OMA|TreeFam	
+MGI:96224	Hras	NCBITaxon:10090	MGI:96680	Kras	NCBITaxon:10090	86	97	636	1	Ensembl Compara|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam	HGNC|OMA|ZFIN	
+MGI:96680	Kras	NCBITaxon:10090	MGI:96224	Hras	NCBITaxon:10090	86	97	636	1	Ensembl Compara|HGNC|PANTHER|ZFIN	OMA|OrthoFinder|PhylomeDB|SonicParanoid|TreeFam	
+MGI:96680	Kras	NCBITaxon:10090	MGI:97376	Nras	NCBITaxon:10090	85	96	1271	2	Ensembl Compara|HGNC|OrthoFinder|PANTHER|SonicParanoid	OMA|PhylomeDB|TreeFam|ZFIN	
+MGI:97175	Map2	NCBITaxon:10090	MGI:97180	Mapt	NCBITaxon:10090	49	57	1151	1	OMA|OrthoFinder|SonicParanoid|TreeFam	Ensembl Compara|HGNC|PANTHER|PhylomeDB|ZFIN	
+MGI:97180	Mapt	NCBITaxon:10090	MGI:97175	Map2	NCBITaxon:10090	49	57	1151	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+MGI:97363	Notch1	NCBITaxon:10090	MGI:97364	Notch2	NCBITaxon:10090	49	67	266	1	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+MGI:97363	Notch1	NCBITaxon:10090	MGI:99460	Notch3	NCBITaxon:10090	27	35	1356	2	Ensembl Compara|HGNC|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN		
+MGI:97364	Notch2	NCBITaxon:10090	MGI:97363	Notch1	NCBITaxon:10090	49	67	266	1	Ensembl Compara|HGNC|OrthoFinder|SonicParanoid|ZFIN	OMA|PANTHER|PhylomeDB|TreeFam	
+MGI:97376	Nras	NCBITaxon:10090	MGI:96680	Kras	NCBITaxon:10090	85	96	1271	1	OMA|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|HGNC|OrthoFinder|PANTHER	
+MGI:98351	Sod1	NCBITaxon:10090	MGI:103181	Sod3	NCBITaxon:10090	24	40	1341	1	HGNC|OrthoFinder|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|OMA|SonicParanoid	
+MGI:98834	Trp53	NCBITaxon:10090	MGI:1330810	Trp63	NCBITaxon:10090	55	69	1115	1	Ensembl Compara|PANTHER|PhylomeDB|SonicParanoid	HGNC|OMA|OrthoFinder|TreeFam|ZFIN	
+MGI:98834	Trp53	NCBITaxon:10090	MGI:1336991	Trp73	NCBITaxon:10090	55	69	346	2	Ensembl Compara|OMA|OrthoFinder|PhylomeDB|SonicParanoid|TreeFam|ZFIN	HGNC|PANTHER	
+MGI:99460	Notch3	NCBITaxon:10090	MGI:97363	Notch1	NCBITaxon:10090	27	35	1356	1	Ensembl Compara|HGNC|OMA|PANTHER	OrthoFinder|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-001031-1	pax6b	NCBITaxon:7955	ZFIN:ZDB-GENE-990415-200	pax6a	NCBITaxon:7955	25	43	416	1	Ensembl Compara|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid	HGNC|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-990415-200	pax6a	NCBITaxon:7955	ZFIN:ZDB-GENE-001031-1	pax6b	NCBITaxon:7955	25	43	416	1	Ensembl Compara|HGNC|OMA|OrthoFinder|SonicParanoid|TreeFam|ZFIN	PANTHER|PhylomeDB	
