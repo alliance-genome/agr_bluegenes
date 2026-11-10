@@ -27,6 +27,50 @@
 		'Gene.homologues.isBestScore',
 		'Gene.homologues.isBestReverseScore'
 	];
+	// The first five columns of VIEW are required (config.json depends). The rest
+	// come from the prediction methods, which WormMine's Homologue lacks, so each
+	// is left out of the query when the mine's model does not have it.
+	var REQUIRED_COLUMNS = 5;
+
+	function viewFor(service) {
+		return VIEW.filter(function (path, i) {
+			return i < REQUIRED_COLUMNS || hasPath(service, path);
+		});
+	}
+
+	// BlueGenes passes the mine's model as service.model.classes. Resolves a dotted
+	// path in it, following references and collections and taking fields from the
+	// class and its superclasses. True when no model is passed.
+	function fieldOf(classes, cls, name, seen) {
+		var c = classes[cls];
+		if (!c || seen[cls]) return null;
+		seen[cls] = true;
+		var f = (c.attributes && c.attributes[name]) || (c.references && c.references[name]) || (c.collections && c.collections[name]);
+		if (f) return f;
+		var ext = c.extends || [];
+		for (var i = 0; i < ext.length; i++) {
+			var r = fieldOf(classes, ext[i], name, seen);
+			if (r) return r;
+		}
+		return null;
+	}
+
+	function hasPath(service, path) {
+		var classes = service && service.model && service.model.classes;
+		if (!classes) return true;
+		var parts = String(path).split('.');
+		var cls = parts[0];
+		if (!classes[cls]) return false;
+		for (var i = 1; i < parts.length; i++) {
+			var f = fieldOf(classes, cls, parts[i], {});
+			if (!f) return false;
+			if (i < parts.length - 1) {
+				if (!f.referencedType) return false;
+				cls = f.referencedType;
+			}
+		}
+		return true;
+	}
 
 	function escapeXml(s) {
 		return String(s)
@@ -37,7 +81,7 @@
 	}
 
 	// ids is one internal Gene.id or an array of them.
-	function buildQuery(ids) {
+	function buildQuery(ids, view) {
 		var list = (Array.isArray(ids) ? ids : [ids]).map(String);
 		var constraint =
 			list.length === 1
@@ -46,7 +90,7 @@
 					list.map(function (v) { return '<value>' + escapeXml(v) + '</value>'; }).join('') +
 					'</constraint>';
 		return (
-			'<query model="genomic" view="' + VIEW.join(' ') + '"' +
+			'<query model="genomic" view="' + (view || VIEW).join(' ') + '"' +
 			' sortOrder="Gene.homologues.homologue.organism.shortName asc Gene.homologues.homologue.symbol asc">' +
 			constraint +
 			'</query>'
@@ -58,21 +102,24 @@
 	}
 
 	// The id list goes in a POST body: a GET query string fails above about 250 ids.
-	function requestBody(ids) {
-		return 'format=json&size=' + MAX_ROWS + '&query=' + encodeURIComponent(buildQuery(ids));
+	function requestBody(ids, view) {
+		return 'format=json&size=' + MAX_ROWS + '&query=' + encodeURIComponent(buildQuery(ids, view));
 	}
 
-	function toRow(r) {
+	// A row is read by column name, so a view without the prediction columns still maps.
+	function toRow(r, view) {
+		var at = {};
+		(Array.isArray(view) ? view : VIEW).forEach(function (path, i) { at[path] = r[i]; });
 		return {
-			source: r[0],
-			id: r[1],
-			identifier: r[2],
-			symbol: r[3],
-			species: r[4],
-			match: r[5],
-			attempted: r[6],
-			best: r[7] === true,
-			bestReverse: r[8] === true
+			source: at['Gene.primaryIdentifier'],
+			id: at['Gene.homologues.homologue.id'],
+			identifier: at['Gene.homologues.homologue.primaryIdentifier'],
+			symbol: at['Gene.homologues.homologue.symbol'],
+			species: at['Gene.homologues.homologue.organism.shortName'],
+			match: at['Gene.homologues.algorithmsMatch'],
+			attempted: at['Gene.homologues.algorithmsAttempted'],
+			best: at['Gene.homologues.isBestScore'] === true,
+			bestReverse: at['Gene.homologues.isBestReverseScore'] === true
 		};
 	}
 
@@ -105,18 +152,33 @@
 			});
 	}
 
-	// Alliance CURIE for a primaryIdentifier, or null (mirrors bluegenes-alliance-gene-link).
-	function toCurie(id, species) {
-		if (typeof id !== 'string') return null;
-		id = id.trim();
+	// Alliance CURIE prefixes. AllianceMine stores these in primaryIdentifier, and
+	// WormMine and FlyMine keep them for genes of other species (HGNC:, MGI:, RGD:, ZFIN:, FB:).
+	var CURIE_PREFIX = /^(HGNC|MGI|RGD|ZFIN|FB|WB|SGD|Xenbase):\S+$/;
+
+	// WormMine, FlyMine and YeastMine store bare identifiers for their own species,
+	// so a bare id maps to a CURIE only when the organism is that species. Other
+	// bare ids are not Alliance ids: WormMine and FlyMine hold numeric NCBI ids for
+	// zebrafish and other Drosophila species, and YeastMine holds locus tags for
+	// other fungi. A numeric id is never mapped.
+	var BARE_ID = [
+		{ re: /^FBgn\d+$/, prefix: 'FB:', species: /^(D\.|Drosophila)\s*melanogaster/i },
+		{ re: /^WBGene\d+$/, prefix: 'WB:', species: /^(C\.|Caenorhabditis)\s*elegans/i },
+		{ re: /^S000\d+$/, prefix: 'SGD:', species: /^(S\.|Saccharomyces)\s*cerevisiae/i },
+		{ re: /^ZDB-GENE-/, prefix: 'ZFIN:', species: /^(D\.|Danio)\s*rerio/i }
+	];
+
+	// Returns an Alliance CURIE for a primaryIdentifier, or null. Without an
+	// organism name the identifier shape alone decides.
+	function toCurie(primaryIdentifier, organismShortName) {
+		if (typeof primaryIdentifier !== 'string') return null;
+		var id = primaryIdentifier.trim();
 		if (!id) return null;
-		if (id.indexOf(':') !== -1) return id;
-		if (/^FBgn\d+$/.test(id)) return 'FB:' + id;
-		if (/^WBGene\d+$/.test(id)) return 'WB:' + id;
-		if (/^S000\d+$/.test(id)) return 'SGD:' + id;
-		if (/^ZDB-GENE-/.test(id)) return 'ZFIN:' + id;
-		if (/^\d+$/.test(id) && typeof species === 'string' && /^(R\.|Rattus)\s*norvegicus/i.test(species.trim())) {
-			return 'RGD:' + id;
+		if (id.indexOf(':') !== -1) return CURIE_PREFIX.test(id) ? id : null;
+		var known = typeof organismShortName === 'string';
+		for (var i = 0; i < BARE_ID.length; i++) {
+			var b = BARE_ID[i];
+			if (b.re.test(id)) return !known || b.species.test(organismShortName.trim()) ? b.prefix + id : null;
 		}
 		return null;
 	}
@@ -148,7 +210,11 @@
 		return row.match + '/' + row.attempted;
 	}
 
-	function render(el, rows, navigate, multi, truncated) {
+	// view is the columns that were queried; the Algorithms and Best columns are shown only when queried.
+	function render(el, rows, navigate, multi, truncated, view) {
+		var cols = view || VIEW;
+		var showAlgorithms = cols.indexOf('Gene.homologues.algorithmsMatch') !== -1 && cols.indexOf('Gene.homologues.algorithmsAttempted') !== -1;
+		var showBest = cols.indexOf('Gene.homologues.isBestScore') !== -1 || cols.indexOf('Gene.homologues.isBestReverseScore') !== -1;
 		clear(el);
 		var wrap = node('div', null, 'alliance-orthologs');
 		if (!rows.length) {
@@ -167,7 +233,9 @@
 
 		var table = node('table', null, 'table table-condensed table-striped');
 		var headRow = node('tr');
-		var heads = ['Species', 'Symbol', 'Identifier', 'Algorithms', 'Best'];
+		var heads = ['Species', 'Symbol', 'Identifier'];
+		if (showAlgorithms) heads.push('Algorithms');
+		if (showBest) heads.push('Best');
 		if (multi) heads.unshift('Query gene');
 		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
 		var thead = node('thead');
@@ -202,8 +270,8 @@
 				}
 				tr.appendChild(idCell);
 
-				tr.appendChild(node('td', support(row)));
-				tr.appendChild(node('td', row.best ? 'best' : row.bestReverse ? 'best reverse' : ''));
+				if (showAlgorithms) tr.appendChild(node('td', support(row)));
+				if (showBest) tr.appendChild(node('td', row.best ? 'best' : row.bestReverse ? 'best reverse' : ''));
 				tbody.appendChild(tr);
 			});
 		});
@@ -212,18 +280,18 @@
 		el.appendChild(wrap);
 	}
 
-	function fetchRows(serviceRoot, ids) {
+	function fetchRows(serviceRoot, ids, view) {
 		return fetch(resultsUrl(serviceRoot), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-			body: requestBody(ids)
+			body: requestBody(ids, view)
 		})
 			.then(function (res) {
 				if (!res.ok) throw new Error('HTTP ' + res.status);
 				return res.json();
 			})
 			.then(function (json) {
-				return ((json && json.results) || []).map(toRow);
+				return ((json && json.results) || []).map(function (r) { return toRow(r, view); });
 			});
 	}
 
@@ -243,10 +311,11 @@
 			return;
 		}
 		message(el, 'Loading...');
-		fetchRows(serviceRoot(service.root), list)
+		var view = viewFor(service);
+		fetchRows(serviceRoot(service.root), list, view)
 			.then(function (rows) {
 				if (el.__agrOrthReq !== token) return;
-				render(el, rows, navigate, list.length > 1, rows.length >= MAX_ROWS);
+				render(el, rows, navigate, list.length > 1, rows.length >= MAX_ROWS, view);
 			})
 			.catch(function () {
 				if (el.__agrOrthReq !== token) return;
@@ -263,6 +332,8 @@
 		toRow: toRow,
 		groupRows: groupRows,
 		toCurie: toCurie,
+		hasPath: hasPath,
+		viewFor: viewFor,
 		render: render
 	};
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;

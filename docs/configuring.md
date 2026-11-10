@@ -46,3 +46,13 @@ One BlueGenes serves several mines (AllianceMine, WormMine, FlyMine, YeastMine) 
 - List the path of every column a query of the tool cannot work without. Optional parts must degrade at runtime: the tool receives the mine's model as `service.model.classes` and leaves out the column, tab or section whose path is missing, with a message.
 
 The check is `bluegenes.utils/suitable-entities` (`path-in-model?` and `unmet-depends` for single entries).
+
+#### List and report features across mines
+
+Three features query paths that not every mine has. Each checks the paths against the model of the mine it queries (`bluegenes.mine-support`) and shows a short reason when one is missing. A model that is not loaded blocks nothing.
+
+- Convert to orthologs (list page) needs `Gene.homologues.homologue.id` and `.organism.shortName` in the current mine.
+- Send to another mine needs `Gene.id` and `Gene.organism.shortName` in the target mine. The "orthologs" mode also needs `Gene.homologues.homologue.primaryIdentifier` and `.organism.shortName` in the current mine. A target without them is listed as unavailable. Target models are loaded when a target is picked.
+- "In other Alliance mines" (report page) skips a target mine whose model lacks `Organism.shortName`, `Organism.taxonId`, `Gene.id`, `Gene.primaryIdentifier`, `Gene.symbol`, `Gene.organism.shortName` or `Gene.organism.taxonId`. It leaves out the orthologs when the current mine has no `Gene.homologues.homologue.*` for them.
+
+Gene identifiers are mapped between mines by `bluegenes.mine-ids/candidates`: AllianceMine stores CURIEs (`WB:WBGene00006759`). WormMine, FlyMine and YeastMine store bare ids for their own species (`WBGene...`, `FBgn...`, `S000...`) and CURIEs for HGNC, MGI, RGD, ZFIN and FB genes held in WormMine. The candidates are the id as given, without its prefix, and with the CURIE prefix of a bare WBGene, FBgn, S000 or ZDB-GENE id. A numeric remainder (`HGNC:11998`) is never stripped, as it would match an NCBI id of another gene.

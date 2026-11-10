@@ -8,20 +8,32 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [bluegenes.route :as route]
+            [bluegenes.mine-support :as mine-support]
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
 (def organism-path "Gene.homologues.homologue.organism.shortName")
 (def homologue-id-path "Gene.homologues.homologue.id")
 
+(def required-paths
+  "Paths the conversion queries in the current mine: the organism summary, the
+  ortholog count and the saved list all use these."
+  [organism-path homologue-id-path])
+
+(defn blocked-reason
+  "Why the conversion cannot run in a mine with model `model-classes`, or nil.
+  WormMine, FlyMine and YeastMine have Gene.homologues, so only a model without
+  it (or without the homologue's id or organism) blocks."
+  [model-classes mine-label]
+  (mine-support/blocked-reason model-classes mine-label required-paths))
+
 (defn available?
-  "True when the list is a Gene list and the model has Gene.homologues."
+  "True when the list is a Gene list and every path the conversion queries
+  resolves in the model."
   [model-classes {:keys [type] :as list}]
   (boolean
    (and list
         (= type "Gene")
-        (let [gene (get model-classes :Gene)]
-          (or (contains? (:collections gene) :homologues)
-              (contains? (:references gene) :homologues))))))
+        (empty? (mine-support/missing-paths model-classes required-paths)))))
 
 (defn list-constraint [list-name]
   {:path "Gene" :op "IN" :value list-name})
@@ -192,6 +204,15 @@
  (fn [[list model]]
    (available? model list)))
 
+(reg-sub
+ ::blocked-reason
+ :<- [:results/current-list]
+ :<- [:model]
+ :<- [:current-mine-name]
+ (fn [[list model mine-kw]]
+   (when (and list (= "Gene" (:type list)))
+     (blocked-reason model (some-> mine-kw name)))))
+
 (defn convert-panel
   "Organism picker, ortholog count, list name input and save button."
   []
@@ -234,10 +255,10 @@
          (if saving? "Saving..." "Save list")]])]))
 
 (defn convert-button
-  "Toggle button and panel. Renders nothing unless the current list is a Gene
-  list in a mine whose model has Gene.homologues."
+  "Toggle button and panel. For a Gene list in a mine whose model lacks a path
+  the conversion queries, a short reason is shown in place of the button."
   [list-name]
-  (when @(subscribe [::available?])
+  (if @(subscribe [::available?])
     (let [open? (:open? @(subscribe [::state]))]
       [:div.convert-to-orthologs
        [:button.btn.btn-slim
@@ -245,4 +266,7 @@
          :on-click #(dispatch [::toggle list-name])}
         "Convert to orthologs"]
        (when open?
-         [convert-panel])])))
+         [convert-panel])])
+    (when-let [reason @(subscribe [::blocked-reason])]
+      [:div.convert-to-orthologs.text-muted
+       [:small "Convert to orthologs is not available. " reason "."]])))
