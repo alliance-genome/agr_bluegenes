@@ -127,6 +127,8 @@
                      (when (= fasta-action :fasta/fetch)
                        [:fetch-fasta mine-kw type id])
                      (when (= type "Gene")
+                       [:report-alliance-summary/start [mine-kw type id]])
+                     (when (= type "Gene")
                        [::fetch-homologues [mine-kw type id] (lookup-value summary)])
                      (when (and (= type "Gene")
                                 (get-in db [:mines mine-kw :service :model :classes :Gene :collections :homologues]))

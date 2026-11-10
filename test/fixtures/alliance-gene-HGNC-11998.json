@@ -1,0 +1,70 @@
+{
+ "category": "gene_summary",
+ "searchable": false,
+ "gene": {
+  "type": "Gene",
+  "curie": "AGRKB:105000000331364",
+  "primaryExternalId": "HGNC:11998",
+  "relatedNotes": [
+   {
+    "freeText": "This gene encodes a tumor suppressor protein containing transcriptional activation, DNA binding, and oligomerization domains. The encoded protein responds to diverse cellular stresses to regulate expression of target genes, thereby inducing cell cycle arrest, apoptosis, senescence, DNA repair, or changes in metabolism. Mutations in this gene are associated with a variety of human cancers, including hereditary cancers such as Li-Fraumeni syndrome. Alternative splicing of this gene and the use of alternate promoters result in multiple transcript variants and isoforms. Additional isoforms have also been shown to result from the use of alternate translation initiation codons from identical transcript variants (PMIDs: 12032546, 20937277). [provided by RefSeq, Dec 2016]",
+    "noteType": {
+     "name": "MOD_provided_gene_description"
+    }
+   },
+   {
+    "freeText": "Enables several functions, including DNA binding activity; DNA-binding transcription factor activity, RNA polymerase II-specific; and enzyme binding activity. Involved in several processes, including intracellular signal transduction; regulation of DNA-templated transcription; and regulation of apoptotic process. Acts upstream of with a negative effect on regulation of cell cycle G2/M phase transition. Acts upstream of or within several processes, including cellular response to glucose starvation; intracellular signal transduction; and positive regulation of transcription by RNA polymerase II. Located in several cellular components, including centrosome; mitochondrial matrix; and nuclear lumen. Part of transcription repressor complex. Implicated in several diseases, including Li-Fraumeni syndrome (multiple); carcinoma (multiple); hematologic cancer (multiple); open-angle glaucoma (multiple); and pancreatic cancer (multiple). Biomarker of several diseases, including carcinoma (multiple); graft-versus-host disease; hematologic cancer (multiple); mouth disease (multiple); and serous cystadenocarcinoma.",
+    "noteType": {
+     "name": "automated_gene_description"
+    }
+   }
+  ],
+  "geneSymbol": {
+   "formatText": "TP53",
+   "displayText": "TP53"
+  },
+  "geneFullName": {
+   "formatText": "tumor protein p53",
+   "displayText": "tumor protein p53"
+  },
+  "geneType": {
+   "curie": "SO:0001217",
+   "name": "protein_coding_gene"
+  },
+  "taxon": {
+   "curie": "NCBITaxon:9606",
+   "name": "Homo sapiens"
+  },
+  "geneSynonyms": [
+   {
+    "formatText": "LFS1",
+    "displayText": "LFS1"
+   },
+   {
+    "formatText": "TRP53",
+    "displayText": "TRP53"
+   },
+   {
+    "formatText": "FLJ92943",
+    "displayText": "FLJ92943"
+   },
+   {
+    "formatText": "P53",
+    "displayText": "P53"
+   },
+   {
+    "formatText": "phosphoprotein p53",
+    "displayText": "phosphoprotein p53"
+   }
+  ]
+ },
+ "referenceCuries": [
+  "AGRKB:101000000996653",
+  "AGRKB:101000001027867",
+  "AGRKB:101000001023024"
+ ],
+ "_trimmed": {
+  "geneSynonyms_total": 20,
+  "referenceCuries_total": 1790
+ }
+}

@@ -21,7 +21,12 @@
 (def default-alliance-api-base "https://www.alliancegenome.org/api")
 
 (defn alliance-api-base
-  "Base URL of the Alliance of Genome Resources API, without a trailing slash."
+  "Base URL of the Alliance of Genome Resources API, without a trailing slash.
+  A blank configured value returns nil, which disables the features that use it."
   []
-  (-> (or (:bluegenes-alliance-api-base @server-vars) default-alliance-api-base)
-      (str/replace #"/+$" "")))
+  (let [vars @server-vars
+        base (if (contains? vars :bluegenes-alliance-api-base)
+               (some-> (:bluegenes-alliance-api-base vars) str str/trim)
+               default-alliance-api-base)]
+    (when-not (str/blank? base)
+      (str/replace base #"/+$" ""))))

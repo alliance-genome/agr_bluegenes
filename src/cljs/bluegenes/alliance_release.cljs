@@ -40,9 +40,9 @@
 (reg-event-fx
  ::ensure
  (fn [{db :db} _]
-   (when-not (status db)
+   (when-let [base (and (not (status db)) (config/alliance-api-base))]
      {:db (assoc-in db [:alliance-release :status] :loading)
-      ::fetch {:url (release-url (config/alliance-api-base))
+      ::fetch {:url (release-url base)
                :on-success [::success]
                :on-failure [::failure]}})))
 
