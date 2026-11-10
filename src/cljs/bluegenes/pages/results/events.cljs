@@ -352,6 +352,7 @@
    (-> db
        (assoc-in [:results :query] nil)
        (assoc-in [:results :orthologs] nil)
+       (assoc-in [:results :orthologs-compare] nil)
        (assoc-in [:results :send-to-mine] nil)
        (clear-widget-options))))
 
