@@ -46,8 +46,15 @@
 
 (deftest alliance-mine-detection
   (is (cite/alliance-mine? "https://www.alliancegenome.org/alliancemine"))
+  (is (cite/alliance-mine? "https://alliancemine.alliancegenome.org/alliancemine/"))
   (is (cite/alliance-mine? "http://localhost:9999/alliancetestmine/service"))
-  (is (cite/alliance-mine? "https://wormmine.alliancegenome.org/wormmine"))
+  (is (cite/alliance-mine? "alliancemine"))
+  (testing "the MOD mines run on alliancegenome.org hosts but load their own releases"
+    (is (not (cite/alliance-mine? "https://wormmine.alliancegenome.org/wormmine")))
+    (is (not (cite/alliance-mine? "https://flymine.alliancegenome.org/flymine")))
+    (is (not (cite/alliance-mine? "https://yeastmine.alliancegenome.org/yeastmine")))
+    (is (not (cite/alliance-mine? "https://yeastmine.alliancegenome.org/yeastmine/service")))
+    (is (not (cite/alliance-mine? "wormmine"))))
   (is (not (cite/alliance-mine? "https://www.flymine.org/flymine")))
   (is (not (cite/alliance-mine? nil))))
 
@@ -111,6 +118,40 @@
 
 (deftest alliance-source-from-db
   (let [db {:mines {:alliancemine {:service {:root "https://www.alliancegenome.org/alliancemine"}}
-                    :flymine {:service {:root "https://www.flymine.org/flymine"}}}}]
+                    :flymine {:service {:root "https://flymine.alliancegenome.org/flymine"}}
+                    :wormmine {:service {:root "https://wormmine.alliancegenome.org/wormmine"}}
+                    :yeastmine {:service {:root "https://yeastmine.alliancegenome.org/yeastmine"}}}}]
     (is (true? (page/alliance-source? db :alliancemine)))
-    (is (false? (page/alliance-source? db :flymine)))))
+    (is (false? (page/alliance-source? db :flymine)))
+    (is (false? (page/alliance-source? db :wormmine)))
+    (is (false? (page/alliance-source? db :yeastmine)))))
+
+(defn- texts-db [mine-kw]
+  {:current-mine mine-kw
+   :alliance-release {:status :done :release release}
+   :mines {:alliancemine {:name "AllianceMine" :service {:root "https://www.alliancegenome.org/alliancemine"}}
+           :wormmine {:name "WormMine" :service {:root "https://wormmine.alliancegenome.org/wormmine"}}}
+   :results {:query {:from "Gene" :select ["Gene.symbol"]}}})
+
+(deftest release-text-only-for-alliancemine
+  (run-test-sync
+   (rf/dispatch-sync [::seed (texts-db :alliancemine)])
+   (let [texts @(rf/subscribe [::page/texts])]
+     (is (str/includes? (:methods texts) "Alliance of Genome Resources data release 9.2.0"))
+     (is (str/includes? (:bibtex texts) "iyae049")))
+   (rf/dispatch-sync [::seed (texts-db :wormmine)])
+   (let [texts @(rf/subscribe [::page/texts])]
+     (is (not (str/includes? (:methods texts) "Alliance of Genome Resources")))
+     (is (not (str/includes? (:bibtex texts) "iyae049")))
+     (is (not (str/includes? (:ris texts) "Alliance of Genome Resources"))))))
+
+(deftest no-release-request-for-mod-mines
+  (let [cached (fn [kw] {:release-version {kw "t"} :intermine-version {kw "5.1.0"}})]
+    (is (= [] (page/ensure-requests (assoc (texts-db :wormmine) :alliance-release nil
+                                           :assets (cached :wormmine))))
+        "no version fetch and no Alliance release fetch")
+    (is (= [[::ar/ensure]] (page/ensure-requests (assoc (texts-db :alliancemine) :alliance-release nil
+                                                        :assets (cached :alliancemine)))))
+    (is (= [[::page/fetch-version :release-version :wormmine]
+            [::page/fetch-version :intermine-version :wormmine]]
+           (page/ensure-requests (assoc (texts-db :wormmine) :assets {}))))))

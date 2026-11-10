@@ -47,9 +47,18 @@
 ;;; Alliance release ;;;
 
 (defn alliance-mine?
-  "True when a mine's service root or namespace names the Alliance."
+  "True for AllianceMine only, by the last path segment of its service root
+  (alliancemine, alliancetestmine) or by a bare namespace. One BlueGenes serves
+  AllianceMine, WormMine, FlyMine and YeastMine from alliancegenome.org hosts,
+  so the host name cannot decide it. The MOD mines load their own releases,
+  and the Alliance release says nothing about them."
   [root-or-name]
-  (boolean (re-find #"(?i)alliance" (str root-or-name))))
+  (let [text (-> (str root-or-name)
+                 str/trim
+                 (str/replace #"/+$" "")
+                 (str/replace #"/service$" ""))
+        segment (last (str/split text #"/"))]
+    (boolean (and segment (re-find #"(?i)^alliance" segment)))))
 
 (defn parse-release-info
   "{:version :date} from the Alliance /releaseInfo response (a map with

@@ -76,15 +76,22 @@
               :on-success [::version-success asset-key mine-kw]
               :on-failure [::version-failure]}}))
 
+(defn ensure-requests
+  "Events to dispatch when the panel opens: the missing mine versions, and the
+  Alliance release for AllianceMine only. The MOD mines load their own
+  releases, so no Alliance release is requested for them."
+  [db]
+  (let [mine-kw (source-mine db)]
+    (vec (concat (for [asset-key (missing-versions db mine-kw)]
+                   [::fetch-version asset-key mine-kw])
+                 (when (alliance-source? db mine-kw)
+                   [[::alliance-release/ensure]])))))
+
 (reg-event-fx
  ::ensure-versions
  (fn [{db :db} _]
-   (let [mine-kw (source-mine db)]
-     {:db (update-in db [:results :cite] dissoc :version-error?)
-      :dispatch-n (concat (for [asset-key (missing-versions db mine-kw)]
-                            [::fetch-version asset-key mine-kw])
-                          (when (alliance-source? db mine-kw)
-                            [[::alliance-release/ensure]]))})))
+   {:db (update-in db [:results :cite] dissoc :version-error?)
+    :dispatch-n (ensure-requests db)}))
 
 (reg-event-db
  ::version-success
