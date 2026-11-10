@@ -18,11 +18,8 @@ const fakeEl = () => document.createElement('div');
 test('toAllianceCurie maps the 7 Alliance species', () => {
 	const c = tool.toAllianceCurie;
 	assert.strictEqual(c('HGNC:11998', 'H. sapiens'), 'HGNC:11998');
-	assert.strictEqual(c('11998', 'H. sapiens'), 'HGNC:11998');
 	assert.strictEqual(c('MGI:104537', 'M. musculus'), 'MGI:104537');
-	assert.strictEqual(c('104537', 10090), 'MGI:104537');
 	assert.strictEqual(c('RGD:3889', 'R. norvegicus'), 'RGD:3889');
-	assert.strictEqual(c('3889', 'R. norvegicus'), 'RGD:3889');
 	assert.strictEqual(c('ZDB-GENE-990415-8', 'D. rerio'), 'ZFIN:ZDB-GENE-990415-8');
 	assert.strictEqual(c('ZFIN:ZDB-GENE-990415-8', 'D. rerio'), 'ZFIN:ZDB-GENE-990415-8');
 	assert.strictEqual(c('FBgn0003731', 'D. melanogaster'), 'FB:FBgn0003731');
@@ -38,6 +35,36 @@ test('toAllianceCurie returns null for unmappable input', () => {
 	assert.strictEqual(tool.toAllianceCurie(null, 'H. sapiens'), null);
 	assert.strictEqual(tool.toAllianceCurie('12345', 'X. laevis'), null);
 	assert.strictEqual(tool.toAllianceCurie('12345'), null);
+});
+
+test('toAllianceCurie handles the identifiers production mines store', () => {
+	const c = tool.toAllianceCurie;
+	// WormMine, FlyMine, YeastMine as queried (taxon ids as strings).
+	assert.strictEqual(c('WBGene00000001', '6239'), 'WB:WBGene00000001');
+	assert.strictEqual(c('WBGene00000001', 'C. elegans'), 'WB:WBGene00000001');
+	assert.strictEqual(c('FBgn0000001', '7227'), 'FB:FBgn0000001');
+	assert.strictEqual(c('S000000001', '4932'), 'SGD:S000000001');
+	assert.strictEqual(c('S000000001', 'S. cerevisiae'), 'SGD:S000000001');
+	// AllianceMine curies.
+	assert.strictEqual(c('HGNC:11998', '9606'), 'HGNC:11998');
+	assert.strictEqual(c('MGI:104537', '10090'), 'MGI:104537');
+	assert.strictEqual(c('RGD:3889', '10116'), 'RGD:3889');
+	assert.strictEqual(c('ZFIN:ZDB-GENE-990415-8', '7955'), 'ZFIN:ZDB-GENE-990415-8');
+	// Numeric NCBI ids of other species (WormMine D. rerio 110292), legacy SGD ids, other Drosophila species.
+	assert.strictEqual(c('110292', '7955'), null);
+	assert.strictEqual(c('113563677', '7220'), null);
+	assert.strictEqual(c('113563677', 'D. erecta'), null);
+	assert.strictEqual(c('L000003336', '4932'), null);
+	assert.strictEqual(c('FBgn0000001', '7220'), null);
+});
+
+test('lookupPartners matches YeastMine taxon 4932 to Alliance taxon 559292', async () => {
+	globalThis.fetch = async () => ({ ok: true, json: async () => ({ results: [[42, 'S000000001', '4932'], [43, 'S000000002', '559292x']] }) });
+	const found = await tool.lookupPartners(ROOT, [
+		{ curie: 'SGD:S000000001', taxon: '559292' },
+		{ curie: 'SGD:S000000002', taxon: '559292' }
+	]);
+	assert.deepStrictEqual(found, { 'SGD:S000000001': 42 });
 });
 
 test('apiBaseOf defaults and trims', () => {

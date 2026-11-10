@@ -48,6 +48,10 @@
 
 	// Alliance CURIE for a mine primaryIdentifier, or null when it cannot be mapped.
 	// organism is a shortName ("M. musculus"), a taxon id (10090) or "NCBITaxon:10090".
+	// Formats seen in production: AllianceMine stores curies (HGNC:11998, FB:FBgn...);
+	// WormMine stores WBGene00000001, FlyMine FBgn0000001, YeastMine S000000001 (taxon 4932).
+	// Bare numbers are NCBI Gene ids in the MOD mines (WormMine D. rerio 110292), so they map to nothing.
+	// A bare MOD id on a gene of another species (FlyMine D. erecta, taxon 7220) maps to nothing too.
 	function toAllianceCurie(primaryIdentifier, organism) {
 		if (typeof primaryIdentifier !== 'string') return null;
 		var id = primaryIdentifier.trim();
@@ -57,15 +61,15 @@
 			var rest = id.slice(colon + 1);
 			return rest ? id.slice(0, colon).toUpperCase() + ':' + rest : null;
 		}
-		if (/^FBgn\d+$/.test(id)) return 'FB:' + id;
-		if (/^WBGene\d+$/.test(id)) return 'WB:' + id;
-		if (/^S\d{9}$/.test(id)) return 'SGD:' + id;
-		if (/^ZDB-GENE-/.test(id)) return 'ZFIN:' + id;
+		var prefix = null;
+		if (/^FBgn\d+$/.test(id)) prefix = 'FB';
+		else if (/^WBGene\d+$/.test(id)) prefix = 'WB';
+		else if (/^S\d{9}$/.test(id)) prefix = 'SGD';
+		else if (/^ZDB-GENE-/.test(id)) prefix = 'ZFIN';
+		if (!prefix) return null;
 		var sp = speciesOf(organism);
-		if (sp && /^\d+$/.test(id) && (sp.prefix === 'HGNC' || sp.prefix === 'MGI' || sp.prefix === 'RGD')) {
-			return sp.prefix + ':' + id;
-		}
-		return null;
+		if (organism !== undefined && organism !== null && organism !== '' && (!sp || sp.prefix !== prefix)) return null;
+		return prefix + ':' + id;
 	}
 
 	function allianceGeneUrl(curie) {
@@ -220,6 +224,12 @@
 		return out;
 	}
 
+	// YeastMine tags S. cerevisiae with taxon 4932; the Alliance uses 559292.
+	function normTaxon(t) {
+		var s = String(t);
+		return s === '4932' ? '559292' : s;
+	}
+
 	// partners: [{curie, taxon}]. Returns {curie: internal Gene.id} for the partners present in the mine.
 	// A bare-id match counts only when Gene.organism.taxonId equals the partner taxon.
 	function lookupPartners(mineRoot, partners) {
@@ -236,7 +246,7 @@
 			rows.forEach(function (r) {
 				(byCandidate[r[1]] || []).forEach(function (p) {
 					var exact = r[1] === p.curie;
-					if (!exact && (!p.taxon || String(r[2]) !== p.taxon)) return;
+					if (!exact && (!p.taxon || normTaxon(r[2]) !== normTaxon(p.taxon))) return;
 					if (found[p.curie] === undefined) found[p.curie] = r[0];
 				});
 			});
@@ -502,7 +512,8 @@
 		resultsUrl: resultsUrl,
 		toRow: toRow,
 		pmidsOf: pmidsOf,
-		candidateIds: candidateIds
+		candidateIds: candidateIds,
+		lookupPartners: lookupPartners
 	};
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;
 	root.bluegenesAllianceInteractions = api;
