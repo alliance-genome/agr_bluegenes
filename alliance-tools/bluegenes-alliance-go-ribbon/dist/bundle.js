@@ -149,6 +149,25 @@
 		);
 	}
 
+	var SLIM_CHUNK = 100;
+
+	// Splits a slim list so each request URL stays well under common 8 KB limits.
+	function chunk(list, size) {
+		var out = [];
+		for (var i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+		return out;
+	}
+
+	// One request per chunk of slims; the responses are concatenated for toDetails,
+	// which dedupes by association id.
+	function fetchSlimmer(base, curie, slims) {
+		return Promise.all(
+			chunk(slims, SLIM_CHUNK).map(function (part) { return fetchApiJson(slimmerUrl(base, curie, part)); })
+		).then(function (parts) {
+			return parts.reduce(function (all, r) { return all.concat(Array.isArray(r) ? r : []); }, []);
+		});
+	}
+
 	function slimmerUrl(base, curie, slims) {
 		return (
 			base + '/bioentityset/slimmer/function?' +
@@ -445,7 +464,7 @@
 				return;
 			}
 			details.appendChild(node('span', 'Loading annotations...'));
-			fetchApiJson(slimmerUrl(base, row.curie, slims))
+			fetchSlimmer(base, row.curie, slims)
 				.then(function (resp) {
 					if (stale() || mine !== detailSeq) return;
 					renderDetails(details, row, col, toDetails(resp, col.aspect));
@@ -553,6 +572,7 @@
 		pickOrthologs: pickOrthologs,
 		ribbonUrl: ribbonUrl,
 		slimmerUrl: slimmerUrl,
+		chunk: chunk,
 		apiBase: apiBase
 	};
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;

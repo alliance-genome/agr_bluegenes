@@ -149,6 +149,33 @@ test('ribbonUrl and slimmerUrl use apiBase and repeat subject and slim', () => {
 	assert.ok(tool.slimmerUrl(base, 'HGNC:1', ['GO:1', 'GO:2']).includes('slim=GO%3A1&slim=GO%3A2&subject=HGNC%3A1&rows=-1'));
 });
 
+test('an Other cell with 300 terms is split into requests under 4000 characters and merged', async () => {
+	const log = [];
+	const terms = Array.from({ length: 300 }, (_, i) => 'GO:' + String(1000000 + i));
+	const ribbon = JSON.parse(JSON.stringify(RIBBON));
+	const other = tool.buildColumns(ribbon.categories).find((x) => x.key === 'GO:0005575-other');
+	ribbon.subjects[0].groups[other.key].ALL.terms = terms;
+	ribbon.subjects[0].groups[other.key].ALL.nb_annotations = 300;
+	const slimmer = (url) => {
+		const slims = new URL(url).searchParams.getAll('slim');
+		const assocs = slims.map((t) => ({ id: 'a' + t, object: { id: t, label: 'term ' + t, category: ['cellular_component'] }, evidence_type: 'IDA', reference: ['PMID:1'] }));
+		assocs.push({ id: 'shared', object: { id: 'GO:9', label: 'shared', category: ['cellular_component'] }, evidence_type: 'IDA', reference: [] });
+		return json([{ assocs }]);
+	};
+	globalThis.fetch = fakeNet({ gene: TP53, ribbon, slimmer, log });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(8000038), {}, {});
+	await tick();
+	el.find('button').find((b) => b.getAttribute('aria-label').startsWith('TP53, other cellular component')).listeners.click();
+	await tick();
+	const reqs = log.filter((l) => l.url.includes('/bioentityset/slimmer/'));
+	assert.strictEqual(reqs.length, 3);
+	reqs.forEach((r) => assert.ok(r.url.length < 4000, 'url length ' + r.url.length));
+	assert.strictEqual(tool.toDetails(await Promise.all(reqs.map((r) => slimmer(r.url).json())).then((a) => [].concat(...a)), 'cellular_component').length, 301);
+	assert.ok(el.textContent.includes('term GO:1000299'));
+	assert.deepStrictEqual(tool.chunk([1, 2, 3], 2), [[1, 2], [3]]);
+});
+
 test('main renders one row with a labelled button per cell and the source note', async () => {
 	const log = [];
 	globalThis.fetch = fakeNet({ gene: TP53, log });
