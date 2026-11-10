@@ -60,7 +60,7 @@
 (defn- service [db]
   (get-in db [:mines (:current-mine db) :service]))
 
-(defn- failure-message [title res]
+(defn failure-message [title res]
   [:messages/add
    {:markup [:span [:strong title] " "
              [:code (if-let [err (not-empty (get-in res [:body :error]))]
