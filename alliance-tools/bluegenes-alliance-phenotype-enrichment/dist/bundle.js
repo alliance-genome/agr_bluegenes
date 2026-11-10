@@ -226,7 +226,9 @@
 		data.listAnnotations.forEach(function (r) {
 			if (r[3] != null && !info[r[3]]) info[r[3]] = { id: r[2], name: r[4] };
 		});
+		var truncated = data.truncated || {};
 		var out = Object.keys(list).map(function (ident) {
+			var incomplete = !!(data.listCapped || truncated[ident]);
 			var k = Object.keys(list[ident]).length;
 			var K = Math.max(back[ident] ? Object.keys(back[ident]).length : 0, k);
 			return {
@@ -238,21 +240,51 @@
 				n: data.n,
 				K: K,
 				N: data.N,
-				fold: data.n > 0 && K > 0 && data.N > 0 ? (k / data.n) / (K / data.N) : null,
-				p: hypergeomUpperTail(k, data.n, K, data.N)
+				incomplete: incomplete,
+				fold: !incomplete && data.n > 0 && K > 0 && data.N > 0 ? (k / data.n) / (K / data.N) : null,
+				p: incomplete ? null : hypergeomUpperTail(k, data.n, K, data.N)
 			};
 		});
-		var fdr = benjaminiHochberg(out.map(function (t) { return t.p; }));
-		out.forEach(function (t, i) { t.fdr = fdr[i]; });
+		// Terms whose counts were cut off by the row limit have no valid p; BH runs over the complete terms only.
+		var complete = out.filter(function (t) { return !t.incomplete; });
+		var fdr = benjaminiHochberg(complete.map(function (t) { return t.p; }));
+		complete.forEach(function (t, i) { t.fdr = fdr[i]; });
+		out.forEach(function (t) { if (t.incomplete) t.fdr = null; });
 		out.sort(function (a, b) {
+			if (a.incomplete !== b.incomplete) return a.incomplete ? 1 : -1;
 			var an = a.name || a.identifier;
 			var bn = b.name || b.identifier;
-			return a.p - b.p || (an < bn ? -1 : an > bn ? 1 : 0);
+			return (a.p || 0) - (b.p || 0) || (an < bn ? -1 : an > bn ? 1 : 0);
 		});
 		return out;
 	}
 
 	// ---- loading ----
+
+	var TERM_CHUNK = 200;
+
+	// Background rows for the terms, fetched in chunks. A chunk that hits the row limit is split;
+	// a single term that still hits it is reported in truncated, because its gene count is incomplete.
+	function backgroundRows(sr, organisms, termList, annPath, truncated) {
+		function fetchTerms(terms) {
+			return rows(sr, backgroundQuery(organisms, terms, annPath)).then(function (b) {
+				if (b.length < MAX_ROWS) return b;
+				if (terms.length === 1) {
+					truncated[terms[0]] = true;
+					return b;
+				}
+				var mid = Math.ceil(terms.length / 2);
+				return Promise.all([fetchTerms(terms.slice(0, mid)), fetchTerms(terms.slice(mid))]).then(function (parts) {
+					return parts[0].concat(parts[1]);
+				});
+			});
+		}
+		var chunks = [];
+		for (var i = 0; i < termList.length; i += TERM_CHUNK) chunks.push(termList.slice(i, i + TERM_CHUNK));
+		return Promise.all(chunks.map(fetchTerms)).then(function (parts) {
+			return [].concat.apply([], parts);
+		});
+	}
 
 	function load(sr, ids, includeAlleles) {
 		var paths = includeAlleles ? [GENE_ANN, ALLELE_ANN] : [GENE_ANN];
@@ -260,7 +292,11 @@
 		return Promise.all([rows(sr, listGenesQuery(ids))].concat(annotationRequests)).then(function (res) {
 			var genes = res[0].filter(function (g) { return g[1]; });
 			var annotations = [];
-			res.slice(1).forEach(function (a) { annotations = annotations.concat(a); });
+			var listCapped = false;
+			res.slice(1).forEach(function (a) {
+				if (a.length >= MAX_ROWS) listCapped = true;
+				annotations = annotations.concat(a);
+			});
 			var orgSet = {};
 			genes.forEach(function (g) { orgSet[g[1]] = true; });
 			var organisms = Object.keys(orgSet).sort();
@@ -274,16 +310,18 @@
 				listAnnotations: annotations,
 				background: [],
 				skipped: skippedCount(annotations),
-				capped: annotations.length >= MAX_ROWS
+				listCapped: listCapped,
+				truncated: {},
+				capped: listCapped
 			};
 			if (!organisms.length) return base;
-			var backgroundRequests = termList.length === 0 ? [] : paths.map(function (p) { return rows(sr, backgroundQuery(organisms, termList, p)); });
+			var backgroundRequests = termList.length === 0 ? [] : paths.map(function (p) { return backgroundRows(sr, organisms, termList, p, base.truncated); });
 			return Promise.all([organismCounts(sr, organisms)].concat(backgroundRequests)).then(function (bg) {
 				base.N = bg[0];
 				bg.slice(1).forEach(function (b) {
 					base.background = base.background.concat(b);
-					if (b.length >= MAX_ROWS) base.capped = true;
 				});
+				if (Object.keys(base.truncated).length) base.capped = true;
 				return base;
 			});
 		});
@@ -377,14 +415,14 @@
 			wrap.appendChild(pre);
 		}
 
-		var shown = results.filter(function (t) { return t.fdr <= opts.maxFdr && !opts.hiddenPrefixes[t.prefix]; });
+		var shown = results.filter(function (t) { return (t.incomplete || t.fdr <= opts.maxFdr) && !opts.hiddenPrefixes[t.prefix]; });
 
 		wrap.appendChild(
 			node(
 				'p',
 				'Background: all ' + data.N + ' genes of ' + data.organisms.join(', ') +
 					' in this mine. List: ' + data.n + ' genes. ' +
-					results.length + ' terms tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.',
+					results.filter(function (t) { return !t.incomplete; }).length + ' terms tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.',
 				'alliance-phenotype-enrichment-background'
 			)
 		);
@@ -393,8 +431,10 @@
 				node('p', data.skipped + ' annotations without a term were skipped', 'alliance-phenotype-enrichment-skipped')
 			);
 		}
-		if (data.capped) {
-			wrap.appendChild(node('p', 'Result limit reached, counts may be incomplete.'));
+		if (data.listCapped) {
+			wrap.appendChild(node('p', 'Result limit reached for the list annotations: counts are incomplete, p and FDR are not shown.', 'alliance-phenotype-enrichment-capped'));
+		} else if (data.capped) {
+			wrap.appendChild(node('p', 'Result limit reached for some terms: their background counts are incomplete, so p and FDR are not shown for them.', 'alliance-phenotype-enrichment-capped'));
 		}
 
 		if (!shown.length) {
@@ -424,10 +464,10 @@
 			tr.appendChild(cell);
 			tr.appendChild(node('td', t.prefix));
 			tr.appendChild(node('td', t.k + '/' + t.n));
-			tr.appendChild(node('td', t.K + '/' + t.N));
+			tr.appendChild(node('td', t.incomplete ? '>=' + t.K + '/' + t.N : t.K + '/' + t.N));
 			tr.appendChild(node('td', t.fold == null ? '' : t.fold.toFixed(2)));
-			tr.appendChild(node('td', formatP(t.p)));
-			tr.appendChild(node('td', formatP(t.fdr)));
+			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.p)));
+			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.fdr)));
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);

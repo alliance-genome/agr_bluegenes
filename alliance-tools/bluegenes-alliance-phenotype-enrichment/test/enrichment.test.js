@@ -197,26 +197,120 @@ test('main shows a message and logs on failure', async () => {
 	assert.strictEqual(errors.length, 1);
 });
 
-test('main ignores a stale response', async () => {
-	let release;
-	const gate = new Promise((r) => (release = r));
-	let first = true;
-	globalThis.fetch = async (url, init) => {
-		if (first) {
-			first = false;
-			await gate;
-		}
-		return stubFetch([])(url, init);
+// Per-gene data: gene id N gives term MP:N named 'term for N'. A request for id 1 can be held back or made to fail.
+function perIdFetch(hold) {
+	return async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		const m = body.match(/<value>(?:MP:)?(\d+)<\/value>/);
+		const id = m ? m[1] : '0';
+		if (id === '1' && hold) await hold.gate;
+		if (id === '1' && hold && hold.fail) throw new Error('late failure');
+		let results;
+		if (body.includes('summaryPath=')) results = [['H. sapiens', 100]];
+		else if (body.includes('path="Gene.organism.shortName"')) results = [[Number(id), 'MP:' + id]];
+		else if (body.includes('view="Gene.id Gene.organism.shortName"')) results = [[Number(id), 'H. sapiens']];
+		else results = [[Number(id), 10 + Number(id), 900 + Number(id), 'MP:' + id, 'term for ' + id]];
+		return { ok: true, json: async () => ({ results }) };
 	};
+}
+
+async function staleScenario(fail) {
+	let release;
+	const hold = { gate: new Promise((r) => (release = r)), fail };
+	const errors = [];
+	const orig = console.error;
+	console.error = (...a) => errors.push(a);
 	const el = fakeEl();
+	globalThis.fetch = perIdFetch(hold);
 	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1'] } }, {}, {}, () => {});
-	globalThis.fetch = stubFetch([]);
+	globalThis.fetch = perIdFetch(null);
 	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['2'] } }, {}, {}, () => {});
 	await tick();
 	const after = el.textContent;
+	assert.ok(after.includes('term for 2'));
 	release();
 	await tick();
+	console.error = orig;
+	return { el, after, errors };
+}
+
+test('main ignores a stale response', async () => {
+	const { el, after } = await staleScenario(false);
 	assert.strictEqual(el.textContent, after);
+	assert.ok(!el.textContent.includes('term for 1'));
+});
+
+test('main ignores a stale rejection but still logs it', async () => {
+	const { el, after, errors } = await staleScenario(true);
+	assert.strictEqual(el.textContent, after);
+	assert.ok(!el.textContent.includes('Could not compute'));
+	assert.strictEqual(errors.length, 1);
+});
+
+const bigRows = (n, row) => Array.from({ length: n }, (_, i) => row(i));
+
+test('list annotations at the row limit hide p and FDR', async () => {
+	const base = stubFetch([]);
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (body.includes('Gene.phenotypeAnnotations.id')) {
+			return { ok: true, json: async () => ({ results: bigRows(200000, (i) => [1 + (i % 4), i, 901, 'MP:A', 'term a']) }) };
+		}
+		return base(url, init);
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1', '2', '3', '4'] } }, {}, {}, () => {});
+	await tick();
+	const text = el.textContent;
+	assert.ok(text.includes('p and FDR are not shown'));
+	assert.ok(text.includes('n/a'));
+	assert.ok(text.includes('0 terms tested'));
+});
+
+test('a term whose background hits the row limit has no p, the other term is still tested', async () => {
+	const base = stubFetch([]);
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (body.includes('path="Gene.organism.shortName"') && body.includes('<value>MP:A</value>')) {
+			return { ok: true, json: async () => ({ results: bigRows(200000, (i) => [i, 'MP:A']) }) };
+		}
+		return base(url, init);
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1', '2', '3', '4'] } }, {}, {}, () => {});
+	await tick();
+	await tick();
+	const text = el.textContent;
+	assert.ok(text.includes('background counts are incomplete'));
+	assert.ok(text.includes('1 terms tested'));
+	const rowsText = el.find('tr').map((r) => r.textContent);
+	const a = rowsText.find((t) => t.includes('term a'));
+	assert.ok(a.endsWith('n/an/a'));
+});
+
+test('allele option does not trip the cap when each path is under it', async () => {
+	const base = stubFetch([]);
+	let alleles = false;
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (alleles && body.includes('.phenotypeAnnotations.id')) {
+			return { ok: true, json: async () => ({ results: bigRows(120000, (i) => [1 + (i % 4), i, 901, 'MP:A', 'term a']) }) };
+		}
+		return base(url, init);
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1', '2', '3', '4'] } }, {}, {}, () => {});
+	await tick();
+	alleles = true;
+	const box = el.find('input')[1];
+	box.checked = true;
+	box.listeners.change();
+	await tick();
+	await tick();
+	const text = el.textContent;
+	assert.ok(!text.includes('Result limit'));
+	assert.ok(!text.includes('n/a'));
+	assert.ok(text.includes('term a'));
 });
 
 test('main with no ids shows a message without fetching', () => {
