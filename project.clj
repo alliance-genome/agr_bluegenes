@@ -169,6 +169,8 @@
                    :env {:development true}}
              :kaocha {:dependencies [[lambdaisland/kaocha "1.0.700"]
                                      [lambdaisland/kaocha-cljs "0.0-71"]]}
+             ;; Clojure unit tests: lein with-profile cljtest test
+             :cljtest {:test-paths ^:replace ["test/clj"]}
              :repl {:source-paths ["dev"]}
              :prod {:resource-paths ^:replace ["config/prod" "config/defaults" "resources"]}
              :uberjar {:resource-paths ^:replace ["config/defaults" "resources"]

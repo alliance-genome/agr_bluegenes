@@ -1,0 +1,230 @@
+(ns bluegenes.ws.bundle
+  "Download bundle for a Gene list: a zip of TSV files plus a README.txt.
+  The server only calls service roots that are configured mines, so the
+  endpoint cannot be used to make requests to arbitrary hosts."
+  (:require [compojure.core :refer [POST defroutes]]
+            [ring.util.http-response :as response]
+            [config.core :refer [env]]
+            [cheshire.core :as json]
+            [clj-http.client :as client]
+            [clojure.string :as str]
+            [bluegenes.utils :refer [env->mines]])
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
+           [java.time LocalDate]
+           [java.util.zip ZipEntry ZipOutputStream]))
+
+(def max-genes 5000)
+
+;; Annotation files can hold several rows per gene. Beyond this the file is
+;; cut and the README says so.
+(def max-rows 200000)
+
+(defn normalise-root
+  "Drops trailing slashes, so `http://host/mine/` equals `http://host/mine`."
+  [root]
+  (when (string? root)
+    (str/replace (str/trim root) #"/+$" "")))
+
+(defn find-mine
+  "Returns the configured mine whose root equals `root`, or nil. Comparison is
+  exact after dropping trailing slashes, so prefixes and look-alike hosts such
+  as `http://mine.org@evil.com/` never match."
+  [mines root]
+  (when-let [wanted (normalise-root root)]
+    (first (filter #(= wanted (normalise-root (:root %))) mines))))
+
+(defn xml-escape [s]
+  (-> (str s)
+      (str/replace "&" "&amp;")
+      (str/replace "<" "&lt;")
+      (str/replace ">" "&gt;")
+      (str/replace "\"" "&quot;")))
+
+(defn query-xml
+  "PathQuery XML for `view` constrained to `list-name` through `list-path`.
+  `outer` is a collection of paths to join with an outer join."
+  [{:keys [view list-path outer]} list-name]
+  (str "<query name=\"\" model=\"genomic\" view=\""
+       (str/join " " view)
+       "\" sortOrder=\"" (first view) " asc\">"
+       (apply str (for [p outer]
+                    (str "<join path=\"" p "\" style=\"OUTER\"/>")))
+       "<constraint path=\"" list-path "\" op=\"IN\" value=\""
+       (xml-escape list-name) "\"/>"
+       "</query>"))
+
+(def files
+  "File name -> query description. Column headers are the view paths."
+  [["genes.tsv" {:view ["Gene.primaryIdentifier" "Gene.symbol" "Gene.name"
+                        "Gene.organism.shortName"]
+                 :list-path "Gene"}]
+   ["orthologs.tsv" {:view ["Gene.primaryIdentifier" "Gene.symbol"
+                            "Gene.homologues.homologue.primaryIdentifier"
+                            "Gene.homologues.homologue.symbol"
+                            "Gene.homologues.homologue.organism.shortName"
+                            "Gene.homologues.type"
+                            "Gene.homologues.algorithmsMatch"
+                            "Gene.homologues.algorithmsAttempted"
+                            "Gene.homologues.isBestScore"
+                            "Gene.homologues.isBestReverseScore"]
+                     :list-path "Gene"}]
+   ["disease_annotations.tsv" {:view ["DiseaseAnnotation.subject.primaryIdentifier"
+                                      "DiseaseAnnotation.subject.symbol"
+                                      "DiseaseAnnotation.qualifier"
+                                      "DiseaseAnnotation.ontologyTerm.identifier"
+                                      "DiseaseAnnotation.ontologyTerm.name"
+                                      "DiseaseAnnotation.evidence.code.code"
+                                      "DiseaseAnnotation.evidence.publications.pubMedId"]
+                               :outer ["DiseaseAnnotation.evidence"
+                                       "DiseaseAnnotation.evidence.publications"]
+                               :list-path "DiseaseAnnotation.subject"}]
+   ["phenotype_annotations.tsv" {:view ["PhenotypeAnnotation.subject.primaryIdentifier"
+                                        "PhenotypeAnnotation.subject.symbol"
+                                        "PhenotypeAnnotation.phenotypeStatement"
+                                        "PhenotypeAnnotation.ontologyTerm.identifier"
+                                        "PhenotypeAnnotation.ontologyTerm.name"]
+                                 :outer ["PhenotypeAnnotation.ontologyTerm"]
+                                 :list-path "PhenotypeAnnotation.subject"}]])
+
+(defn tsv-cell
+  "Tabs and line breaks would shift columns, so they become spaces."
+  [v]
+  (if (nil? v)
+    ""
+    (str/replace (str v) #"[\t\r\n]+" " ")))
+
+(defn rows->tsv [header rows]
+  (str (str/join "\t" header) "\n"
+       (apply str (for [row rows]
+                    (str (str/join "\t" (map tsv-cell row)) "\n")))))
+
+(defn ex
+  "An exception carrying the HTTP status for the route to return."
+  [status message]
+  (ex-info message {:status status}))
+
+(defn- service-url [root path]
+  (str (normalise-root root) "/service" path))
+
+(defn- mine-get
+  "GET against an already allowlisted mine. The token goes in the
+  Authorization header only, redirects are not followed so the token cannot
+  be forwarded to another host, and failures carry no request details."
+  [root token path params]
+  (let [res (try
+              (client/get (service-url root path)
+                          {:query-params params
+                           :headers (cond-> {}
+                                      (not (str/blank? token))
+                                      (assoc "Authorization" (str "Token " token)))
+                           :redirect-strategy :none
+                           :socket-timeout 120000
+                           :connection-timeout 10000
+                           :throw-exceptions false})
+              (catch Exception _
+                (throw (ex 502 "The mine could not be reached."))))]
+    (case (long (:status res))
+      200 (:body res)
+      (401 403) (throw (ex 401 "The mine rejected the token. Log in again."))
+      (throw (ex 502 (str "The mine answered with status " (:status res) "."))))))
+
+(defn fetch-list
+  "The list's metadata map, or an error if it is missing or not a Gene list
+  within the size cap."
+  [root token list-name]
+  (let [body (mine-get root token "/lists" {"name" list-name "format" "json"})
+        lst (->> (json/parse-string body true) :lists
+                 (filter #(= list-name (:name %))) first)]
+    (cond
+      (nil? lst) (throw (ex 404 (str "List not found: " list-name)))
+      (not= "Gene" (:type lst)) (throw (ex 400 "Only Gene lists can be bundled."))
+      (> (:size lst) max-genes) (throw (ex 413 (str "The list has " (:size lst)
+                                                    " genes. The limit is " max-genes ".")))
+      :else lst)))
+
+(defn fetch-rows
+  "Runs a PathQuery and returns {:rows [...] :truncated? bool}."
+  [root token xml]
+  (let [body (mine-get root token "/query/results"
+                       {"query" xml "format" "json" "size" (inc max-rows)})
+        rows (mapv #(mapv (fn [cell] (if (map? cell) (:value cell) cell)) %)
+                   (:results (json/parse-string body true)))]
+    {:rows (vec (take max-rows rows))
+     :truncated? (> (count rows) max-rows)}))
+
+(defn- version [root token endpoint]
+  (try (str/trim (mine-get root token (str "/version/" endpoint) {}))
+       (catch Exception _ "unknown")))
+
+(defn readme-text
+  [{:keys [mine-name root release intermine list-name list-size date entries]}]
+  (str "BlueGenes list download bundle\n"
+       "=============================\n\n"
+       "Mine: " mine-name "\n"
+       "URL: " root "\n"
+       "Release: " release "\n"
+       "InterMine version: " intermine "\n"
+       "List: " list-name "\n"
+       "List size: " list-size "\n"
+       "Date: " date "\n\n"
+       "Files\n-----\n"
+       (apply str
+              (for [{:keys [file rows truncated? xml]} entries]
+                (str "\n" file " (" rows " rows"
+                     (when truncated? (str ", cut at " max-rows " rows"))
+                     ")\nPathQuery XML:\n" xml "\n")))))
+
+(defn zip-bytes
+  "`entries` is a seq of [file-name string]."
+  [entries]
+  (let [out (ByteArrayOutputStream.)]
+    (with-open [zip (ZipOutputStream. out)]
+      (doseq [[file-name content] entries]
+        (.putNextEntry zip (ZipEntry. ^String file-name))
+        (.write zip (.getBytes ^String content "UTF-8"))
+        (.closeEntry zip)))
+    (.toByteArray out)))
+
+(defn build-bundle
+  "Returns the zip as a byte array for a configured `mine`."
+  [mine token list-name]
+  (let [root (normalise-root (:root mine))
+        lst (fetch-list root token list-name)
+        results (for [[file spec] files
+                      :let [xml (query-xml spec list-name)]]
+                  (assoc (fetch-rows root token xml)
+                         :file file :xml xml :header (:view spec)))
+        readme (readme-text
+                {:mine-name (:name mine)
+                 :root root
+                 :release (version root token "release")
+                 :intermine (version root token "intermine")
+                 :list-name list-name
+                 :list-size (:size lst)
+                 :date (str (LocalDate/now))
+                 :entries (for [{:keys [rows] :as r} results]
+                            (assoc r :rows (count rows)))})]
+    (zip-bytes (cons ["README.txt" readme]
+                     (for [{:keys [file header rows]} results]
+                       [file (rows->tsv header rows)])))))
+
+(defn bundle-handler
+  [{{:keys [root listName token]} :body-params}]
+  (let [mine (find-mine (env->mines env) root)]
+    (cond
+      (nil? mine) (response/bad-request {:error "Unknown mine."})
+      (str/blank? listName) (response/bad-request {:error "Missing list name."})
+      :else
+      (try
+        (let [bytes (build-bundle mine token listName)]
+          (-> (response/ok (ByteArrayInputStream. bytes))
+              (response/content-type "application/zip")
+              (response/header "Content-Disposition"
+                               (str "attachment; filename=\"bundle.zip\""))))
+        (catch clojure.lang.ExceptionInfo e
+          {:status (or (:status (ex-data e)) 500)
+           :headers {"Content-Type" "application/json"}
+           :body (json/generate-string {:error (.getMessage e)})})))))
+
+(defroutes routes
+  (POST "/bundle" req (bundle-handler req)))
