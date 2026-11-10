@@ -1,0 +1,27 @@
+{
+  "accepts": ["ids"],
+  "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.organism.shortName",
+    "Gene.paralogues.id",
+    "Gene.paralogues.paralogue.id",
+    "Gene.paralogues.identity",
+    "Gene.paralogues.similarity",
+    "Gene.paralogues.rank"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Paralog families in this list",
+    "cljs": "bluegenesAllianceParalogFamilies"
+  },
+  "version": 2
+}
