@@ -5,7 +5,9 @@
   to `max-parallel`, and responses for an earlier report are dropped."
   (:require [re-frame.core :refer [reg-event-fx reg-sub]]
             [imcljs.fetch :as fetch]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.mine-ids :as mine-ids]
+            [bluegenes.mine-support :as mine-support]))
 
 (def ^:const max-parallel 4)
 
@@ -15,17 +17,41 @@
    "Gene.organism.shortName"
    "Gene.organism.taxonId"])
 
+(def ^:private ortholog-views
+  (mapv #(str/replace % "Gene." "Gene.homologues.homologue.") gene-views))
+
 ;; Pure functions.
 
 (defn identifier-candidates
   "Identifiers to try in a target mine, in order of preference: as given, then
-  without a CURIE prefix (WB:WBGene1 -> WBGene1), as MOD mines often store bare ids."
+  without a CURIE prefix (WB:WBGene1 -> WBGene1) as MOD mines store bare ids for
+  their own species, then with one (WBGene1 -> WB:WBGene1) as AllianceMine
+  stores CURIEs. See `bluegenes.mine-ids/candidates`."
   [id]
-  (let [id (str/trim (str id))
-        bare (second (re-matches #"[A-Za-z][A-Za-z0-9_.-]*:(.+)" id))]
-    (cond-> []
-      (not (str/blank? id)) (conj id)
-      bare (conj bare))))
+  (mine-ids/candidates id))
+
+;; Model gates. Each returns a short reason, or nil when the paths resolve or
+;; the model is unknown.
+
+(def target-paths
+  "Paths queried in a target mine: the organism list and the gene lookup."
+  ["Organism.shortName" "Organism.taxonId"
+   "Gene.id" "Gene.primaryIdentifier" "Gene.symbol"
+   "Gene.organism.shortName" "Gene.organism.taxonId"])
+
+(defn target-blocked-reason
+  "Why `target-classes` (the model of a target mine) cannot be looked up in."
+  [target-classes mine-label]
+  (mine-support/blocked-reason target-classes mine-label target-paths))
+
+(defn current-blocked-reasons
+  "Reasons the queries in the current mine cannot run: `:self` for the gene
+  itself, `:orthologs` for its orthologs (they need Gene.homologues.homologue)."
+  [current-classes mine-label]
+  (let [reason (fn [paths] (mine-support/blocked-reason current-classes mine-label paths))]
+    (cond-> {}
+      (reason gene-views) (assoc :self (reason gene-views))
+      (reason ortholog-views) (assoc :orthologs (reason ortholog-views)))))
 
 (defn row->gene
   "Row in the order of `gene-views`."
@@ -142,26 +168,36 @@
   {:root (get-in db [:env :mines mine-kw :service :root])
    :model {:name "genomic"}})
 
+(defn- mine-label [db mine-kw]
+  (or (get-in db [:env :mines mine-kw :name]) (name mine-kw)))
+
 (reg-event-fx
  :report-other-mines/start
  (fn [{db :db} [_ [mine-kw _type id :as report-key]]]
    (let [others (other-mines-env db mine-kw)
-         to-fetch (remove #(#{:loading :done} (get-in db [:other-mines :organisms % :status]))
-                          (keys others))]
+         to-fetch (remove #(#{:loading :done :skipped} (get-in db [:other-mines :organisms % :status]))
+                          (keys others))
+         ;; A slot that the current mine's model cannot answer is filled with
+         ;; no genes and the reason is shown in the panel.
+         reasons (current-blocked-reasons (mine-support/mine-classes db mine-kw)
+                                          (mine-label db mine-kw))
+         gene-query (fn [select]
+                      {:from "Gene"
+                       :select select
+                       :where [{:path "Gene.id" :op "=" :value id}]})]
      (when (and (current-report? db report-key) (seq others))
        {:db (reduce #(assoc-in %1 [:other-mines :organisms %2] {:status :loading})
-                    (assoc-in db [:report :other-mines] {:inflight 0})
+                    (assoc-in db [:report :other-mines]
+                              (cond-> {:inflight 0}
+                                (:self reasons) (assoc :self [] :self-reason (:self reasons))
+                                (:orthologs reasons) (assoc :orthologs [] :orthologs-reason (:orthologs reasons))))
                     to-fetch)
-        :dispatch-n (into [[::fetch-genes report-key :self
-                            {:from "Gene"
-                             :select gene-views
-                             :where [{:path "Gene.id" :op "=" :value id}]}]
-                           [::fetch-genes report-key :orthologs
-                            {:from "Gene"
-                             :select (mapv #(str/replace % "Gene." "Gene.homologues.homologue.") gene-views)
-                             :where [{:path "Gene.id" :op "=" :value id}]}]]
-                          (map (fn [k] [::fetch-organisms k]))
-                          to-fetch)}))))
+        :dispatch-n (-> []
+                        (cond-> (not (:self reasons))
+                          (conj [::fetch-genes report-key :self (gene-query gene-views)]))
+                        (cond-> (not (:orthologs reasons))
+                          (conj [::fetch-genes report-key :orthologs (gene-query ortholog-views)]))
+                        (into (map (fn [k] [::fetch-organisms k])) to-fetch))}))))
 
 (reg-event-fx
  ::fetch-genes
@@ -186,13 +222,23 @@
 
 (reg-event-fx
  ::fetch-organisms
+ ;; Loads the model of the mine first, to skip a mine that lacks a queried path.
+ (fn [_ [_ mine-kw]]
+   {:dispatch [::mine-support/fetch mine-kw [::fetch-organisms-checked mine-kw]]}))
+
+(reg-event-fx
+ ::fetch-organisms-checked
  (fn [{db :db} [_ mine-kw]]
-   {:im-chan {:chan (fetch/rows (mine-service db mine-kw)
-                                {:from "Organism"
-                                 :select ["Organism.shortName" "Organism.taxonId"]}
-                                {:format "json" :size 1000})
-              :on-success [::organisms-success mine-kw]
-              :on-failure [::organisms-failure mine-kw]}}))
+   (if-let [reason (target-blocked-reason (mine-support/mine-classes db mine-kw)
+                                          (mine-label db mine-kw))]
+     {:db (assoc-in db [:other-mines :organisms mine-kw] {:status :skipped :reason reason})
+      :dispatch [::maybe-plan (get-in db [:report :key])]}
+     {:im-chan {:chan (fetch/rows (mine-service db mine-kw)
+                                  {:from "Organism"
+                                   :select ["Organism.shortName" "Organism.taxonId"]}
+                                  {:format "json" :size 1000})
+                :on-success [::organisms-success mine-kw]
+                :on-failure [::organisms-failure mine-kw]}})))
 
 (reg-event-fx
  ::organisms-success
@@ -221,7 +267,7 @@
                 (current-report? db report-key)
                 (some? self) (some? orthologs)
                 (not planned?)
-                (every? (comp #{:done :error} :status) (vals organisms)))
+                (every? (comp #{:done :error :skipped} :status) (vals organisms)))
        (let [genes (order-genes self orthologs)
              tasks (plan-tasks genes
                                (into {} (map (fn [[k v]] [k (:organisms v)])) organisms)
@@ -296,6 +342,14 @@
                           (map (comp :name val))
                           (sort)
                           (vec))
+        :skipped (->> (dissoc env-mines current-mine)
+                      (keep (fn [[k m]]
+                              (let [{:keys [status reason]} (get-in db [:other-mines :organisms k])]
+                                (when (= :skipped status)
+                                  {:name (:name m) :reason reason}))))
+                      (sort-by :name)
+                      (vec))
+        :orthologs-reason (:orthologs-reason state)
         :rows (panel-rows
                {:genes (:genes state)
                 :results (:results state)
