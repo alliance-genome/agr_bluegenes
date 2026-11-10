@@ -22,7 +22,8 @@
 
 	// Alliance gene curie prefix and bare-id pattern per species, keyed by NCBI taxon id.
 	var SPECIES = {
-		'9606': { prefix: 'HGNC', bare: /^\d+$/ },
+		// HumanMine primaryIdentifier is an Entrez id, which is not an HGNC id, so bare ids are not mapped.
+		'9606': { prefix: 'HGNC', bare: null },
 		'10090': { prefix: 'MGI', bare: /^\d+$/ },
 		'10116': { prefix: 'RGD', bare: /^\d+$/ },
 		'7955': { prefix: 'ZFIN', bare: /^ZDB-GENE-/ },
@@ -58,7 +59,7 @@
 		}
 		var sp = speciesOf(organism);
 		if (!sp) return null;
-		return sp.bare.test(id) ? sp.prefix + ':' + id : null;
+		return sp.bare && sp.bare.test(id) ? sp.prefix + ':' + id : null;
 	}
 
 	function escapeXml(s) {
@@ -345,6 +346,7 @@
 		}
 
 		function load(key, page) {
+			if (!curie) return;
 			var s = st[key];
 			var t = TABS.filter(function (x) { return x.key === key; })[0];
 			var seq = (s.seq = (s.seq || 0) + 1);
@@ -374,6 +376,7 @@
 		}
 
 		function select(key) {
+			if (!curie) return;
 			active = key;
 			TABS.forEach(function (t) {
 				buttons[t.key].setAttribute('aria-selected', t.key === key ? 'true' : 'false');
@@ -382,16 +385,19 @@
 			else showActive();
 		}
 
-		TABS.forEach(function (t) {
-			st[t.key] = { status: 'idle', rows: [], total: 0, page: 1 };
-			var b = node('button', t.label, 'btn btn-default');
-			b.setAttribute('type', 'button');
-			b.setAttribute('role', 'tab');
-			b.setAttribute('aria-selected', 'false');
-			b.addEventListener('click', function () { select(t.key); });
-			buttons[t.key] = b;
-			bar.appendChild(b);
-		});
+		// Tab buttons exist only once the gene maps to a curie, so no click can run with curie null.
+		function buildTabs() {
+			TABS.forEach(function (t) {
+				st[t.key] = { status: 'idle', rows: [], total: 0, page: 1 };
+				var b = node('button', t.label, 'btn btn-default');
+				b.setAttribute('type', 'button');
+				b.setAttribute('role', 'tab');
+				b.setAttribute('aria-selected', 'false');
+				b.addEventListener('click', function () { select(t.key); });
+				buttons[t.key] = b;
+				bar.appendChild(b);
+			});
+		}
 
 		fetchGene(root, geneId)
 			.then(function (g) {
@@ -402,6 +408,7 @@
 					return showMessage('Cannot map ' + g.primaryIdentifier + ' (' + (g.organism || 'unknown organism') + ') to an Alliance gene id');
 				}
 				source.appendChild(attribution(curie));
+				buildTabs();
 				if (hideOptionOf(config)) {
 					fetchMineModelCount(root, geneId)
 						.then(function (n) {

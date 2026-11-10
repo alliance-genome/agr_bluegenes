@@ -23,7 +23,8 @@ test('toAllianceCurie maps bare ids from each MOD mine', () => {
 	assert.strictEqual(c('104537', 'M. musculus'), 'MGI:104537');
 	assert.strictEqual(c('ZDB-GENE-980526-166', 'D. rerio'), 'ZFIN:ZDB-GENE-980526-166');
 	assert.strictEqual(c('2218', 'R. norvegicus'), 'RGD:2218');
-	assert.strictEqual(c('11998', 'H. sapiens'), 'HGNC:11998');
+	assert.strictEqual(c('7157', 'H. sapiens'), null);
+	assert.strictEqual(c('7157', '9606'), null);
 });
 
 test('toAllianceCurie keeps AllianceMine curies for all 7 species', () => {
@@ -243,4 +244,29 @@ test('main throws on a bad signature and handles an empty entity', () => {
 	const el = fakeEl();
 	tool.main(el, service, { Gene: { value: [] } }, {}, {}, () => {});
 	assert.ok(el.textContent.includes('No gene selected'));
+});
+
+test('human Entrez id is not mapped to an HGNC curie', async () => {
+	const log = [];
+	stubFetch(log, { geneRow: ['7157', 'TP53', 'H. sapiens', '9606'] });
+	const el = fakeEl();
+	tool.main(el, service, entity(1), {}, {}, () => {});
+	await tick();
+	assert.ok(el.textContent.includes('Cannot map 7157 (H. sapiens)'));
+	assert.ok(!el.textContent.includes('HGNC:7157'));
+	assert.strictEqual(log.filter((l) => l.url.includes('alliancegenome.org')).length, 0);
+});
+
+test('no tab buttons before the gene resolves or when it cannot be mapped, and no request for a null curie', async () => {
+	for (const opts of [{ geneRow: ['X1', 'x', 'A. thaliana', '3702'] }, { noGene: true }]) {
+		const log = [];
+		stubFetch(log, opts);
+		const el = fakeEl();
+		tool.main(el, service, entity(1), {}, {}, () => {});
+		assert.strictEqual(el.find('button').length, 0);
+		await tick();
+		assert.strictEqual(el.find('button').length, 0);
+		assert.strictEqual(log.filter((l) => l.url.includes('alliancegenome.org')).length, 0);
+		assert.ok(!log.some((l) => l.url.includes('/null/')));
+	}
 });
