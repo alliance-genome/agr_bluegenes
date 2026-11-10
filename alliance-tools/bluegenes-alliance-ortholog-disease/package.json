@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-ortholog-disease",
+  "version": "0.1.0",
+  "description": "Disease terms annotated to a gene's orthologs, grouped by term, for Gene report pages.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
