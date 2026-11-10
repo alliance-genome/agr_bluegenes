@@ -69,6 +69,15 @@
     (str "Alliance of Genome Resources data release " version
          (when-not (str/blank? date) (str " (" date ")")))))
 
+(defn alliance-current-text
+  "`The current Alliance of Genome Resources data release at access time was 9.2.0
+  (2026-10-28)`, or nil. The release is the Alliance's global one, which may
+  differ from what the queried mine has loaded."
+  [{:keys [version date]}]
+  (when-not (str/blank? version)
+    (str "the current Alliance of Genome Resources data release at access time was "
+         version (when-not (str/blank? date) (str " (" date ")")))))
+
 ;;; Query and list descriptions ;;;
 
 (def op-words
@@ -174,8 +183,8 @@
          (when (seq versions) (str ", " (join-and versions)))
          ", using " (describe-subject subject)
          ". Data were accessed on " date ". "
-         (when-let [text (alliance-release-text alliance)]
-           (str "The mine integrates " text
+         (when-let [text (alliance-current-text alliance)]
+           (str "The " (subs text 4)
                 " (Alliance of Genome Resources Consortium 2024, Genetics 227(1):iyae049). "))
          "The mine runs on the InterMine platform (Smith et al. 2012, Bioinformatics 28(23):3163-3165; "
          "Kalderimis et al. 2014, Nucleic Acids Research 42(W1):W468-W472).")))
@@ -217,7 +226,7 @@
                        [:version (bibtex-escape release)]
                        [:urldate date]
                        [:note (str "InterMine data warehouse"
-                                   (when-let [text (alliance-release-text alliance)]
+                                   (when-let [text (alliance-current-text alliance)]
                                      (str "; " text)))]])
        "\n}"))
 
@@ -261,7 +270,7 @@
                (ris-line "ET" release)
                (ris-line "Y2" (ris-date date))
                (ris-line "N1" (str "InterMine data warehouse"
-                                   (when-let [text (alliance-release-text alliance)]
+                                   (when-let [text (alliance-current-text alliance)]
                                      (str "; " text))))]))
 
 (defn ris-paper [{:keys [authors title journal year volume number pages doi]}]

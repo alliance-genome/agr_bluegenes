@@ -53,9 +53,9 @@
 
 (deftest methods-with-release
   (let [text (cite/methods-paragraph (assoc mine :alliance release))]
-    (is (str/includes? text "The mine integrates Alliance of Genome Resources data release 9.2.0 (2026-10-28)"))
+    (is (str/includes? text "The current Alliance of Genome Resources data release at access time was 9.2.0 (2026-10-28)"))
     (is (str/includes? text "Genetics 227(1):iyae049"))
-    (is (str/includes? text "Data were accessed on 2026-11-10. The mine integrates"))))
+    (is (str/includes? text "Data were accessed on 2026-11-10. The current"))))
 
 (deftest methods-without-release
   (is (not (str/includes? (cite/methods-paragraph mine) "Alliance of Genome Resources"))))
@@ -65,7 +65,7 @@
     (is (str/includes? text "@article{AllianceConsortium2024,"))
     (is (str/includes? text "author = {{Alliance of Genome Resources Consortium}}"))
     (is (str/includes? text "doi = {10.1093/genetics/iyae049}"))
-    (is (str/includes? text "note = {InterMine data warehouse; Alliance of Genome Resources data release 9.2.0 (2026-10-28)}"))))
+    (is (str/includes? text "note = {InterMine data warehouse; the current Alliance of Genome Resources data release at access time was 9.2.0 (2026-10-28)}"))))
 
 (deftest bibtex-without-release
   (let [text (cite/bibtex mine)]
@@ -76,7 +76,7 @@
   (let [text (cite/ris (assoc mine :alliance release))]
     (is (str/includes? text "AU  - Alliance of Genome Resources Consortium\n"))
     (is (str/includes? text "DO  - 10.1093/genetics/iyae049"))
-    (is (str/includes? text "N1  - InterMine data warehouse; Alliance of Genome Resources data release 9.2.0 (2026-10-28)"))
+    (is (str/includes? text "N1  - InterMine data warehouse; the current Alliance of Genome Resources data release at access time was 9.2.0 (2026-10-28)"))
     (is (= 4 (count (re-seq #"ER  - " text))))))
 
 (deftest ris-without-release
@@ -94,6 +94,12 @@
    (is (nil? @(rf/subscribe [::ar/release])))
    (rf/dispatch-sync [::ar/success release-info-fixture])
    (is (= release @(rf/subscribe [::ar/release])))
+   (rf/dispatch-sync [::ar/failure])
+   (is (= release @(rf/subscribe [::ar/release])))))
+
+(deftest release-failure-without-cache
+  (run-test-sync
+   (rf/dispatch-sync [::seed {}])
    (rf/dispatch-sync [::ar/failure])
    (is (nil? @(rf/subscribe [::ar/release])))))
 
