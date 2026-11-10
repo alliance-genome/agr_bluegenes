@@ -1,0 +1,17 @@
+{
+  "accepts": ["ids"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Phenotype enrichment",
+    "cljs": "bluegenesAlliancePhenotypeEnrichment"
+  },
+  "version": 2
+}
