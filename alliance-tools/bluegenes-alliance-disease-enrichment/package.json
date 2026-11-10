@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-disease-enrichment",
+  "version": "0.1.0",
+  "description": "Disease Ontology term over-representation for a list of genes, with hypergeometric p-values and Benjamini-Hochberg FDR.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
