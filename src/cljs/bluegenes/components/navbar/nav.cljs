@@ -4,6 +4,7 @@
             [bluegenes.components.search.typeahead :as search]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.progress_bar :as progress-bar]
+            [bluegenes.components.cart :as cart]
             [bluegenes.route :as route]
             [bluegenes.components.ui.inputs :refer [password-input]]
             [bluegenes.components.icons :refer [icon-comp]]
@@ -339,4 +340,5 @@
         [:div.nav-links.hidden-sm.hidden-md.hidden-lg
          [nav-buttons classes]]
         [:li.primary-nav.search.hidden-xs.hidden-sm [search/main]]
+        [cart/nav-item]
         [user]]])))

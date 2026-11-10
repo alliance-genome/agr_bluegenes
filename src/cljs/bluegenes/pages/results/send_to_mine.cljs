@@ -153,7 +153,7 @@
         (assoc :send-to-mine-run run)
         (update-in (state-path) assoc :run run :resolving? false :saving? false))))
 
-(defn- with-timeout
+(defn with-timeout
   "Channel that carries the value of `ch`, or a 408 response after `ms`, so a
   request that never answers still reaches the failure handler."
   [ch ms]
@@ -408,7 +408,7 @@
    (when (> (count unresolved) max-shown-unresolved)
      [:p.text-muted (str "Showing the first " max-shown-unresolved ".")])])
 
-(defn- login-notice [target label]
+(defn login-notice [target label]
   [:p.alert.alert-warning
    "You are not logged in to " [:strong label] ". "
    [:a {:href (route/href ::route/home {:mine target})}
