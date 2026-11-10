@@ -157,7 +157,11 @@
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
 		}).then(function (res) {
-			if (!res.ok) throw new Error('HTTP ' + res.status);
+			if (!res.ok) {
+				var err = new Error('HTTP ' + res.status);
+				err.status = res.status;
+				throw err;
+			}
 			return res.json();
 		});
 	}
@@ -288,12 +292,25 @@
 
 	function load(sr, ids, includeAlleles) {
 		var paths = includeAlleles ? [GENE_ANN, ALLELE_ANN] : [GENE_ANN];
-		var annotationRequests = paths.map(function (p) { return rows(sr, listAnnotationsQuery(ids, p)); });
+		var allelesUnavailable = false;
+		var annotationRequests = paths.map(function (p) {
+			return rows(sr, listAnnotationsQuery(ids, p)).catch(function (err) {
+				// HTTP 400 on the allele path: the mine's model has no allele phenotype annotations.
+				// The gene path is required, so its failure still fails the tool.
+				if (p === ALLELE_ANN && err && err.status === 400) {
+					allelesUnavailable = true;
+					return null;
+				}
+				throw err;
+			});
+		});
 		return Promise.all([rows(sr, listGenesQuery(ids))].concat(annotationRequests)).then(function (res) {
 			var genes = res[0].filter(function (g) { return g[1]; });
 			var annotations = [];
 			var listCapped = false;
+			if (allelesUnavailable) paths = [GENE_ANN];
 			res.slice(1).forEach(function (a) {
+				if (!a) return;
 				if (a.length >= MAX_ROWS) listCapped = true;
 				annotations = annotations.concat(a);
 			});
@@ -311,6 +328,7 @@
 				background: [],
 				skipped: skippedCount(annotations),
 				listCapped: listCapped,
+				allelesUnavailable: allelesUnavailable,
 				truncated: {},
 				capped: listCapped
 			};
@@ -374,7 +392,8 @@
 		var alleleLabel = node('label', ' ');
 		var alleleInput = node('input');
 		alleleInput.type = 'checkbox';
-		alleleInput.checked = !!opts.includeAlleles;
+		alleleInput.checked = !!opts.includeAlleles && !data.allelesUnavailable;
+		alleleInput.disabled = !!data.allelesUnavailable;
 		alleleLabel.appendChild(alleleInput);
 		alleleLabel.appendChild(document.createTextNode(' Include allele phenotype annotations'));
 		controls.appendChild(alleleLabel);
@@ -426,6 +445,11 @@
 				'alliance-phenotype-enrichment-background'
 			)
 		);
+		if (data.allelesUnavailable) {
+			wrap.appendChild(
+				node('p', 'This mine has no allele phenotype annotations, so only gene annotations are used.', 'alliance-phenotype-enrichment-note')
+			);
+		}
 		if (data.skipped > 0) {
 			wrap.appendChild(
 				node('p', data.skipped + ' annotations without a term were skipped', 'alliance-phenotype-enrichment-skipped')
