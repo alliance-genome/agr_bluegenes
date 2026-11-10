@@ -1,0 +1,17 @@
+{
+  "accepts": ["ids", "id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Phenotypes and diseases across species",
+    "cljs": "bluegenesAllianceSpeciesMatrix"
+  },
+  "version": 2
+}
