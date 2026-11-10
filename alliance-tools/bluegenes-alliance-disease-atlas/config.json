@@ -1,0 +1,12 @@
+{
+  "accepts": ["id"],
+  "classes": ["DOTerm"],
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Genes for this disease",
+    "cljs": "bluegenesAllianceDiseaseAtlas"
+  },
+  "version": 2
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-disease-atlas",
+  "version": "0.1.0",
+  "description": "Genes annotated to a Disease Ontology term and optionally its child terms, grouped by organism, with direct, via-orthology and disease-model evidence.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
