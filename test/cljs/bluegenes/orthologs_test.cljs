@@ -9,17 +9,38 @@
 
 (use-fixtures :each utils/fixtures)
 
-(def model {:Gene {:collections {:homologues {}}}})
+(def model
+  "Model with the paths the conversion queries."
+  {:Gene {:attributes {:id {}}
+          :collections {:homologues {:referencedType "Homologue"}}}
+   :Homologue {:references {:homologue {:referencedType "Gene"}}}})
+
+(def model-with-organism
+  (-> model
+      (assoc-in [:Gene :references :organism] {:referencedType "Organism"})
+      (assoc :Organism {:attributes {:shortName {}}})))
 
 (deftest availability
-  (testing "Gene list with Gene.homologues"
-    (is (true? (orthologs/available? model {:type "Gene"}))))
+  (testing "Gene list with Gene.homologues.homologue and its organism"
+    (is (true? (orthologs/available? model-with-organism {:type "Gene"}))))
   (testing "other list types"
-    (is (false? (orthologs/available? model {:type "Protein"}))))
+    (is (false? (orthologs/available? model-with-organism {:type "Protein"}))))
   (testing "model without homologues"
     (is (false? (orthologs/available? {:Gene {:collections {}}} {:type "Gene"}))))
+  (testing "Gene.homologues present but the homologue's organism is not"
+    (is (false? (orthologs/available? model {:type "Gene"}))))
   (testing "no list"
-    (is (false? (orthologs/available? model nil)))))
+    (is (false? (orthologs/available? model-with-organism nil)))))
+
+(deftest blocked-reasons
+  (testing "nothing blocks a model with the paths, or an unknown model"
+    (is (nil? (orthologs/blocked-reason model-with-organism "WormMine")))
+    (is (nil? (orthologs/blocked-reason nil "WormMine"))))
+  (testing "a missing path is named with the mine"
+    (is (= "ToyMine has no Gene.homologues.homologue.organism.shortName"
+           (orthologs/blocked-reason model "ToyMine")))
+    (is (= "ToyMine has no Gene.homologues.homologue.organism.shortName, Gene.homologues.homologue.id"
+           (orthologs/blocked-reason {:Gene {:attributes {:id {}}}} "ToyMine")))))
 
 (deftest queries
   (is (= {:from "Gene"

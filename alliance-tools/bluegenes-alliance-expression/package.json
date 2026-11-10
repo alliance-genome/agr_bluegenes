@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-expression",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ribbon grid of a gene's expression annotations by anatomy term and stage, for Gene report pages and list pages.",
   "main": "dist/bundle.js",
   "scripts": {
