@@ -30,9 +30,9 @@
 
 	// Identifier prefix and bare-id shape per species, keyed by NCBI taxon id.
 	var SPECIES = {
-		'9606': { prefix: 'HGNC', test: /^\d+$/ },
-		'10090': { prefix: 'MGI', test: /^\d+$/ },
-		'10116': { prefix: 'RGD', test: /^\d+$/ },
+		'9606': { prefix: 'HGNC', test: null },
+		'10090': { prefix: 'MGI', test: null },
+		'10116': { prefix: 'RGD', test: null },
 		'7955': { prefix: 'ZFIN', test: /^ZDB-GENE-/ },
 		'7227': { prefix: 'FB', test: /^FBgn\d+$/ },
 		'6239': { prefix: 'WB', test: /^WBGene\d+$/ },
@@ -49,16 +49,21 @@
 	};
 	var KNOWN_PREFIX = /^(HGNC|MGI|RGD|ZFIN|FB|WB|SGD):/;
 
-	// Mines store some ids as Alliance curies and some bare. Returns null when the
-	// species or id shape is not one the Alliance API takes.
+	// AllianceMine stores curies (HGNC:11998, FB:FBgn...). WormMine stores WBGene00000001,
+	// FlyMine FBgn0000001 and YeastMine S000000001 (organism taxon 4932). Bare numbers are
+	// NCBI Gene ids in the MOD mines (WormMine D. rerio 110292), so HGNC, MGI and RGD
+	// need the prefix. Returns null when the species or id shape is not one the Alliance
+	// API takes, for example a FlyMine D. erecta gene (taxon 7220).
 	function toAllianceCurie(primaryIdentifier, organism) {
 		var id = primaryIdentifier == null ? '' : String(primaryIdentifier).trim();
 		if (!id) return null;
 		if (KNOWN_PREFIX.test(id)) return id;
 		var key = organism == null ? '' : String(organism).trim().toLowerCase();
+		key = key.replace(/^ncbitaxon:/, '');
+		if (key === '4932') key = '559292';
 		var taxon = SPECIES[key] ? key : NAME_TO_TAXON[key];
 		var sp = taxon && SPECIES[taxon];
-		if (!sp || !sp.test.test(id)) return null;
+		if (!sp || !sp.test || !sp.test.test(id)) return null;
 		return sp.prefix + ':' + id;
 	}
 

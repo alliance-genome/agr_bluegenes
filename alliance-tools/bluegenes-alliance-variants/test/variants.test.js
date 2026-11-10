@@ -41,9 +41,6 @@ test('toAllianceCurie maps all 7 species', () => {
 	assert.strictEqual(f('WB:WBGene00000898', 'C. elegans'), 'WB:WBGene00000898');
 	assert.strictEqual(f('SGD:S000002428', 'S. cerevisiae'), 'SGD:S000002428');
 	// bare ids from other mines, by short name or taxon id
-	assert.strictEqual(f('11998', 'H. sapiens'), 'HGNC:11998');
-	assert.strictEqual(f('104537', '10090'), 'MGI:104537');
-	assert.strictEqual(f('2218', 'R. norvegicus'), 'RGD:2218');
 	assert.strictEqual(f('ZDB-GENE-990415-72', '7955'), 'ZFIN:ZDB-GENE-990415-72');
 	assert.strictEqual(f('FBgn0003731', 'D. melanogaster'), 'FB:FBgn0003731');
 	assert.strictEqual(f('WBGene00000898', 6239), 'WB:WBGene00000898');
@@ -55,6 +52,24 @@ test('toAllianceCurie returns null for unknown species, empty ids and wrong shap
 	assert.strictEqual(tool.toAllianceCurie('123', 'A. thaliana'), null);
 	assert.strictEqual(tool.toAllianceCurie('', 'H. sapiens'), null);
 	assert.strictEqual(tool.toAllianceCurie(null, 'H. sapiens'), null);
+});
+
+test('toAllianceCurie handles the identifiers production mines store', () => {
+	const f = tool.toAllianceCurie;
+	// WormMine, FlyMine, YeastMine as queried, taxon ids as strings (yeast is 4932 there).
+	assert.strictEqual(f('WBGene00000001', '6239'), 'WB:WBGene00000001');
+	assert.strictEqual(f('FBgn0000001', '7227'), 'FB:FBgn0000001');
+	assert.strictEqual(f('S000000001', '4932'), 'SGD:S000000001');
+	assert.strictEqual(f('S000000001', 'NCBITaxon:559292'), 'SGD:S000000001');
+	// AllianceMine curies with a taxon id.
+	assert.strictEqual(f('HGNC:11998', '9606'), 'HGNC:11998');
+	assert.strictEqual(f('MGI:104537', '10090'), 'MGI:104537');
+	// NCBI Gene ids and genes of other species.
+	assert.strictEqual(f('110292', '7955'), null);
+	assert.strictEqual(f('11998', '9606'), null);
+	assert.strictEqual(f('113563677', '7220'), null);
+	assert.strictEqual(f('FBgn0000001', '7220'), null);
+	assert.strictEqual(f('L000003336', '4932'), null);
 });
 
 test('serviceRoot and apiBase', () => {
