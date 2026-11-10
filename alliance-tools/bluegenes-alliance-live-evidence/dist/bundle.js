@@ -22,10 +22,12 @@
 
 	// Alliance gene curie prefix and bare-id pattern per species, keyed by NCBI taxon id.
 	var SPECIES = {
-		// HumanMine primaryIdentifier is an Entrez id, which is not an HGNC id, so bare ids are not mapped.
+		// Bare numbers are Entrez or NCBI Gene ids (HumanMine, and the MOD mines for
+		// non-native species such as WormMine D. rerio 110292), not HGNC, MGI or RGD ids,
+		// so only curies map. AllianceMine and the MOD mines store those as curies.
 		'9606': { prefix: 'HGNC', bare: null },
-		'10090': { prefix: 'MGI', bare: /^\d+$/ },
-		'10116': { prefix: 'RGD', bare: /^\d+$/ },
+		'10090': { prefix: 'MGI', bare: null },
+		'10116': { prefix: 'RGD', bare: null },
 		'7955': { prefix: 'ZFIN', bare: /^ZDB-GENE-/ },
 		'7227': { prefix: 'FB', bare: /^FBgn\d+$/ },
 		'6239': { prefix: 'WB', bare: /^WBGene\d+$/ },
@@ -101,6 +103,52 @@
 			if (!row) return null;
 			return { primaryIdentifier: row[0], symbol: row[1] || '', organism: row[2] || '', taxonId: row[3] };
 		});
+	}
+
+	// True when the model has the dotted path (for example Gene.diseaseModels), following
+	// each referenced type and the extends chain. FlyMine, WormMine and YeastMine have no
+	// Gene.diseaseModels, and a query on a missing path fails with HTTP 400.
+	function modelHasPath(classes, path) {
+		function member(cls, name) {
+			var c = classes[cls];
+			if (!c) return null;
+			var hit = (c.attributes && c.attributes[name]) || (c.references && c.references[name]) || (c.collections && c.collections[name]);
+			if (hit) return hit;
+			var parents = c.extends || [];
+			for (var i = 0; i < parents.length; i++) {
+				var found = member(parents[i], name);
+				if (found) return found;
+			}
+			return null;
+		}
+		var parts = path.split('.');
+		var cls = parts[0];
+		for (var i = 1; i < parts.length; i++) {
+			var m = member(cls, parts[i]);
+			if (!m) return false;
+			cls = m.referencedType;
+		}
+		return !!classes[parts[0]];
+	}
+
+	// One model request per mine root and page load.
+	var modelChecks = {};
+
+	function mineHasDiseaseModels(root) {
+		if (!modelChecks[root]) {
+			modelChecks[root] = fetch(root.replace(/\/+$/, '') + '/model?format=json', { headers: { Accept: 'application/json' } })
+				.then(function (res) {
+					if (!res.ok) throw new Error('HTTP ' + res.status);
+					return res.json();
+				})
+				.then(function (json) {
+					var classes = json && json.model && json.model.classes;
+					if (!classes) throw new Error('Bad model response');
+					return modelHasPath(classes, 'Gene.diseaseModels');
+				});
+			modelChecks[root].catch(function () { delete modelChecks[root]; });
+		}
+		return modelChecks[root];
 	}
 
 	// Cheap count of the mine's own disease models for this gene.
@@ -410,7 +458,10 @@
 				source.appendChild(attribution(curie));
 				buildTabs();
 				if (hideOptionOf(config)) {
-					fetchMineModelCount(root, geneId)
+					mineHasDiseaseModels(root)
+						.then(function (has) {
+							return has ? fetchMineModelCount(root, geneId) : 0;
+						})
 						.then(function (n) {
 							if (stale() || !n) return;
 							note.textContent = 'This mine already has disease model data for this gene (' + n + ' rows). The Alliance data below is a second source.';
@@ -436,6 +487,7 @@
 		apiUrl: apiUrl,
 		geneUrl: geneUrl,
 		buildQuery: buildQuery,
+		modelHasPath: modelHasPath,
 		toModelRow: toModelRow,
 		toAlleleRow: toAlleleRow,
 		toPhenotypeRow: toPhenotypeRow,

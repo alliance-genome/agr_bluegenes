@@ -20,11 +20,18 @@ test('toAllianceCurie maps bare ids from each MOD mine', () => {
 	assert.strictEqual(c('FBgn0003731', 'D. melanogaster'), 'FB:FBgn0003731');
 	assert.strictEqual(c('S000000001', 'S. cerevisiae'), 'SGD:S000000001');
 	assert.strictEqual(c('MGI:104537', 'M. musculus'), 'MGI:104537');
-	assert.strictEqual(c('104537', 'M. musculus'), 'MGI:104537');
 	assert.strictEqual(c('ZDB-GENE-980526-166', 'D. rerio'), 'ZFIN:ZDB-GENE-980526-166');
-	assert.strictEqual(c('2218', 'R. norvegicus'), 'RGD:2218');
 	assert.strictEqual(c('7157', 'H. sapiens'), null);
 	assert.strictEqual(c('7157', '9606'), null);
+	assert.strictEqual(c('104537', 'M. musculus'), null);
+	assert.strictEqual(c('2218', 'R. norvegicus'), null);
+	// Production formats: WormMine D. rerio NCBI id, FlyMine D. erecta, YeastMine legacy id.
+	assert.strictEqual(c('110292', '7955'), null);
+	assert.strictEqual(c('113563677', '7220'), null);
+	assert.strictEqual(c('L000003336', '4932'), null);
+	assert.strictEqual(c('WBGene00000001', '6239'), 'WB:WBGene00000001');
+	assert.strictEqual(c('FBgn0000001', '7227'), 'FB:FBgn0000001');
+	assert.strictEqual(c('S000000001', '4932'), 'SGD:S000000001');
 });
 
 test('toAllianceCurie keeps AllianceMine curies for all 7 species', () => {
@@ -81,7 +88,12 @@ function stubFetch(log, opts) {
 	opts = opts || {};
 	globalThis.fetch = async (url, init) => {
 		log.push({ url, init });
-		if (url.startsWith('http://h/mine/service/query/results')) {
+		if (/^http:\/\/h\/\w+\/service\/model/.test(url)) {
+			if (opts.modelFails) return { ok: false, status: 500 };
+			const gene = opts.noDiseaseModels ? {} : { collections: { diseaseModels: { referencedType: 'DiseaseModel' } } };
+			return { ok: true, status: 200, json: async () => ({ model: { classes: { Gene: gene, DiseaseModel: {} } } }) };
+		}
+		if (/^http:\/\/h\/\w+\/service\/query\/results/.test(url)) {
 			const body = new URLSearchParams(init.body);
 			if (body.get('format') === 'count') {
 				if (opts.mineCountFails) return { ok: false, status: 400 };
@@ -172,6 +184,40 @@ test('no note when the mine count is 0, the query fails, or the option is false'
 		assert.ok(!el.textContent.includes('already has'));
 		assert.ok(el.textContent.includes('Disease models (5)'));
 	}
+});
+
+test('a model without Gene.diseaseModels runs no count query and shows no note', async () => {
+	const log = [];
+	stubFetch(log, { noDiseaseModels: true, mineCount: 9 });
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/nodm' }, entity(1), {}, {}, () => {});
+	await tick();
+	assert.ok(!el.textContent.includes('already has'));
+	assert.ok(el.textContent.includes('Disease models (5)'));
+	assert.strictEqual(log.filter((l) => l.init && l.init.body && String(l.init.body).includes('format=count')).length, 0);
+});
+
+test('a failing model request skips the note and leaves the tabs usable', async () => {
+	const log = [];
+	stubFetch(log, { modelFails: true, mineCount: 9 });
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/modelfail' }, entity(1), {}, {}, () => {});
+	await tick();
+	assert.ok(!el.textContent.includes('already has'));
+	assert.ok(el.textContent.includes('Disease models (5)'));
+	assert.strictEqual(log.filter((l) => l.init && l.init.body && String(l.init.body).includes('format=count')).length, 0);
+});
+
+test('modelHasPath follows references and extends', () => {
+	const classes = {
+		Gene: { extends: ['SequenceFeature'], attributes: { symbol: {} }, collections: {} },
+		SequenceFeature: { collections: { diseaseModels: { referencedType: 'DiseaseModel' } } },
+		DiseaseModel: { attributes: { id: {} } }
+	};
+	assert.strictEqual(tool.modelHasPath(classes, 'Gene.diseaseModels'), true);
+	assert.strictEqual(tool.modelHasPath(classes, 'Gene.diseaseModels.id'), true);
+	assert.strictEqual(tool.modelHasPath(classes, 'Gene.alleles'), false);
+	assert.strictEqual(tool.modelHasPath(classes, 'Nope.x'), false);
 });
 
 test('404 from the API shows no data', async () => {
