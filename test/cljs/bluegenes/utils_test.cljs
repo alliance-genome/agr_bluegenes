@@ -148,7 +148,7 @@
    :ORF {:extends ["ProteinCodingGene"]}
    :Homologue {:attributes {:isBestScore {:type "java.lang.Boolean"}}
                :references {:gene {:referencedType "Gene"}
-                           :homologue {:referencedType "Gene"}}}
+                            :homologue {:referencedType "Gene"}}}
    :DiseaseAnnotation {:attributes {:qualifier {:type "java.lang.String"}}}
    :PhenotypeAnnotation {:attributes {:phenotypeStatement {:type "java.lang.String"}}}})
 
