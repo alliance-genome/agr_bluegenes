@@ -313,7 +313,7 @@
 (reg-event-fx
  :messages/add
  (fn [{db :db} [_ props]]
-   (let [id (gensym)
+   (let [id (or (:id props) (gensym))
          msg (assoc props
                     :id id
                     :when (.getTime (js/Date.)))]
