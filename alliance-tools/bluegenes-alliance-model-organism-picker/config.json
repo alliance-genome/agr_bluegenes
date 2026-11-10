@@ -1,0 +1,27 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "depends": [
+    "Gene.homologues.homologue.id",
+    "Gene.homologues.homologue.primaryIdentifier",
+    "Gene.homologues.homologue.symbol",
+    "Gene.homologues.homologue.organism.shortName",
+    "Gene.homologues.algorithmsMatch",
+    "Gene.homologues.algorithmsAttempted",
+    "Gene.homologues.isBestScore",
+    "Gene.homologues.isBestReverseScore"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Model organism picker",
+    "cljs": "bluegenesAllianceModelOrganismPicker"
+  },
+  "version": 2
+}
