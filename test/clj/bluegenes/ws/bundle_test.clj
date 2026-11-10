@@ -134,10 +134,10 @@
   (let [optional ["d.tsv" {:view ["A.b"] :list-path "A" :optional? true}]
         required ["g.tsv" {:view ["A.b"] :list-path "A"}]]
     (with-redefs [client/get (fn [_ _] {:status 400 :body ""})]
-      (is (:skipped? (bundle/fetch-file "http://m/mine" "t" optional "L")))
-      (is (= 400 (status-of #(bundle/fetch-file "http://m/mine" "t" required "L")))))
+      (is (:skipped? (bundle/fetch-file "http://m/mine" "t" nil optional "L")))
+      (is (= 400 (status-of #(bundle/fetch-file "http://m/mine" "t" nil required "L")))))
     (with-redefs [client/get (fn [_ _] {:status 500 :body ""})]
-      (is (= 502 (status-of #(bundle/fetch-file "http://m/mine" "t" optional "L")))))))
+      (is (= 502 (status-of #(bundle/fetch-file "http://m/mine" "t" nil optional "L")))))))
 
 (deftest build-bundle-without-annotation-classes
   (with-redefs [client/get
@@ -145,9 +145,124 @@
                   (cond
                     (str/ends-with? url "/lists") {:status 200 :body (list-body {:name "L" :type "Gene" :size 1})}
                     (str/includes? url "/version/") {:status 200 :body "x"}
+                    (str/ends-with? url "/model") {:status 404 :body ""}
                     (str/includes? (get-in opts [:query-params "query"]) "Annotation.") {:status 400 :body ""}
                     :else {:status 200 :body (json/generate-string {:results [["a"]]})}))]
     (let [bytes (bundle/build-bundle {:root "http://m/mine" :name "M"} "t" "L")
           zis (ZipInputStream. (ByteArrayInputStream. bytes))
           names (loop [acc []] (if-let [e (.getNextEntry zis)] (recur (conj acc (.getName e))) acc))]
       (is (= ["README.txt" "genes.tsv" "orthologs.tsv"] names)))))
+
+;; Models are reduced from the production JSON. Gene extends SequenceFeature,
+;; which carries the shared attributes, as in the MOD mines.
+(defn- attrs [& ks] (into {} (map (fn [k] [k {}])) ks))
+
+(defn- model [& {:keys [homologue disease phenotype]}]
+  (cond-> {:SequenceFeature {:attributes (attrs :primaryIdentifier :symbol :name)
+                             :references {:organism {:referencedType "Organism"}}}
+           :Organism {:attributes (attrs :shortName)}
+           :Gene {:extends ["SequenceFeature"]
+                  :collections {:homologues {:referencedType "Homologue"}}}
+           :Homologue {:attributes homologue
+                       :references {:homologue {:referencedType "Gene"}}}}
+    disease (assoc :DiseaseAnnotation
+                   {:attributes (attrs :qualifier)
+                    :references {:subject {:referencedType "Annotatable"}
+                                 :ontologyTerm {:referencedType "OntologyTerm"}}
+                    :collections {:evidence {:referencedType "OntologyEvidence"}}}
+                   :Annotatable {:attributes {}}
+                   :OntologyTerm {:attributes (attrs :identifier :name)}
+                   :OntologyEvidence {:references {:code {:referencedType "EvidenceCode"}}
+                                      :collections {:publications {:referencedType "Publication"}}}
+                   :EvidenceCode {:attributes (attrs :code)}
+                   :Publication {:attributes (attrs :pubMedId)})
+    phenotype (assoc :PhenotypeAnnotation phenotype)))
+
+(def all-homologue (attrs :type :algorithmsMatch :algorithmsAttempted :isBestScore :isBestReverseScore))
+
+(def alliance-model
+  (model :homologue all-homologue :disease true
+         :phenotype {:attributes (attrs :phenotypeStatement)
+                     :references {:subject {:referencedType "Annotatable"}
+                                  :ontologyTerm {:referencedType "OntologyTerm"}}}))
+(def worm-model (model :homologue (attrs :type)))
+;; FlyMine: PhenotypeAnnotation exists but has no subject or ontologyTerm.
+(def fly-model (model :homologue (attrs :type :isBestScore :algorithmsMatch :algorithmsAttempted :isBestReverseScore)
+                      :disease true
+                      :phenotype {:attributes (attrs :description)
+                                  :references {:anatomyTerm {:referencedType "OntologyTerm"}}}))
+
+(defn- spec-of [file] (second (first (filter #(= file (first %)) bundle/files))))
+
+(deftest path-resolution-through-references-and-inheritance
+  (is (bundle/path-resolves? alliance-model "Gene.symbol"))
+  (is (bundle/path-resolves? alliance-model "Gene.homologues.homologue.organism.shortName"))
+  (is (not (bundle/path-resolves? worm-model "Gene.homologues.isBestScore")))
+  (is (not (bundle/path-resolves? fly-model "PhenotypeAnnotation.subject.symbol")))
+  (testing "a retyped reference resolves only with the subclass"
+    (let [p "DiseaseAnnotation.subject.symbol"]
+      (is (not (bundle/path-resolves? alliance-model p)))
+      (is (bundle/path-resolves? alliance-model p [["DiseaseAnnotation.subject" "Gene"]]))))
+  (is (not (bundle/path-resolves? alliance-model "Nope.id")))
+  (is (not (bundle/path-resolves? alliance-model "Gene.symbol.x"))))
+
+(deftest adapt-spec-per-mine
+  (testing "AllianceMine keeps every file whole"
+    (doseq [[file spec] bundle/files]
+      (let [{:keys [dropped missing]} (bundle/adapt-spec alliance-model spec)]
+        (is (empty? dropped) file)
+        (is (empty? missing) file))))
+  (testing "WormMine: orthologs lose the algorithm columns, annotations are missing"
+    (let [ortho (bundle/adapt-spec worm-model (spec-of "orthologs.tsv"))]
+      (is (= ["Gene.homologues.algorithmsMatch" "Gene.homologues.algorithmsAttempted"
+              "Gene.homologues.isBestScore" "Gene.homologues.isBestReverseScore"]
+             (:dropped ortho)))
+      (is (not (some #{"Gene.homologues.isBestScore"} (get-in ortho [:spec :view])))))
+    (is (seq (:missing (bundle/adapt-spec worm-model (spec-of "disease_annotations.tsv")))))
+    (is (seq (:missing (bundle/adapt-spec worm-model (spec-of "phenotype_annotations.tsv"))))))
+  (testing "FlyMine: disease file stays, phenotype file is missing at path level"
+    (is (empty? (:missing (bundle/adapt-spec fly-model (spec-of "disease_annotations.tsv")))))
+    (is (some #{"PhenotypeAnnotation.subject.primaryIdentifier"}
+              (:missing (bundle/adapt-spec fly-model (spec-of "phenotype_annotations.tsv"))))))
+  (testing "an unreadable model changes nothing"
+    (is (= {:spec (spec-of "orthologs.tsv") :dropped []}
+           (bundle/adapt-spec nil (spec-of "orthologs.tsv"))))))
+
+(deftest dropped-columns-take-their-outer-joins
+  (let [no-evidence (update-in alliance-model [:DiseaseAnnotation :collections] dissoc :evidence)
+        {:keys [spec dropped]} (bundle/adapt-spec no-evidence (spec-of "disease_annotations.tsv"))]
+    (is (= 2 (count dropped)))
+    (is (empty? (:outer spec)))
+    (is (not (str/includes? (bundle/query-xml spec "L") "OUTER")))))
+
+(defn- bundle-names [classes]
+  (with-redefs [client/get
+                (fn [url opts]
+                  (cond
+                    (str/ends-with? url "/lists") {:status 200 :body (list-body {:name "L" :type "Gene" :size 1})}
+                    (str/includes? url "/version/") {:status 200 :body "x"}
+                    (str/ends-with? url "/model") {:status 200 :body (json/generate-string {:model {:classes classes}})}
+                    :else {:status 200 :body (json/generate-string {:results [["a"]]})}))]
+    (let [zis (ZipInputStream. (ByteArrayInputStream. (bundle/build-bundle {:root "http://m/mine" :name "M"} "t" "L")))]
+      (loop [acc []] (if-let [e (.getNextEntry zis)] (recur (conj acc (.getName e))) acc)))))
+
+(deftest bundle-files-per-mine-model
+  (is (= ["README.txt" "genes.tsv" "orthologs.tsv" "disease_annotations.tsv" "phenotype_annotations.tsv"]
+         (bundle-names alliance-model)))
+  (is (= ["README.txt" "genes.tsv" "orthologs.tsv"] (bundle-names worm-model)))
+  (is (= ["README.txt" "genes.tsv" "orthologs.tsv" "disease_annotations.tsv"] (bundle-names fly-model))))
+
+(deftest allowlist-accepts-all-configured-mine-roots
+  (let [env {:bluegenes-default-service-root "https://www.alliancegenome.org/alliancemine"
+             :bluegenes-default-mine-name "AllianceMine"
+             :bluegenes-default-namespace "alliancemine"
+             :bluegenes-additional-mines
+             [{:root "https://wormmine.alliancegenome.org/wormmine" :name "WormMine" :namespace "wormmine"}
+              {:root "https://flymine.alliancegenome.org/flymine" :name "FlyMine" :namespace "flymine"}
+              {:root "https://yeastmine.alliancegenome.org/yeastmine" :name "YeastMine" :namespace "yeastmine"}]}]
+    (doseq [[root nom] [["https://www.alliancegenome.org/alliancemine" "AllianceMine"]
+                        ["https://wormmine.alliancegenome.org/wormmine" "WormMine"]
+                        ["https://flymine.alliancegenome.org/flymine/" "FlyMine"]
+                        ["https://yeastmine.alliancegenome.org/yeastmine" "YeastMine"]]]
+      (is (= nom (:name (bundle/resolve-mine env root))) root))
+    (is (nil? (bundle/resolve-mine env "https://wormmine.alliancegenome.org/flymine")))))

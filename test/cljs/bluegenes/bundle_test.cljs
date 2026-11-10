@@ -25,11 +25,29 @@
   (is (bundle/too-large? 5001))
   (is (not (bundle/too-large? nil))))
 
+(def base-classes
+  {:SequenceFeature {:attributes {:primaryIdentifier {} :symbol {}}
+                     :references {:organism {:referencedType "Organism"}}}
+   :Organism {:attributes {:shortName {}}}
+   :Gene {:extends ["SequenceFeature"]
+          :collections {:homologues {:referencedType "Homologue"}}}
+   :Homologue {:references {:homologue {:referencedType "Gene"}}}})
+
 (deftest model-support
-  (is (bundle/supports-bundle? {:classes {:DiseaseAnnotation {} :PhenotypeAnnotation {} :Gene {}}}))
-  (is (not (bundle/supports-bundle? {:classes {:Gene {} :Disease {}}})))
-  (is (not (bundle/supports-bundle? {:classes {:DiseaseAnnotation {}}})))
-  (is (not (bundle/supports-bundle? nil))))
+  (testing "WormMine, FlyMine and YeastMine shaped models get the button"
+    (is (bundle/supports-bundle? {:classes base-classes}))
+    (is (bundle/supports-bundle? {:classes (assoc base-classes :PhenotypeAnnotation {})})
+        "an annotation class without the subject path changes nothing"))
+  (testing "no homologues or no Gene hides it"
+    (is (not (bundle/supports-bundle? {:classes (update base-classes :Gene dissoc :collections)})))
+    (is (not (bundle/supports-bundle? {:classes (dissoc base-classes :Gene)})))
+    (is (not (bundle/supports-bundle? nil)))))
+
+(deftest path-resolution
+  (is (bundle/path-resolves? base-classes "Gene.symbol") "inherited")
+  (is (bundle/path-resolves? base-classes "Gene.homologues.homologue.organism.shortName"))
+  (is (not (bundle/path-resolves? base-classes "Gene.homologues.isBestScore")))
+  (is (not (bundle/path-resolves? base-classes "Gene.symbol.x"))))
 
 (deftest error-messages
   (is (= "Unknown mine." (bundle/error-message 400 {:error "Unknown mine."})))

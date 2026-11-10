@@ -37,11 +37,39 @@
   [size]
   (and (number? size) (> size max-genes)))
 
+(defn- class-field [model-classes class-kw field]
+  (let [k (get model-classes class-kw)]
+    (or (some #(get (get k %) field) [:attributes :references :collections])
+        (some #(class-field model-classes (keyword %) field) (:extends k)))))
+
+(defn path-resolves?
+  "True when the dotted path resolves in the model classes, through references
+  and collections and including inherited fields."
+  [model-classes path]
+  (let [[root & fields] (str/split path #"\.")]
+    (and (contains? model-classes (keyword root))
+         (loop [cls (keyword root) [f & more] fields]
+           (let [field (class-field model-classes cls (keyword f))]
+             (cond (nil? field) false
+                   (empty? more) true
+                   (:referencedType field) (recur (keyword (:referencedType field)) more)
+                   :else false))))))
+
+(def required-paths
+  "Paths of genes.tsv and orthologs.tsv that the backend cannot do without.
+  The annotation files and the optional columns are gated by the backend
+  against the model of the mine, and the README names what was left out."
+  ["Gene.primaryIdentifier" "Gene.symbol" "Gene.organism.shortName"
+   "Gene.homologues.homologue.primaryIdentifier"
+   "Gene.homologues.homologue.symbol"
+   "Gene.homologues.homologue.organism.shortName"])
+
 (defn supports-bundle?
-  "The annotation files need DiseaseAnnotation and PhenotypeAnnotation, which
-  only the Alliance model has."
+  "True when the model has every path in `required-paths`. WormMine, FlyMine
+  and YeastMine pass: they get the gene and ortholog files, and the annotation
+  files only where their paths exist."
   [model]
-  (every? #(contains? (:classes model) %) [:DiseaseAnnotation :PhenotypeAnnotation]))
+  (every? #(path-resolves? (:classes model) %) required-paths))
 
 (defn error-message
   "Backend errors are JSON with an :error key; anything else gets a generic
@@ -110,7 +138,7 @@
 
 (defn download-button
   "Renders nothing unless the list is a Gene list and the current mine's
-  model has the annotation classes."
+  model has the paths of the gene and ortholog files."
   [{:keys [name size type]}]
   (when (and (= "Gene" type) (supports-bundle? @(subscribe [:current-model])))
     (let [{:keys [downloading? error]} @(subscribe [::state name])

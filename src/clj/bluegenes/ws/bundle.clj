@@ -71,9 +71,13 @@
        "</query>"))
 
 (def files
-  "File name -> query description. Column headers are the view paths."
+  "File name -> query description. Column headers are the view paths.
+  `:optional-view` lists columns left out when the mine's model lacks them.
+  Any other view path missing from the model drops the whole file when the
+  file is `:optional?` and fails the bundle otherwise."
   [["genes.tsv" {:view ["Gene.primaryIdentifier" "Gene.symbol" "Gene.name"
                         "Gene.organism.shortName"]
+                 :optional-view #{"Gene.name"}
                  :list-path "Gene"}]
    ["orthologs.tsv" {:view ["Gene.primaryIdentifier" "Gene.symbol"
                             "Gene.homologues.homologue.primaryIdentifier"
@@ -84,6 +88,11 @@
                             "Gene.homologues.algorithmsAttempted"
                             "Gene.homologues.isBestScore"
                             "Gene.homologues.isBestReverseScore"]
+                     :optional-view #{"Gene.homologues.type"
+                                      "Gene.homologues.algorithmsMatch"
+                                      "Gene.homologues.algorithmsAttempted"
+                                      "Gene.homologues.isBestScore"
+                                      "Gene.homologues.isBestReverseScore"}
                      :list-path "Gene"}]
    ["disease_annotations.tsv" {:view ["DiseaseAnnotation.subject.primaryIdentifier"
                                       "DiseaseAnnotation.subject.symbol"
@@ -92,6 +101,9 @@
                                       "DiseaseAnnotation.ontologyTerm.name"
                                       "DiseaseAnnotation.evidence.code.code"
                                       "DiseaseAnnotation.evidence.publications.pubMedId"]
+                               :optional-view #{"DiseaseAnnotation.qualifier"
+                                                "DiseaseAnnotation.evidence.code.code"
+                                                "DiseaseAnnotation.evidence.publications.pubMedId"}
                                :outer ["DiseaseAnnotation.evidence"
                                        "DiseaseAnnotation.evidence.publications"]
                                :subclass [["DiseaseAnnotation.subject" "Gene"]]
@@ -106,6 +118,52 @@
                                  :subclass [["PhenotypeAnnotation.subject" "Gene"]]
                                  :optional? true
                                  :list-path "PhenotypeAnnotation.subject"}]])
+
+;; Model gating. `classes` is the :classes map of the mine's model JSON with
+;; keyword keys. A class can be present while a path through it is not (FlyMine
+;; has PhenotypeAnnotation without PhenotypeAnnotation.subject), so every view
+;; path is walked through references and collections, with inherited fields.
+
+(defn- class-field [classes class-kw field]
+  (let [k (get classes class-kw)]
+    (or (some #(get (get k %) field) [:attributes :references :collections])
+        (some #(class-field classes (keyword %) field) (:extends k)))))
+
+(defn path-resolves?
+  "True when the dotted `path` resolves in `classes`. `subclass` is a seq of
+  [path type] pairs that retype a reference, as in the query's constraints."
+  ([classes path] (path-resolves? classes path nil))
+  ([classes path subclass]
+   (let [retype (into {} subclass)
+         [root & fields] (str/split path #"\.")]
+     (and (contains? classes (keyword root))
+          (loop [cls (keyword root) prefix root [f & more] fields]
+            (let [field (class-field classes cls (keyword f))
+                  here (str prefix "." f)]
+              (cond (nil? field) false
+                    (empty? more) true
+                    :else (if-let [t (or (get retype here) (:referencedType field))]
+                            (recur (keyword t) here more)
+                            false))))))))
+
+(defn adapt-spec
+  "Fits a file spec to the model. Returns {:spec s :dropped [paths]} with the
+  optional columns the model lacks removed, or {:missing [paths]} when a
+  required column is absent. A nil `classes` (model unavailable) changes
+  nothing."
+  [classes {:keys [view optional-view outer subclass] :as spec}]
+  (if (nil? classes)
+    {:spec spec :dropped []}
+    (let [missing (remove #(path-resolves? classes % subclass) view)
+          required-missing (remove #(contains? optional-view %) missing)
+          kept (vec (remove (set missing) view))]
+      (if (seq required-missing)
+        {:missing (vec required-missing)}
+        {:spec (assoc spec
+                      :view kept
+                      :outer (vec (filter (fn [o] (some #(str/starts-with? % (str o ".")) kept))
+                                          outer)))
+         :dropped (vec missing)}))))
 
 (defn tsv-cell
   "Tabs and line breaks would shift columns, so they become spaces."
@@ -196,13 +254,24 @@
        "Date: " date "\n\n"
        "Files\n-----\n"
        (apply str
-              (for [{:keys [file rows truncated? skipped? xml]} entries]
-                (if skipped?
+              (for [{:keys [file rows truncated? skipped? missing dropped xml]} entries]
+                (cond
+                  (seq missing)
+                  (str "\n" file " (not included: the mine's model lacks "
+                       (str/join ", " missing) ")\n")
+
+                  skipped?
                   (str "\n" file " (not included: the mine rejected the query, "
                        "its model probably lacks these classes)\nPathQuery XML:\n" xml "\n")
+
+                  :else
                   (str "\n" file " (" rows " rows"
                        (when truncated? (str ", cut at " max-rows " rows"))
-                       ")\nPathQuery XML:\n" xml "\n"))))))
+                       ")\n"
+                       (when (seq dropped)
+                         (str "Columns left out, not in the mine's model: "
+                              (str/join ", " dropped) "\n"))
+                       "PathQuery XML:\n" xml "\n"))))))
 
 (defn zip-bytes
   "`entries` is a seq of [file-name string]."
@@ -215,25 +284,41 @@
         (.closeEntry zip)))
     (.toByteArray out)))
 
+(defn fetch-model-classes
+  "The :classes map of the mine's model, or nil when it cannot be read, in
+  which case no gating happens and the 400 fallback of `fetch-file` applies."
+  [root token]
+  (try (-> (mine-get root token "/model" {"format" "json"})
+           (json/parse-string true) :model :classes not-empty)
+       (catch Exception _ nil)))
+
 (defn fetch-file
   "Rows for one file. An optional file whose query the mine rejects with 400
-  (its model lacks the classes) comes back as {:skipped? true}."
-  [root token [file spec] list-name]
-  (let [xml (query-xml spec list-name)
-        base {:file file :xml xml :header (:view spec)}]
-    (try
-      (merge base (fetch-rows root token xml))
-      (catch clojure.lang.ExceptionInfo e
-        (if (and (:optional? spec) (= 400 (:status (ex-data e))))
-          (assoc base :skipped? true :rows [])
-          (throw e))))))
+  (its model lacks the classes) comes back as {:skipped? true}. A file whose
+  required paths are not in the model comes back as {:missing [...]} without
+  a request. `classes` is the model's class map or nil."
+  [root token classes [file spec] list-name]
+  (let [{adapted :spec :keys [missing dropped]} (adapt-spec classes spec)]
+    (if (seq missing)
+      (if (:optional? spec)
+        {:file file :missing missing :rows []}
+        (throw (ex 400 (str "The mine's model lacks " (str/join ", " missing) "."))))
+      (let [xml (query-xml adapted list-name)
+            base {:file file :xml xml :header (:view adapted) :dropped dropped}]
+        (try
+          (merge base (fetch-rows root token xml))
+          (catch clojure.lang.ExceptionInfo e
+            (if (and (:optional? spec) (= 400 (:status (ex-data e))))
+              (assoc base :skipped? true :rows [])
+              (throw e))))))))
 
 (defn build-bundle
   "Returns the zip as a byte array for a configured `mine`."
   [mine token list-name]
   (let [root (normalise-root (:root mine))
         lst (fetch-list root token list-name)
-        results (doall (map #(fetch-file root token % list-name) files))
+        classes (fetch-model-classes root token)
+        results (doall (map #(fetch-file root token classes % list-name) files))
         readme (readme-text
                 {:mine-name (:name mine)
                  :root root
@@ -245,8 +330,8 @@
                  :entries (for [{:keys [rows] :as r} results]
                             (assoc r :rows (count rows)))})]
     (zip-bytes (cons ["README.txt" readme]
-                     (for [{:keys [file header rows skipped?]} results
-                           :when (not skipped?)]
+                     (for [{:keys [file header rows skipped? missing]} results
+                           :when (not (or skipped? (seq missing)))]
                        [file (rows->tsv header rows)])))))
 
 (defn bundle-handler
