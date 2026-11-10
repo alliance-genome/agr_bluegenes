@@ -2,7 +2,7 @@
   "Maps a mine gene identifier to the CURIE the Alliance of Genome Resources
   uses for the gene (HGNC:11998, MGI:104537, FB:FBgn0003731). AllianceMine
   stores CURIEs already. Other mines store bare identifiers (FBgn..., WBGene...,
-  S000...), which are prefixed by their shape, or by organism for bare numbers."
+  S000...), which are prefixed by their shape, or by organism (MGI, RGD) for bare numbers."
   (:require [clojure.string :as str]))
 
 (def ^:private species
@@ -20,7 +20,10 @@
    [#"S\d{9}" "SGD"]
    [#"ZDB-GENE-[\w-]+" "ZFIN"]])
 
-(def ^:private numeric-prefixes #{"HGNC" "MGI" "RGD"})
+(def ^:private numeric-prefixes
+  "Bare numbers are only prefixed for these. HGNC is excluded because HumanMine
+  primaryIdentifier is an Entrez id, which would map to a different HGNC gene."
+  #{"MGI" "RGD"})
 
 (defn species-prefix
   "CURIE prefix of the species given as a short name, full name or taxon id

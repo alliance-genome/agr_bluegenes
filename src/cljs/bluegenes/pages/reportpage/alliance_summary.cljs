@@ -98,7 +98,7 @@
                                    :where [{:path "Gene.id" :op "=" :value id}]}
                                   {:format "json"})
                 :on-success [::gene-success report-key]
-                :on-failure [::not-found report-key]}})))
+                :on-failure [::rows-failure report-key]}})))
 
 (reg-event-fx
  ::gene-success
@@ -112,6 +112,15 @@
                         :on-not-found [::not-found report-key]
                         :on-failure [::failure report-key]}}
          {:db (store db {:status :not-found})})))))
+
+(reg-event-fx
+ ::rows-failure
+ (fn [{db :db} [_ report-key res]]
+   (when (current-report? db report-key)
+     {:db (store db {:status :error
+                     :message (if-let [status (:status res)]
+                                (str "HTTP " status)
+                                "request failed")})})))
 
 (reg-event-fx
  ::success

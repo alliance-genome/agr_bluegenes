@@ -44,8 +44,10 @@
   (testing "bare numbers are prefixed by organism, as short name or taxon id"
     (is (= "RGD:2018" (to-alliance-curie "2018" "R. norvegicus")))
     (is (= "RGD:2018" (to-alliance-curie "2018" 10116)))
-    (is (= "HGNC:11998" (to-alliance-curie "11998" "9606")))
     (is (= "MGI:104537" (to-alliance-curie "104537" "Mus musculus"))))
+  (testing "bare numbers for human are not mapped (HumanMine uses Entrez ids)"
+    (is (nil? (to-alliance-curie "7157" "H. sapiens")))
+    (is (nil? (to-alliance-curie "11998" "9606"))))
   (testing "taxon ids"
     (is (= "SGD:S000001855" (to-alliance-curie "S000001855" "559292")))
     (is (= "ZFIN:ZDB-GENE-000616-13" (to-alliance-curie "ZDB-GENE-000616-13" "7955"))))
@@ -93,6 +95,15 @@
      (rf/dispatch [::as/success [:alliancetestmine "Gene" "2"] "HGNC:11998" tp53-response])
      (is (= :done (:status @(rf/subscribe [::as/block]))))
      (is (= "protein_coding_gene" (:gene-type @(rf/subscribe [::as/block])))))))
+
+(deftest rows-failure
+  (run-test-sync
+   (let [key [:alliancetestmine "Gene" "2"]]
+     (rf/dispatch [::seed-db {:report {:key key}}])
+     (rf/dispatch [::as/rows-failure key {:status 500}])
+     (is (= {:status :error :message "HTTP 500"} @(rf/subscribe [::as/block])))
+     (rf/dispatch [::as/rows-failure key {}])
+     (is (= {:status :error :message "request failed"} @(rf/subscribe [::as/block]))))))
 
 (deftest outcomes
   (run-test-sync
