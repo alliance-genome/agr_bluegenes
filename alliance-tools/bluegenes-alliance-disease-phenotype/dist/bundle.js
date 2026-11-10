@@ -7,6 +7,13 @@
 (function (root) {
 	'use strict';
 
+	// BlueGenes passes the mine root (for example https://host/mine); the web
+	// services live under /service. Accept either form.
+	function serviceRoot(root) {
+		var r = String(root || '').replace(/\/+$/, '');
+		return /\/service$/.test(r) ? r : r + '/service';
+	}
+
 	var COLLAPSE_AFTER = 25;
 	var MAX_ROWS = 20000;
 	var MAX_PUBS_SHOWN = 5;
@@ -447,12 +454,12 @@
 			showMessage(phenotypeBox, PHENOTYPE_KIND.title, PHENOTYPE_KIND.empty);
 			return;
 		}
-		loadSection(el, token, diseaseBox, DISEASE_KIND, service.root, ids);
-		loadSection(el, token, phenotypeBox, PHENOTYPE_KIND, service.root, ids);
+		loadSection(el, token, diseaseBox, DISEASE_KIND, serviceRoot(service.root), ids);
+		loadSection(el, token, phenotypeBox, PHENOTYPE_KIND, serviceRoot(service.root), ids);
 	}
 
 	var api = {
-		main: main,
+		main: main, serviceRoot: serviceRoot,
 		entityIds: entityIds,
 		buildDiseaseQuery: buildDiseaseQuery,
 		buildPhenotypeQuery: buildPhenotypeQuery,

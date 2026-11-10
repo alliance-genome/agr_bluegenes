@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-gene-link",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Links a Gene report page to the gene's page on alliancegenome.org.",
   "main": "dist/bundle.js",
   "scripts": {

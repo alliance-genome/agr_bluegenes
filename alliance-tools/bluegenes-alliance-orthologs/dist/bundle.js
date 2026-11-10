@@ -7,6 +7,13 @@
 (function (root) {
 	'use strict';
 
+	// BlueGenes passes the mine root (for example https://host/mine); the web
+	// services live under /service. Accept either form.
+	function serviceRoot(root) {
+		var r = String(root || '').replace(/\/+$/, '');
+		return /\/service$/.test(r) ? r : r + '/service';
+	}
+
 	var ALLIANCE_GENE_URL = 'https://www.alliancegenome.org/gene/';
 	var MAX_ROWS = 2000;
 	var VIEW = [
@@ -236,7 +243,7 @@
 			return;
 		}
 		message(el, 'Loading...');
-		fetchRows(service.root, list)
+		fetchRows(serviceRoot(service.root), list)
 			.then(function (rows) {
 				if (el.__agrOrthReq !== token) return;
 				render(el, rows, navigate, list.length > 1, rows.length >= MAX_ROWS);
@@ -248,7 +255,7 @@
 	}
 
 	var api = {
-		main: main,
+		main: main, serviceRoot: serviceRoot,
 		buildQuery: buildQuery,
 		resultsUrl: resultsUrl,
 		requestBody: requestBody,

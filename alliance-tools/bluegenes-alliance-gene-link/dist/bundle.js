@@ -7,6 +7,13 @@
 (function (root) {
 	'use strict';
 
+	// BlueGenes passes the mine root (for example https://host/mine); the web
+	// services live under /service. Accept either form.
+	function serviceRoot(root) {
+		var r = String(root || '').replace(/\/+$/, '');
+		return /\/service$/.test(r) ? r : r + '/service';
+	}
+
 	var ALLIANCE_GENE_URL = 'https://www.alliancegenome.org/gene/';
 
 	// Returns an Alliance CURIE for a primaryIdentifier, or null.
@@ -95,7 +102,7 @@
 			return;
 		}
 		show(el, 'Loading...');
-		fetchGene(service.root, id)
+		fetchGene(serviceRoot(service.root), id)
 			.then(function (row) {
 				if (el.__agrReq !== token) return;
 				var curie = row && toCurie(row.primaryIdentifier, row.organism);
@@ -111,7 +118,7 @@
 			});
 	}
 
-	var api = { main: main, toCurie: toCurie, geneUrl: geneUrl };
+	var api = { main: main, serviceRoot: serviceRoot, toCurie: toCurie, geneUrl: geneUrl };
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;
 	root.bluegenesAllianceGeneLink = api;
 })(typeof window !== 'undefined' ? window : globalThis);
