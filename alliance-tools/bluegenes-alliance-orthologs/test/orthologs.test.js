@@ -37,6 +37,8 @@ test('toCurie', () => {
 	assert.strictEqual(tool.toCurie('FBgn0039044', 'D. melanogaster'), 'FB:FBgn0039044');
 	assert.strictEqual(tool.toCurie('MGI:98834', 'M. musculus'), 'MGI:98834');
 	assert.strictEqual(tool.toCurie('x', 'H. sapiens'), null);
+	assert.strictEqual(tool.toCurie('2018', 'R. norvegicus'), null);
+	assert.strictEqual(tool.toCurie('WBGene00006759', 'C. briggsae'), null);
 });
 
 const fakeEl = () => document.createElement('div');

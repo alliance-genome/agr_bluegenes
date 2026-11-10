@@ -1,0 +1,2183 @@
+{
+ "model": {
+  "name": "genomic",
+  "classes": {
+   "Allele": {
+    "extends": [
+     "SequenceCollection",
+     "SequenceFeature"
+    ],
+    "references": {
+     "strain": {
+      "displayName": "Strain",
+      "name": "strain",
+      "reverseReference": "features",
+      "referencedType": "Strain"
+     },
+     "sequence": {
+      "displayName": "Sequence",
+      "name": "sequence",
+      "referencedType": "Sequence"
+     },
+     "centromere": {
+      "displayName": "Centromere",
+      "name": "centromere",
+      "reverseReference": "alleles",
+      "referencedType": "Centromere"
+     },
+     "sequenceOntologyTerm": {
+      "displayName": "Sequence Ontology Term",
+      "name": "sequenceOntologyTerm",
+      "referencedType": "SOTerm"
+     },
+     "organism": {
+      "displayName": "Organism",
+      "name": "organism",
+      "referencedType": "Organism"
+     },
+     "gene": {
+      "displayName": "Gene",
+      "name": "gene",
+      "reverseReference": "alleles",
+      "referencedType": "Gene"
+     },
+     "chromosomeLocation": {
+      "displayName": "Chromosome Location",
+      "name": "chromosomeLocation",
+      "referencedType": "Location"
+     },
+     "regulationSummary": {
+      "displayName": "Regulation Summary",
+      "name": "regulationSummary",
+      "referencedType": "RegulationSummary"
+     },
+     "publication": {
+      "displayName": "Publication",
+      "name": "publication",
+      "referencedType": "Publication"
+     },
+     "ori": {
+      "displayName": "Ori",
+      "name": "ori",
+      "reverseReference": "alleles",
+      "referencedType": "OriginOfReplication"
+     },
+     "chromosome": {
+      "displayName": "Chromosome",
+      "name": "chromosome",
+      "referencedType": "Chromosome"
+     }
+    },
+    "collections": {
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "reverseReference": "subject",
+      "referencedType": "Synonym"
+     },
+     "diseases": {
+      "displayName": "Diseases",
+      "name": "diseases",
+      "reverseReference": "alleles",
+      "referencedType": "Disease"
+     },
+     "variants": {
+      "displayName": "Variants",
+      "name": "variants",
+      "reverseReference": "allele",
+      "referencedType": "Variant"
+     },
+     "phenotypeAnnotations": {
+      "displayName": "Phenotype Annotations",
+      "name": "phenotypeAnnotations",
+      "reverseReference": "alleleSubject",
+      "referencedType": "PhenotypeAnnotation"
+     },
+     "interactions": {
+      "displayName": "Interactions",
+      "name": "interactions",
+      "reverseReference": "participant1",
+      "referencedType": "Interaction"
+     },
+     "transgenicAlleles": {
+      "displayName": "Transgenic Alleles",
+      "name": "transgenicAlleles",
+      "reverseReference": "parentAllele",
+      "referencedType": "TransgenicAllele"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "reverseReference": "bioEntities",
+      "referencedType": "DataSet"
+     },
+     "diseaseAnnotations": {
+      "displayName": "Disease Annotations",
+      "name": "diseaseAnnotations",
+      "reverseReference": "alleleSubject",
+      "referencedType": "DiseaseAnnotation"
+     },
+     "locations": {
+      "displayName": "Locations",
+      "name": "locations",
+      "reverseReference": "feature",
+      "referencedType": "Location"
+     },
+     "childFeatures": {
+      "displayName": "Child Features",
+      "name": "childFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "locatedFeatures": {
+      "displayName": "Located Features",
+      "name": "locatedFeatures",
+      "reverseReference": "locatedOn",
+      "referencedType": "Location"
+     },
+     "interactionsAsAllele1": {
+      "displayName": "Interactions As Allele 1",
+      "name": "interactionsAsAllele1",
+      "reverseReference": "allele1",
+      "referencedType": "AlleleInteraction"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "CrossReference"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "interactionsAsAllele2": {
+      "displayName": "Interactions As Allele 2",
+      "name": "interactionsAsAllele2",
+      "reverseReference": "allele2",
+      "referencedType": "AlleleInteraction"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     },
+     "overlappingFeatures": {
+      "displayName": "Overlapping Features",
+      "name": "overlappingFeatures",
+      "referencedType": "SequenceFeature"
+     }
+    },
+    "displayName": "Allele",
+    "name": "Allele",
+    "count": 759795,
+    "term": "http://purl.obolibrary.org/obo/SO:0001023",
+    "attributes": {
+     "symbol": {
+      "displayName": "Standard Name",
+      "name": "symbol",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "description": {
+      "displayName": "Description",
+      "name": "description",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "scoreType": {
+      "displayName": "Score Type",
+      "name": "scoreType",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "automatedDescription": {
+      "displayName": "Automated Description",
+      "name": "automatedDescription",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "alleleSymbol": {
+      "displayName": "Allele Symbol",
+      "name": "alleleSymbol",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "apiCategory": {
+      "displayName": "Api Category",
+      "name": "apiCategory",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "score": {
+      "displayName": "Score",
+      "name": "score",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.Double"
+     },
+     "sgdAlias": {
+      "displayName": "Sgd Alias",
+      "name": "sgdAlias",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "alleleId": {
+      "displayName": "Allele Id",
+      "name": "alleleId",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "featureType": {
+      "displayName": "Feature Type",
+      "name": "featureType",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "modDescription": {
+      "displayName": "Mod Description",
+      "name": "modDescription",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "functionSummary": {
+      "displayName": "Function Summary",
+      "name": "functionSummary",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "alleleSgdid": {
+      "displayName": "Allele Sgdid",
+      "name": "alleleSgdid",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "secondaryIdentifier": {
+      "displayName": "Systematic Name",
+      "name": "secondaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.Integer"
+     },
+     "aliasName": {
+      "displayName": "Alias Name",
+      "name": "aliasName",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "length": {
+      "displayName": "Length",
+      "name": "length",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.Integer"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary DBID",
+      "name": "primaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "alleleClass": {
+      "displayName": "Allele Class",
+      "name": "alleleClass",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "qualifier": {
+      "displayName": "Qualifier",
+      "name": "qualifier",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "featAttribute": {
+      "displayName": "Feat Attribute",
+      "name": "featAttribute",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "apiCrossReference": {
+      "displayName": "Api Cross Reference",
+      "name": "apiCrossReference",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "alterationType": {
+      "displayName": "Alteration Type",
+      "name": "alterationType",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "category": {
+      "displayName": "Category",
+      "name": "category",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "alleleType": {
+      "displayName": "Allele Type",
+      "name": "alleleType",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     },
+     "status": {
+      "displayName": "Status",
+      "name": "status",
+      "term": "http://purl.obolibrary.org/obo/SO:0001023",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "Annotatable": {
+    "extends": [],
+    "references": {},
+    "collections": {
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Annotatable",
+    "name": "Annotatable",
+    "count": 3526489,
+    "term": "",
+    "attributes": {
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "",
+      "type": "java.lang.Integer"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary Identifier",
+      "name": "primaryIdentifier",
+      "term": "",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "BioEntity": {
+    "extends": [
+     "Annotatable"
+    ],
+    "references": {
+     "organism": {
+      "displayName": "Organism",
+      "name": "organism",
+      "referencedType": "Organism"
+     }
+    },
+    "collections": {
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "reverseReference": "subject",
+      "referencedType": "Synonym"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "reverseReference": "bioEntities",
+      "referencedType": "DataSet"
+     },
+     "locations": {
+      "displayName": "Locations",
+      "name": "locations",
+      "reverseReference": "feature",
+      "referencedType": "Location"
+     },
+     "locatedFeatures": {
+      "displayName": "Located Features",
+      "name": "locatedFeatures",
+      "reverseReference": "locatedOn",
+      "referencedType": "Location"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "CrossReference"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "interactions": {
+      "displayName": "Interactions",
+      "name": "interactions",
+      "reverseReference": "participant1",
+      "referencedType": "Interaction"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Bio-Entity",
+    "name": "BioEntity",
+    "count": 3234377,
+    "term": "",
+    "attributes": {
+     "symbol": {
+      "displayName": "Standard Name",
+      "name": "symbol",
+      "term": "",
+      "type": "java.lang.String"
+     },
+     "sgdAlias": {
+      "displayName": "Sgd Alias",
+      "name": "sgdAlias",
+      "term": "",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "",
+      "type": "java.lang.String"
+     },
+     "secondaryIdentifier": {
+      "displayName": "Systematic Name",
+      "name": "secondaryIdentifier",
+      "term": "",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "",
+      "type": "java.lang.Integer"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary DBID",
+      "name": "primaryIdentifier",
+      "term": "",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "BiologicalRegion": {
+    "extends": [
+     "SequenceFeature"
+    ],
+    "references": {
+     "strain": {
+      "displayName": "Strain",
+      "name": "strain",
+      "reverseReference": "features",
+      "referencedType": "Strain"
+     },
+     "sequence": {
+      "displayName": "Sequence",
+      "name": "sequence",
+      "referencedType": "Sequence"
+     },
+     "sequenceOntologyTerm": {
+      "displayName": "Sequence Ontology Term",
+      "name": "sequenceOntologyTerm",
+      "referencedType": "SOTerm"
+     },
+     "organism": {
+      "displayName": "Organism",
+      "name": "organism",
+      "referencedType": "Organism"
+     },
+     "chromosomeLocation": {
+      "displayName": "Chromosome Location",
+      "name": "chromosomeLocation",
+      "referencedType": "Location"
+     },
+     "regulationSummary": {
+      "displayName": "Regulation Summary",
+      "name": "regulationSummary",
+      "referencedType": "RegulationSummary"
+     },
+     "chromosome": {
+      "displayName": "Chromosome",
+      "name": "chromosome",
+      "referencedType": "Chromosome"
+     }
+    },
+    "collections": {
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "reverseReference": "subject",
+      "referencedType": "Synonym"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "reverseReference": "bioEntities",
+      "referencedType": "DataSet"
+     },
+     "locations": {
+      "displayName": "Locations",
+      "name": "locations",
+      "reverseReference": "feature",
+      "referencedType": "Location"
+     },
+     "childFeatures": {
+      "displayName": "Child Features",
+      "name": "childFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "locatedFeatures": {
+      "displayName": "Located Features",
+      "name": "locatedFeatures",
+      "reverseReference": "locatedOn",
+      "referencedType": "Location"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "CrossReference"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "overlappingFeatures": {
+      "displayName": "Overlapping Features",
+      "name": "overlappingFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "interactions": {
+      "displayName": "Interactions",
+      "name": "interactions",
+      "reverseReference": "participant1",
+      "referencedType": "Interaction"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Biological Region",
+    "name": "BiologicalRegion",
+    "count": 656948,
+    "term": "http://purl.obolibrary.org/obo/SO:0001411",
+    "attributes": {
+     "symbol": {
+      "displayName": "Standard Name",
+      "name": "symbol",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "length": {
+      "displayName": "Length",
+      "name": "length",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.Integer"
+     },
+     "scoreType": {
+      "displayName": "Score Type",
+      "name": "scoreType",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "automatedDescription": {
+      "displayName": "Automated Description",
+      "name": "automatedDescription",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary DBID",
+      "name": "primaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "score": {
+      "displayName": "Score",
+      "name": "score",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.Double"
+     },
+     "sgdAlias": {
+      "displayName": "Sgd Alias",
+      "name": "sgdAlias",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "qualifier": {
+      "displayName": "Qualifier",
+      "name": "qualifier",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "featureType": {
+      "displayName": "Feature Type",
+      "name": "featureType",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "modDescription": {
+      "displayName": "Mod Description",
+      "name": "modDescription",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "functionSummary": {
+      "displayName": "Function Summary",
+      "name": "functionSummary",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "featAttribute": {
+      "displayName": "Feat Attribute",
+      "name": "featAttribute",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "secondaryIdentifier": {
+      "displayName": "Systematic Name",
+      "name": "secondaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.Integer"
+     },
+     "status": {
+      "displayName": "Status",
+      "name": "status",
+      "term": "http://purl.obolibrary.org/obo/SO:0001411",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "DiseaseAnnotation": {
+    "extends": [
+     "OntologyAnnotation"
+    ],
+    "references": {
+     "experimentalGene": {
+      "displayName": "Experimental Gene",
+      "name": "experimentalGene",
+      "reverseReference": "experimentalDiseaseAnnotations",
+      "referencedType": "Gene"
+     },
+     "subject": {
+      "displayName": "Subject",
+      "name": "subject",
+      "reverseReference": "ontologyAnnotations",
+      "referencedType": "Annotatable"
+     },
+     "alleleSubject": {
+      "displayName": "Allele Subject",
+      "name": "alleleSubject",
+      "reverseReference": "diseaseAnnotations",
+      "referencedType": "Allele"
+     },
+     "ontologyTerm": {
+      "displayName": "Ontology Term",
+      "name": "ontologyTerm",
+      "reverseReference": "ontologyAnnotations",
+      "referencedType": "OntologyTerm"
+     }
+    },
+    "collections": {
+     "slimTerms": {
+      "displayName": "Slim Terms",
+      "name": "slimTerms",
+      "referencedType": "DOTerm"
+     },
+     "evidence": {
+      "displayName": "Evidence",
+      "name": "evidence",
+      "referencedType": "OntologyEvidence"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "referencedType": "DataSet"
+     }
+    },
+    "displayName": "Disease Annotation",
+    "name": "DiseaseAnnotation",
+    "count": 836951,
+    "attributes": {
+     "viaOrthologyOrder": {
+      "displayName": "Via Orthology Order",
+      "name": "viaOrthologyOrder",
+      "type": "java.lang.Integer"
+     },
+     "evidenceType": {
+      "displayName": "Evidence Type",
+      "name": "evidenceType",
+      "type": "java.lang.String"
+     },
+     "qualifier": {
+      "displayName": "Qualifier",
+      "name": "qualifier",
+      "type": "java.lang.String"
+     },
+     "diseaseQualifiers": {
+      "displayName": "Disease Qualifiers",
+      "name": "diseaseQualifiers",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "type": "java.lang.Integer"
+     },
+     "uniqueId": {
+      "displayName": "Unique Id",
+      "name": "uniqueId",
+      "type": "java.lang.String"
+     },
+     "generatedRelationString": {
+      "displayName": "Generated Relation String",
+      "name": "generatedRelationString",
+      "type": "java.lang.String"
+     },
+     "parentSlimIds": {
+      "displayName": "Parent Slim Ids",
+      "name": "parentSlimIds",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "Gene": {
+    "extends": [
+     "BiologicalRegion"
+    ],
+    "references": {
+     "strain": {
+      "displayName": "Strain",
+      "name": "strain",
+      "reverseReference": "features",
+      "referencedType": "Strain"
+     },
+     "sequence": {
+      "displayName": "Sequence",
+      "name": "sequence",
+      "referencedType": "Sequence"
+     },
+     "sequenceOntologyTerm": {
+      "displayName": "Sequence Ontology Term",
+      "name": "sequenceOntologyTerm",
+      "referencedType": "SOTerm"
+     },
+     "organism": {
+      "displayName": "Organism",
+      "name": "organism",
+      "referencedType": "Organism"
+     },
+     "chromosomeLocation": {
+      "displayName": "Chromosome Location",
+      "name": "chromosomeLocation",
+      "referencedType": "Location"
+     },
+     "regulationSummary": {
+      "displayName": "Regulation Summary",
+      "name": "regulationSummary",
+      "referencedType": "RegulationSummary"
+     },
+     "chromosome": {
+      "displayName": "Chromosome",
+      "name": "chromosome",
+      "referencedType": "Chromosome"
+     },
+     "plasmid": {
+      "displayName": "Plasmid",
+      "name": "plasmid",
+      "reverseReference": "genes",
+      "referencedType": "Plasmid"
+     },
+     "plasmidLocation": {
+      "displayName": "Plasmid Location",
+      "name": "plasmidLocation",
+      "referencedType": "Location"
+     },
+     "downstreamIntergenicRegion": {
+      "displayName": "Downstream Intergenic Region",
+      "name": "downstreamIntergenicRegion",
+      "referencedType": "IntergenicRegion"
+     },
+     "upstreamIntergenicRegion": {
+      "displayName": "Upstream Intergenic Region",
+      "name": "upstreamIntergenicRegion",
+      "referencedType": "IntergenicRegion"
+     }
+    },
+    "collections": {
+     "diseaseAnnotation": {
+      "displayName": "Disease Annotation",
+      "name": "diseaseAnnotation",
+      "referencedType": "DiseaseAnnotation"
+     },
+     "regulatoryRegions": {
+      "displayName": "Regulatory Regions",
+      "name": "regulatoryRegions",
+      "reverseReference": "gene",
+      "referencedType": "RegulatoryRegion"
+     },
+     "homologues": {
+      "displayName": "Homologues",
+      "name": "homologues",
+      "reverseReference": "gene",
+      "referencedType": "Homologue"
+     },
+     "regulatedBindingSites": {
+      "displayName": "Regulated Binding Sites",
+      "name": "regulatedBindingSites",
+      "reverseReference": "regulator",
+      "referencedType": "BindingSite"
+     },
+     "introns": {
+      "displayName": "Introns",
+      "name": "introns",
+      "reverseReference": "genes",
+      "referencedType": "Intron"
+     },
+     "variants": {
+      "displayName": "Variants",
+      "name": "variants",
+      "reverseReference": "affectedGene",
+      "referencedType": "Variant"
+     },
+     "phenotypeAnnotations": {
+      "displayName": "Phenotype Annotations",
+      "name": "phenotypeAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "PhenotypeAnnotation"
+     },
+     "interactions": {
+      "displayName": "Interactions",
+      "name": "interactions",
+      "reverseReference": "participant1",
+      "referencedType": "Interaction"
+     },
+     "paralogues": {
+      "displayName": "Paralogues",
+      "name": "paralogues",
+      "reverseReference": "gene",
+      "referencedType": "Paralogue"
+     },
+     "proteins": {
+      "displayName": "Proteins",
+      "name": "proteins",
+      "reverseReference": "genes",
+      "referencedType": "Protein"
+     },
+     "complements": {
+      "displayName": "Complements",
+      "name": "complements",
+      "reverseReference": "gene",
+      "referencedType": "Complement"
+     },
+     "variantConsequences": {
+      "displayName": "Variant Consequences",
+      "name": "variantConsequences",
+      "reverseReference": "gene",
+      "referencedType": "VariantConsequence"
+     },
+     "diseaseModels": {
+      "displayName": "Disease Models",
+      "name": "diseaseModels",
+      "reverseReference": "gene",
+      "referencedType": "DiseaseModel"
+     },
+     "childFeatures": {
+      "displayName": "Child Features",
+      "name": "childFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "alleles": {
+      "displayName": "Alleles",
+      "name": "alleles",
+      "reverseReference": "gene",
+      "referencedType": "Allele"
+     },
+     "rnaiResults": {
+      "displayName": "RNAi Results",
+      "name": "rnaiResults",
+      "reverseReference": "genes",
+      "referencedType": "RNAi"
+     },
+     "transcripts": {
+      "displayName": "Transcripts",
+      "name": "transcripts",
+      "reverseReference": "gene",
+      "referencedType": "Transcript"
+     },
+     "exons": {
+      "displayName": "Exons",
+      "name": "exons",
+      "reverseReference": "gene",
+      "referencedType": "Exon"
+     },
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "reverseReference": "subject",
+      "referencedType": "Synonym"
+     },
+     "UTRs": {
+      "displayName": "UTRs",
+      "name": "UTRs",
+      "reverseReference": "gene",
+      "referencedType": "UTR"
+     },
+     "diseases": {
+      "displayName": "Diseases",
+      "name": "diseases",
+      "reverseReference": "genes",
+      "referencedType": "Disease"
+     },
+     "expressionAnnotations": {
+      "displayName": "Expression Annotations",
+      "name": "expressionAnnotations",
+      "referencedType": "ExpressionAnnotation"
+     },
+     "pathways": {
+      "displayName": "Pathways",
+      "name": "pathways",
+      "reverseReference": "genes",
+      "referencedType": "Pathway"
+     },
+     "flankingRegions": {
+      "displayName": "Flanking Regions",
+      "name": "flankingRegions",
+      "reverseReference": "gene",
+      "referencedType": "GeneFlankingRegion"
+     },
+     "publicationAnnotations": {
+      "displayName": "Publication Annotations",
+      "name": "publicationAnnotations",
+      "reverseReference": "genes",
+      "referencedType": "PublicationAnnotation"
+     },
+     "experimentalDiseaseAnnotations": {
+      "displayName": "Experimental Disease Annotations",
+      "name": "experimentalDiseaseAnnotations",
+      "reverseReference": "experimentalGene",
+      "referencedType": "DiseaseAnnotation"
+     },
+     "goAnnotation": {
+      "displayName": "GO Annotation",
+      "name": "goAnnotation",
+      "referencedType": "GOAnnotation"
+     },
+     "phenotypes": {
+      "displayName": "Phenotypes",
+      "name": "phenotypes",
+      "reverseReference": "genes",
+      "referencedType": "Phenotype"
+     },
+     "nonTranscribedRegions": {
+      "displayName": "Non Transcribed Regions",
+      "name": "nonTranscribedRegions",
+      "reverseReference": "gene",
+      "referencedType": "NonTranscribedRegion"
+     },
+     "interactionRegions": {
+      "displayName": "Interaction Regions",
+      "name": "interactionRegions",
+      "reverseReference": "gene",
+      "referencedType": "InteractionRegion"
+     },
+     "targetedByTransgenicAlleles": {
+      "displayName": "Targeted By Transgenic Alleles",
+      "name": "targetedByTransgenicAlleles",
+      "reverseReference": "targetGenes",
+      "referencedType": "TransgenicAllele"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "reverseReference": "bioEntities",
+      "referencedType": "DataSet"
+     },
+     "locations": {
+      "displayName": "Locations",
+      "name": "locations",
+      "reverseReference": "feature",
+      "referencedType": "Location"
+     },
+     "crisprScreenResults": {
+      "displayName": "Crispr Screen Results",
+      "name": "crisprScreenResults",
+      "reverseReference": "gene",
+      "referencedType": "CRISPRScreenResult"
+     },
+     "locatedFeatures": {
+      "displayName": "Located Features",
+      "name": "locatedFeatures",
+      "reverseReference": "locatedOn",
+      "referencedType": "Location"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "CrossReference"
+     },
+     "CDSs": {
+      "displayName": "CDSs",
+      "name": "CDSs",
+      "reverseReference": "gene",
+      "referencedType": "CDS"
+     },
+     "overlappingFeatures": {
+      "displayName": "Overlapping Features",
+      "name": "overlappingFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Gene",
+    "name": "Gene",
+    "count": 491019,
+    "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+    "attributes": {
+     "symbol": {
+      "displayName": "Standard Name",
+      "name": "symbol",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "autoDescription": {
+      "displayName": "Auto Description",
+      "name": "autoDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "description": {
+      "displayName": "Description",
+      "name": "description",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "scoreType": {
+      "displayName": "Score Type",
+      "name": "scoreType",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "expressionDescription": {
+      "displayName": "Expression Description",
+      "name": "expressionDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "automatedDescription": {
+      "displayName": "Automated Description",
+      "name": "automatedDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "dateProduced": {
+      "displayName": "Date Produced",
+      "name": "dateProduced",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.util.Date"
+     },
+     "goProcessDescription": {
+      "displayName": "Go Process Description",
+      "name": "goProcessDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "modCrossRefCompleteUrl": {
+      "displayName": "Mod Cross Ref Complete Url",
+      "name": "modCrossRefCompleteUrl",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "score": {
+      "displayName": "Score",
+      "name": "score",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.Double"
+     },
+     "sgdAlias": {
+      "displayName": "Sgd Alias",
+      "name": "sgdAlias",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "featureType": {
+      "displayName": "Feature Type",
+      "name": "featureType",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "modDescription": {
+      "displayName": "Mod Description",
+      "name": "modDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "functionSummary": {
+      "displayName": "Function Summary",
+      "name": "functionSummary",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "secondaryIdentifier": {
+      "displayName": "Systematic Name",
+      "name": "secondaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.Integer"
+     },
+     "doDescription": {
+      "displayName": "Do Description",
+      "name": "doDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "length": {
+      "displayName": "Length",
+      "name": "length",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.Integer"
+     },
+     "goDescription": {
+      "displayName": "Go Description",
+      "name": "goDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "geneSummary": {
+      "displayName": "Gene Summary",
+      "name": "geneSummary",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary DBID",
+      "name": "primaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "cytoLocation": {
+      "displayName": "Cytological Location",
+      "name": "cytoLocation",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "qualifier": {
+      "displayName": "Qualifier",
+      "name": "qualifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "phenotypeSummary": {
+      "displayName": "Phenotype Summary",
+      "name": "phenotypeSummary",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "featAttribute": {
+      "displayName": "Feat Attribute",
+      "name": "featAttribute",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "dataProvider": {
+      "displayName": "Data Provider",
+      "name": "dataProvider",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "goComponentDescription": {
+      "displayName": "Go Component Description",
+      "name": "goComponentDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "goFunctionDescription": {
+      "displayName": "Go Function Description",
+      "name": "goFunctionDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "briefDescription": {
+      "displayName": "Brief Description",
+      "name": "briefDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "orthologyDescription": {
+      "displayName": "Orthology Description",
+      "name": "orthologyDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     },
+     "status": {
+      "displayName": "Status",
+      "name": "status",
+      "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": [
+     "im:aspect:Gene Ontology",
+     "im:preferredBagType",
+     "im:aspect:Genomics"
+    ]
+   },
+   "Homologue": {
+    "extends": [],
+    "references": {
+     "gene": {
+      "displayName": "Gene",
+      "name": "gene",
+      "reverseReference": "homologues",
+      "referencedType": "Gene"
+     },
+     "publication": {
+      "displayName": "Publication",
+      "name": "publication",
+      "referencedType": "Publication"
+     },
+     "homologue": {
+      "displayName": "Homologue",
+      "name": "homologue",
+      "referencedType": "Gene"
+     }
+    },
+    "collections": {
+     "evidence": {
+      "displayName": "Evidence",
+      "name": "evidence",
+      "referencedType": "OrthologueEvidence"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "referencedType": "DataSet"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "referencedType": "CrossReference"
+     }
+    },
+    "displayName": "Homologue",
+    "name": "Homologue",
+    "count": 4914467,
+    "term": "http://purl.obolibrary.org/obo/SO:0000857",
+    "attributes": {
+     "predictionMethodsNotCalled": {
+      "displayName": "Prediction Methods Not Called",
+      "name": "predictionMethodsNotCalled",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     },
+     "isBestScore": {
+      "displayName": "Is Best Score",
+      "name": "isBestScore",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.Boolean"
+     },
+     "algorithms": {
+      "displayName": "Algorithms",
+      "name": "algorithms",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     },
+     "algorithmsMatch": {
+      "displayName": "Algorithms Match",
+      "name": "algorithmsMatch",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.Integer"
+     },
+     "isBestReverseScore": {
+      "displayName": "Is Best Reverse Score",
+      "name": "isBestReverseScore",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.Boolean"
+     },
+     "predictionMethodsMatched": {
+      "displayName": "Prediction Methods Matched",
+      "name": "predictionMethodsMatched",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     },
+     "algorithmsAttempted": {
+      "displayName": "Algorithms Attempted",
+      "name": "algorithmsAttempted",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.Integer"
+     },
+     "stringencyFilter": {
+      "displayName": "Stringency Filter",
+      "name": "stringencyFilter",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     },
+     "predictionMethodsNotMatched": {
+      "displayName": "Prediction Methods Not Matched",
+      "name": "predictionMethodsNotMatched",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     },
+     "source": {
+      "displayName": "Source",
+      "name": "source",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.Integer"
+     },
+     "type": {
+      "displayName": "Type",
+      "name": "type",
+      "term": "http://purl.obolibrary.org/obo/SO:0000857",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "OntologyAnnotation": {
+    "extends": [],
+    "references": {
+     "subject": {
+      "displayName": "Subject",
+      "name": "subject",
+      "reverseReference": "ontologyAnnotations",
+      "referencedType": "Annotatable"
+     },
+     "ontologyTerm": {
+      "displayName": "Ontology Term",
+      "name": "ontologyTerm",
+      "reverseReference": "ontologyAnnotations",
+      "referencedType": "OntologyTerm"
+     }
+    },
+    "collections": {
+     "evidence": {
+      "displayName": "Evidence",
+      "name": "evidence",
+      "referencedType": "OntologyEvidence"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "referencedType": "DataSet"
+     }
+    },
+    "displayName": "Ontology Annotation",
+    "name": "OntologyAnnotation",
+    "count": 3648431,
+    "term": "http://semanticscience.org/resource/SIO_001166,http://purl.obolibrary.org/obo/IAO_0000136",
+    "attributes": {
+     "qualifier": {
+      "displayName": "Qualifier",
+      "name": "qualifier",
+      "term": "http://semanticscience.org/resource/SIO_001166,http://purl.obolibrary.org/obo/IAO_0000136",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://semanticscience.org/resource/SIO_001166,http://purl.obolibrary.org/obo/IAO_0000136",
+      "type": "java.lang.Integer"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "OntologyEvidence": {
+    "extends": [],
+    "references": {
+     "code": {
+      "displayName": "Code",
+      "name": "code",
+      "referencedType": "OntologyAnnotationEvidenceCode"
+     }
+    },
+    "collections": {
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Ontology Evidence",
+    "name": "OntologyEvidence",
+    "count": 3581788,
+    "term": "http://purl.obolibrary.org/obo/ECO_0000000",
+    "attributes": {
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/ECO_0000000",
+      "type": "java.lang.Integer"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "OntologyTerm": {
+    "extends": [],
+    "references": {
+     "ontology": {
+      "displayName": "Ontology",
+      "name": "ontology",
+      "referencedType": "Ontology"
+     }
+    },
+    "collections": {
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "referencedType": "OntologyTermSynonym"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "referencedType": "DataSet"
+     },
+     "relations": {
+      "displayName": "Relations",
+      "name": "relations",
+      "referencedType": "OntologyRelation"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "referencedType": "OntologyTerm"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "ontologyTerm",
+      "referencedType": "OntologyAnnotation"
+     },
+     "parents": {
+      "displayName": "Parents",
+      "name": "parents",
+      "referencedType": "OntologyTerm"
+     }
+    },
+    "displayName": "Ontology Term",
+    "name": "OntologyTerm",
+    "count": 123092,
+    "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+    "attributes": {
+     "identifier": {
+      "displayName": "Identifier",
+      "name": "identifier",
+      "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+      "type": "java.lang.String"
+     },
+     "obsolete": {
+      "displayName": "Obsolete",
+      "name": "obsolete",
+      "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+      "type": "java.lang.Boolean"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+      "type": "java.lang.String"
+     },
+     "namespace": {
+      "displayName": "Namespace",
+      "name": "namespace",
+      "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+      "type": "java.lang.String"
+     },
+     "description": {
+      "displayName": "Description",
+      "name": "description",
+      "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+      "type": "java.lang.Integer"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "Organism": {
+    "extends": [],
+    "references": {},
+    "collections": {
+     "strains": {
+      "displayName": "Strains",
+      "name": "strains",
+      "referencedType": "Strain"
+     }
+    },
+    "displayName": "Organism",
+    "name": "Organism",
+    "count": 152,
+    "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+    "attributes": {
+     "commonName": {
+      "displayName": "Common Name",
+      "name": "commonName",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.String"
+     },
+     "species": {
+      "displayName": "Species",
+      "name": "species",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.String"
+     },
+     "genus": {
+      "displayName": "Genus",
+      "name": "genus",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.Integer"
+     },
+     "shortName": {
+      "displayName": "Short Name",
+      "name": "shortName",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.String"
+     },
+     "taxonId": {
+      "displayName": "Taxon Id",
+      "name": "taxonId",
+      "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "PhenotypeAnnotation": {
+    "extends": [],
+    "references": {
+     "subject": {
+      "displayName": "Subject",
+      "name": "subject",
+      "reverseReference": "phenotypeAnnotations",
+      "referencedType": "Gene"
+     },
+     "alleleSubject": {
+      "displayName": "Allele Subject",
+      "name": "alleleSubject",
+      "reverseReference": "phenotypeAnnotations",
+      "referencedType": "Allele"
+     },
+     "sample": {
+      "displayName": "Sample",
+      "name": "sample",
+      "referencedType": "Sample"
+     },
+     "ontologyTerm": {
+      "displayName": "Ontology Term",
+      "name": "ontologyTerm",
+      "referencedType": "OntologyTerm"
+     }
+    },
+    "collections": {
+     "treatments": {
+      "displayName": "Treatments",
+      "name": "treatments",
+      "referencedType": "Treatment"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Phenotype Annotation",
+    "name": "PhenotypeAnnotation",
+    "count": 1655736,
+    "attributes": {
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "type": "java.lang.Integer"
+     },
+     "category": {
+      "displayName": "Category",
+      "name": "category",
+      "type": "java.lang.String"
+     },
+     "phenotypeStatement": {
+      "displayName": "Phenotype Statement",
+      "name": "phenotypeStatement",
+      "type": "java.lang.String"
+     },
+     "uniqueId": {
+      "displayName": "Unique Id",
+      "name": "uniqueId",
+      "type": "java.lang.String"
+     },
+     "relation": {
+      "displayName": "Relation",
+      "name": "relation",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "Publication": {
+    "extends": [],
+    "references": {},
+    "collections": {
+     "phenotypes": {
+      "displayName": "Phenotypes",
+      "name": "phenotypes",
+      "reverseReference": "publications",
+      "referencedType": "Phenotype"
+     },
+     "entities": {
+      "displayName": "Entities",
+      "name": "entities",
+      "reverseReference": "publications",
+      "referencedType": "Annotatable"
+     },
+     "meshTerms": {
+      "displayName": "Mesh Terms",
+      "name": "meshTerms",
+      "reverseReference": "publications",
+      "referencedType": "MeshTerm"
+     },
+     "literatureTopics": {
+      "displayName": "Literature Topics",
+      "name": "literatureTopics",
+      "referencedType": "LiteratureTopic"
+     },
+     "pathways": {
+      "displayName": "Pathways",
+      "name": "pathways",
+      "reverseReference": "publications",
+      "referencedType": "Pathway"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "DatabaseReference"
+     },
+     "authors": {
+      "displayName": "Authors",
+      "name": "authors",
+      "reverseReference": "publications",
+      "referencedType": "Author"
+     }
+    },
+    "displayName": "Publication",
+    "name": "Publication",
+    "count": 2453539,
+    "term": "http://purl.org/ontology/bibo/Article",
+    "attributes": {
+     "summary": {
+      "displayName": "Summary",
+      "name": "summary",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "issue": {
+      "displayName": "Issue",
+      "name": "issue",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "year": {
+      "displayName": "Year",
+      "name": "year",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.Integer"
+     },
+     "citation": {
+      "displayName": "Citation",
+      "name": "citation",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "title": {
+      "displayName": "Title",
+      "name": "title",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "pubXrefId": {
+      "displayName": "Pub Xref Id",
+      "name": "pubXrefId",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "pubMedId": {
+      "displayName": "PubMed ID",
+      "name": "pubMedId",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "volume": {
+      "displayName": "Volume",
+      "name": "volume",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "journal": {
+      "displayName": "Journal",
+      "name": "journal",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "dateCreated": {
+      "displayName": "Date Created",
+      "name": "dateCreated",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.util.Date"
+     },
+     "pages": {
+      "displayName": "Pages",
+      "name": "pages",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "month": {
+      "displayName": "Month",
+      "name": "month",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "abstractText": {
+      "displayName": "Abstract Text",
+      "name": "abstractText",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.Integer"
+     },
+     "doi": {
+      "displayName": "Doi",
+      "name": "doi",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     },
+     "firstAuthor": {
+      "displayName": "First Author",
+      "name": "firstAuthor",
+      "term": "http://purl.org/ontology/bibo/Article",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "SequenceCollection": {
+    "extends": [
+     "BioEntity"
+    ],
+    "references": {
+     "sequenceOntologyTerm": {
+      "displayName": "Sequence Ontology Term",
+      "name": "sequenceOntologyTerm",
+      "referencedType": "SOTerm"
+     },
+     "organism": {
+      "displayName": "Organism",
+      "name": "organism",
+      "referencedType": "Organism"
+     }
+    },
+    "collections": {
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "reverseReference": "subject",
+      "referencedType": "Synonym"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "reverseReference": "bioEntities",
+      "referencedType": "DataSet"
+     },
+     "locations": {
+      "displayName": "Locations",
+      "name": "locations",
+      "reverseReference": "feature",
+      "referencedType": "Location"
+     },
+     "locatedFeatures": {
+      "displayName": "Located Features",
+      "name": "locatedFeatures",
+      "reverseReference": "locatedOn",
+      "referencedType": "Location"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "CrossReference"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "interactions": {
+      "displayName": "Interactions",
+      "name": "interactions",
+      "reverseReference": "participant1",
+      "referencedType": "Interaction"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Sequence Collection",
+    "name": "SequenceCollection",
+    "count": 887889,
+    "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+    "attributes": {
+     "symbol": {
+      "displayName": "Standard Name",
+      "name": "symbol",
+      "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+      "type": "java.lang.String"
+     },
+     "sgdAlias": {
+      "displayName": "Sgd Alias",
+      "name": "sgdAlias",
+      "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+      "type": "java.lang.String"
+     },
+     "secondaryIdentifier": {
+      "displayName": "Systematic Name",
+      "name": "secondaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+      "type": "java.lang.Integer"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary DBID",
+      "name": "primaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0001260,http://purl.obolibrary.org/obo/SO:0001260",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   },
+   "SequenceFeature": {
+    "extends": [
+     "BioEntity"
+    ],
+    "references": {
+     "strain": {
+      "displayName": "Strain",
+      "name": "strain",
+      "reverseReference": "features",
+      "referencedType": "Strain"
+     },
+     "sequence": {
+      "displayName": "Sequence",
+      "name": "sequence",
+      "referencedType": "Sequence"
+     },
+     "sequenceOntologyTerm": {
+      "displayName": "Sequence Ontology Term",
+      "name": "sequenceOntologyTerm",
+      "referencedType": "SOTerm"
+     },
+     "organism": {
+      "displayName": "Organism",
+      "name": "organism",
+      "referencedType": "Organism"
+     },
+     "chromosomeLocation": {
+      "displayName": "Chromosome Location",
+      "name": "chromosomeLocation",
+      "referencedType": "Location"
+     },
+     "regulationSummary": {
+      "displayName": "Regulation Summary",
+      "name": "regulationSummary",
+      "referencedType": "RegulationSummary"
+     },
+     "chromosome": {
+      "displayName": "Chromosome",
+      "name": "chromosome",
+      "referencedType": "Chromosome"
+     }
+    },
+    "collections": {
+     "synonyms": {
+      "displayName": "Synonyms",
+      "name": "synonyms",
+      "reverseReference": "subject",
+      "referencedType": "Synonym"
+     },
+     "dataSets": {
+      "displayName": "Data Sets",
+      "name": "dataSets",
+      "reverseReference": "bioEntities",
+      "referencedType": "DataSet"
+     },
+     "locations": {
+      "displayName": "Locations",
+      "name": "locations",
+      "reverseReference": "feature",
+      "referencedType": "Location"
+     },
+     "childFeatures": {
+      "displayName": "Child Features",
+      "name": "childFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "locatedFeatures": {
+      "displayName": "Located Features",
+      "name": "locatedFeatures",
+      "reverseReference": "locatedOn",
+      "referencedType": "Location"
+     },
+     "crossReferences": {
+      "displayName": "Cross References",
+      "name": "crossReferences",
+      "reverseReference": "subject",
+      "referencedType": "CrossReference"
+     },
+     "ontologyAnnotations": {
+      "displayName": "Ontology Annotations",
+      "name": "ontologyAnnotations",
+      "reverseReference": "subject",
+      "referencedType": "OntologyAnnotation"
+     },
+     "overlappingFeatures": {
+      "displayName": "Overlapping Features",
+      "name": "overlappingFeatures",
+      "referencedType": "SequenceFeature"
+     },
+     "interactions": {
+      "displayName": "Interactions",
+      "name": "interactions",
+      "reverseReference": "participant1",
+      "referencedType": "Interaction"
+     },
+     "publications": {
+      "displayName": "Publications",
+      "name": "publications",
+      "reverseReference": "entities",
+      "referencedType": "Publication"
+     }
+    },
+    "displayName": "Sequence Feature",
+    "name": "SequenceFeature",
+    "count": 1686838,
+    "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+    "attributes": {
+     "symbol": {
+      "displayName": "Standard Name",
+      "name": "symbol",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "length": {
+      "displayName": "Length",
+      "name": "length",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.Integer"
+     },
+     "scoreType": {
+      "displayName": "Score Type",
+      "name": "scoreType",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "automatedDescription": {
+      "displayName": "Automated Description",
+      "name": "automatedDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "primaryIdentifier": {
+      "displayName": "Primary DBID",
+      "name": "primaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "score": {
+      "displayName": "Score",
+      "name": "score",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.Double"
+     },
+     "sgdAlias": {
+      "displayName": "Sgd Alias",
+      "name": "sgdAlias",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "qualifier": {
+      "displayName": "Qualifier",
+      "name": "qualifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "featureType": {
+      "displayName": "Feature Type",
+      "name": "featureType",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "modDescription": {
+      "displayName": "Mod Description",
+      "name": "modDescription",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "functionSummary": {
+      "displayName": "Function Summary",
+      "name": "functionSummary",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "name": {
+      "displayName": "Name",
+      "name": "name",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "featAttribute": {
+      "displayName": "Feat Attribute",
+      "name": "featAttribute",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "secondaryIdentifier": {
+      "displayName": "Systematic Name",
+      "name": "secondaryIdentifier",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     },
+     "id": {
+      "displayName": "Id",
+      "name": "id",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.Integer"
+     },
+     "status": {
+      "displayName": "Status",
+      "name": "status",
+      "term": "http://purl.obolibrary.org/obo/SO_0000110,http://purl.obolibrary.org/obo/SO:0000110",
+      "type": "java.lang.String"
+     }
+    },
+    "isInterface": true,
+    "tags": []
+   }
+  }
+ }
+}

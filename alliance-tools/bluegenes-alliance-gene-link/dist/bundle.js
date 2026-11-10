@@ -16,22 +16,33 @@
 
 	var ALLIANCE_GENE_URL = 'https://www.alliancegenome.org/gene/';
 
-	// Returns an Alliance CURIE for a primaryIdentifier, or null.
+	// Alliance CURIE prefixes. AllianceMine stores these in primaryIdentifier, and
+	// WormMine and FlyMine keep them for genes of other species (HGNC:, MGI:, RGD:, ZFIN:, FB:).
+	var CURIE_PREFIX = /^(HGNC|MGI|RGD|ZFIN|FB|WB|SGD|Xenbase):\S+$/;
+
+	// WormMine, FlyMine and YeastMine store bare identifiers for their own species,
+	// so a bare id maps to a CURIE only when the organism is that species. Other
+	// bare ids are not Alliance ids: WormMine and FlyMine hold numeric NCBI ids for
+	// zebrafish and other Drosophila species, and YeastMine holds locus tags for
+	// other fungi. A numeric id is never mapped.
+	var BARE_ID = [
+		{ re: /^FBgn\d+$/, prefix: 'FB:', species: /^(D\.|Drosophila)\s*melanogaster/i },
+		{ re: /^WBGene\d+$/, prefix: 'WB:', species: /^(C\.|Caenorhabditis)\s*elegans/i },
+		{ re: /^S000\d+$/, prefix: 'SGD:', species: /^(S\.|Saccharomyces)\s*cerevisiae/i },
+		{ re: /^ZDB-GENE-/, prefix: 'ZFIN:', species: /^(D\.|Danio)\s*rerio/i }
+	];
+
+	// Returns an Alliance CURIE for a primaryIdentifier, or null. Without an
+	// organism name the identifier shape alone decides.
 	function toCurie(primaryIdentifier, organismShortName) {
 		if (typeof primaryIdentifier !== 'string') return null;
 		var id = primaryIdentifier.trim();
 		if (!id) return null;
-		if (id.indexOf(':') !== -1) return id;
-		if (/^FBgn\d+$/.test(id)) return 'FB:' + id;
-		if (/^WBGene\d+$/.test(id)) return 'WB:' + id;
-		if (/^S000\d+$/.test(id)) return 'SGD:' + id;
-		if (/^ZDB-GENE-/.test(id)) return 'ZFIN:' + id;
-		if (
-			/^\d+$/.test(id) &&
-			typeof organismShortName === 'string' &&
-			/^(R\.|Rattus)\s*norvegicus/i.test(organismShortName.trim())
-		) {
-			return 'RGD:' + id;
+		if (id.indexOf(':') !== -1) return CURIE_PREFIX.test(id) ? id : null;
+		var known = typeof organismShortName === 'string';
+		for (var i = 0; i < BARE_ID.length; i++) {
+			var b = BARE_ID[i];
+			if (b.re.test(id)) return !known || b.species.test(organismShortName.trim()) ? b.prefix + id : null;
 		}
 		return null;
 	}

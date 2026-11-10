@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-species-matrix",
+  "version": "0.1.1",
+  "description": "Grid of phenotype and direct disease annotation counts for list genes and their orthologs, per Alliance species.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
