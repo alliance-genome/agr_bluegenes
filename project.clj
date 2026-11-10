@@ -61,6 +61,8 @@
                  [ring "1.15.6"]
                  ; compojure pulls an older ring-core, so pin it to match ring.
                  [ring/ring-core "1.15.6"]
+                 ; clj-http pulls commons-io 2.16.1; ring-core's fileupload2 needs 2.21.0.
+                 [commons-io "2.21.0"]
                  [ring/ring-defaults "0.7.1"]
                  [cheshire "6.2.1"]
                  ; reitit and muuntaja pull Jackson 2.12, which breaks cheshire 6
