@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-orthologs",
+  "version": "0.1.0",
+  "description": "Table of a gene's orthologs across Alliance species, for Gene report pages and list pages.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
