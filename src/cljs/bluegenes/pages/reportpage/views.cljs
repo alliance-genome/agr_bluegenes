@@ -11,6 +11,7 @@
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
             [bluegenes.pages.reportpage.other-mines :as other-mines]
+            [bluegenes.components.cart :as cart]
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
@@ -166,8 +167,8 @@
     [mini-loader "tiny"]))
 
 (defn other-mines-panel []
-  (let [{:keys [loading? rows unavailable]} @(subscribe [::other-mines/panel])]
-    (when (or loading? (seq rows) (seq unavailable))
+  (let [{:keys [loading? rows unavailable skipped orthologs-reason]} @(subscribe [::other-mines/panel])]
+    (when (or loading? (seq rows) (seq unavailable) (seq skipped) orthologs-reason)
       [section
        {:title "In other Alliance mines"
         :id "other-alliance-mines"}
@@ -192,7 +193,13 @@
                      [:span mine-name " " [other-mines-status row]])]])]])
        (when (seq unavailable)
          [:p.text-muted.other-alliance-mines-unavailable
-          "Unavailable: " (str/join ", " unavailable)])])))
+          "Unavailable: " (str/join ", " unavailable)])
+       (when (seq skipped)
+         [:p.text-muted.other-alliance-mines-skipped
+          "Skipped. " (str/join ". " (map :reason skipped)) "."])
+       (when orthologs-reason
+         [:p.text-muted.other-alliance-mines-orthologs
+          "Orthologs not listed. " orthologs-reason "."])])))
 
 (defn summary-location [[label value]]
   [:<>
@@ -341,7 +348,8 @@
         title @(subscribe [::subs/report-title])]
     [:h1.report-page-heading
      title
-     [:code.start {:class (str "start-" rootClass)} rootClass]]))
+     [:code.start {:class (str "start-" rootClass)} rootClass]
+     [cart/add-button]]))
 
 (defn invalid-object []
   (let [{error-type :type ?message :message} @(subscribe [::subs/report-error])]

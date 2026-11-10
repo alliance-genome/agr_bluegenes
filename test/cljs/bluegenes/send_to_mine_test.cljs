@@ -14,30 +14,39 @@
 
 (deftest identifier-candidates
   (testing "prefixed identifier is tried as is and without prefix"
-    (is (= ["MGI:104537" "104537"] (stm/id-candidates "MGI:104537")))
     (is (= ["ZFIN:ZDB-GENE-000616-13" "ZDB-GENE-000616-13"]
-           (stm/id-candidates "ZFIN:ZDB-GENE-000616-13"))))
+           (stm/id-candidates "ZFIN:ZDB-GENE-000616-13")))
+    (is (= ["WB:WBGene00006759" "WBGene00006759"]
+           (stm/id-candidates "WB:WBGene00006759"))))
+  (testing "a bare MOD identifier also gets its CURIE, for AllianceMine"
+    (is (= ["WBGene00006759" "WB:WBGene00006759"] (stm/id-candidates "WBGene00006759")))
+    (is (= ["FBgn0003996" "FB:FBgn0003996"] (stm/id-candidates "FBgn0003996")))
+    (is (= ["S000001855" "SGD:S000001855"] (stm/id-candidates "S000001855"))))
+  (testing "a number is never stripped: the MOD mines keep HGNC:, MGI: and RGD: prefixes"
+    (is (= ["MGI:104537"] (stm/id-candidates "MGI:104537")))
+    (is (= ["HGNC:11998"] (stm/id-candidates "HGNC:11998"))))
   (testing "only the first colon splits"
     (is (= ["A:B:C" "B:C"] (stm/id-candidates "A:B:C"))))
-  (testing "no prefix, or nothing after the colon"
-    (is (= ["FBgn0003731"] (stm/id-candidates "FBgn0003731")))
+  (testing "locus tags, bare numbers, nothing after the colon"
+    (is (= ["CAGL0K12694g"] (stm/id-candidates "CAGL0K12694g")))
+    (is (= ["113563677"] (stm/id-candidates "113563677")))
     (is (= ["MGI:"] (stm/id-candidates "MGI:"))))
   (testing "candidates of several identifiers are distinct"
-    (is (= ["MGI:1" "1" "WB:1"]
-           (stm/all-candidates ["MGI:1" "WB:1"])))))
+    (is (= ["WB:WBGene1" "WBGene1" "MGI:1"]
+           (stm/all-candidates ["WB:WBGene1" "MGI:1" "WBGene1"])))))
 
 (def response
   {:matches {:MATCH [{:input ["MGI:104537"] :id 11}
-                     {:input ["109257"] :id 12}]
+                     {:input ["ZDB-GENE-1"] :id 12}]
              :OTHER [{:input ["old"] :id 13}]
              :DUPLICATE [{:input ["dup"] :matches [{:id 14} {:id 15}]}]
              :WILDCARD []
              :TYPE_CONVERTED []}
-   :unresolved ["nonexist" "dup" "MGI:109257"]})
+   :unresolved ["nonexist" "dup" "ZFIN:ZDB-GENE-1"]})
 
 (deftest classification
   (let [result (stm/classify-resolution
-                ["MGI:104537" "MGI:109257" "old" "dup" "nonexist"]
+                ["MGI:104537" "ZFIN:ZDB-GENE-1" "old" "dup" "nonexist"]
                 response)]
     (testing "a candidate without prefix counts as resolved"
       (is (= 3 (:resolved result))))
@@ -51,14 +60,24 @@
            (stm/classify-resolution [] nil)))))
 
 (deftest classification-prefers-as-is-candidate
-  (let [resp {:matches {:MATCH [{:input ["HGNC:3236"] :id 1}
-                                {:input ["3236"] :id 2}
-                                {:input ["77"] :id 3}]}}
-        result (stm/classify-resolution ["HGNC:3236" "HGNC:77"] resp)]
+  (let [resp {:matches {:MATCH [{:input ["ZFIN:ZDB-GENE-1"] :id 1}
+                                {:input ["ZDB-GENE-1"] :id 2}
+                                {:input ["ZDB-GENE-2"] :id 3}]}}
+        result (stm/classify-resolution ["ZFIN:ZDB-GENE-1" "ZFIN:ZDB-GENE-2"] resp)]
     (testing "stripped candidate is ignored when the as-is one matched"
       (is (= [1 3] (:object-ids result))))
     (is (= 2 (:resolved result)))
     (is (= [] (:multi-mapped result))))
+  (testing "a numeric remainder is not tried, so it cannot hit an unrelated gene"
+    (let [resp {:matches {:MATCH [{:input ["11998"] :id 9}]}}
+          result (stm/classify-resolution ["HGNC:11998"] resp)]
+      (is (= [] (:object-ids result)))
+      (is (= ["HGNC:11998"] (:unresolved result)))))
+  (testing "a bare WormMine identifier resolves in AllianceMine through its CURIE"
+    (let [resp {:matches {:MATCH [{:input ["WB:WBGene00006759"] :id 5}]}}
+          result (stm/classify-resolution ["WBGene00006759"] resp)]
+      (is (= [5] (:object-ids result)))
+      (is (= 1 (:resolved result)))))
   (testing "one identifier hitting two genes is reported"
     (let [resp {:matches {:MATCH [{:input ["X:1"] :id 1}]
                           :OTHER [{:input ["X:1"] :id 2}]}}
@@ -145,7 +164,8 @@
   (run-test-async
    (utils/stub-local-storage)
    (let [calls (atom [])
-         orig-rows fetch/rows]
+         orig-rows fetch/rows
+         orig-model fetch/model]
      (rf/dispatch-sync [:save-login :mouse {:token "mouse-token"}])
      (rf/dispatch-sync [::seed (assoc seeded-db :results
                                       {:send-to-mine {:open? true :list-source "L" :run 0}})])
@@ -154,6 +174,8 @@
                         ((stub-fetch-fn {:results [{:item "M. musculus" :count 2}
                                                    {:item "D. rerio" :count 1}]}))))
      (swap! utils/stubbed-variables conj #(set! fetch/rows orig-rows))
+     (set! fetch/model (stub-fetch-fn {:classes {}}))
+     (swap! utils/stubbed-variables conj #(set! fetch/model orig-model))
      (rf/dispatch [::stm/select-mine "mouse"])
      (wait-for [::stm/organisms-success]
        (let [state @(rf/subscribe [::state])]
@@ -168,6 +190,9 @@
 (deftest select-mine-without-login
   (run-test-sync
    (utils/stub-local-storage)
+   (let [orig-model fetch/model]
+     (set! fetch/model (stub-fetch-fn {:classes {}}))
+     (swap! utils/stubbed-variables conj #(set! fetch/model orig-model)))
    (rf/dispatch [::seed (assoc seeded-db :results
                                {:send-to-mine {:open? true :list-source "L" :run 0}})])
    (with-redefs [fetch/rows (stub-fetch-fn {:results []})]
@@ -294,3 +319,64 @@
      (is (> run 1))
      (rf/dispatch [::stm/select-mine ""])
      (is (> (:run @(rf/subscribe [::state])) run)))))
+
+;;; Model gates ;;;
+
+(def gene-model
+  "Model with what both modes read in the current mine."
+  {:Gene {:attributes {:id {} :primaryIdentifier {}}
+          :references {:organism {:referencedType "Organism"}}
+          :collections {:homologues {:referencedType "Homologue"}}}
+   :Organism {:attributes {:shortName {}}}
+   :Homologue {:references {:homologue {:referencedType "Gene"}}}})
+
+(def no-homologues-model
+  (update gene-model :Gene dissoc :collections))
+
+(deftest source-gate
+  (testing "same genes only needs Gene.primaryIdentifier"
+    (is (nil? (stm/source-blocked-reason no-homologues-model "WormMine" :same))))
+  (testing "orthologs need the homologue's identifier and organism"
+    (is (nil? (stm/source-blocked-reason gene-model "AllianceMine" :orthologs)))
+    (is (= "ToyMine has no Gene.homologues.homologue.primaryIdentifier, Gene.homologues.homologue.organism.shortName"
+           (stm/source-blocked-reason no-homologues-model "ToyMine" :orthologs))))
+  (testing "an unknown model blocks nothing"
+    (is (nil? (stm/source-blocked-reason nil "ToyMine" :orthologs)))))
+
+(deftest target-gate
+  (testing "a target needs Gene.id and Gene.organism.shortName"
+    (is (nil? (stm/target-blocked-reason gene-model "WormMine")))
+    (is (= "ToyMine has no Gene.organism.shortName"
+           (stm/target-blocked-reason {:Gene {:attributes {:id {}}}} "ToyMine")))
+    (is (= "ToyMine has no Gene.id, Gene.organism.shortName"
+           (stm/target-blocked-reason {:Gene {:attributes {}}} "ToyMine"))))
+  (testing "an unknown model blocks nothing"
+    (is (nil? (stm/target-blocked-reason nil "ToyMine")))))
+
+(deftest target-mines-carry-the-reason
+  (run-test-sync
+   (rf/dispatch [::seed (-> seeded-db
+                            (assoc-in [:env :mines :worm] {:name "Worm" :service {:root "http://worm.example"}})
+                            (assoc-in [:mine-models :worm :classes] {:Gene {:attributes {:id {}}}})
+                            (assoc-in [:mine-models :mouse :classes] gene-model))])
+   (is (= [{:id :mouse :label "Mouse"}
+           {:id :worm :label "Worm" :reason "Worm has no Gene.organism.shortName"}]
+          @(rf/subscribe [::stm/target-mines])))))
+
+(deftest orthologs-mode-reason-follows-the-current-mine
+  (run-test-sync
+   (rf/dispatch [::seed (assoc-in seeded-db [:mines :main :service :model :classes] no-homologues-model)])
+   (is (= [:orthologs] (keys @(rf/subscribe [::stm/source-reasons]))))
+   (rf/dispatch [::seed (assoc-in seeded-db [:mines :main :service :model :classes] gene-model)])
+   (is (= {} @(rf/subscribe [::stm/source-reasons])))))
+
+(deftest resolve-does-not-run-against-a-blocked-model
+  (run-test-sync
+   (let [fetched (atom 0)]
+     (rf/dispatch [::seed (-> seeded-db
+                              (assoc-in [:mine-models :mouse :classes] {:Gene {:attributes {}}})
+                              (assoc :results {:send-to-mine (assoc open-state :mode :same)}))])
+     (with-redefs [fetch/rows (fn [& _] (swap! fetched inc) ((stub-fetch-fn {:results []})))]
+       (rf/dispatch [::stm/resolve]))
+     (is (zero? @fetched))
+     (is (nil? (:resolving? @(rf/subscribe [::state])))))))

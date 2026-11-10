@@ -192,12 +192,60 @@
      :joins joins
      :where where}))
 
+(defn- class-fields
+  "Attributes, references and collections of a model class merged with those of
+  all its superclasses (the `extends` key), so inherited fields resolve."
+  [model class-kw]
+  (loop [todo [class-kw] seen #{} fields {}]
+    (if-let [kw (first todo)]
+      (if (contains? seen kw)
+        (recur (rest todo) seen fields)
+        (let [{:keys [attributes references collections extends]} (get model kw)]
+          (recur (into (rest todo) (map keyword) extends)
+                 (conj seen kw)
+                 (merge attributes references collections fields))))
+      fields)))
+
+(defn path-in-model?
+  "True when `path` resolves in `model` (the map of class keyword to class).
+  A path without a dot is a class name. A dotted path like
+  \"Gene.homologues.homologue.symbol\" starts at a class and follows
+  references and collections by their referenced type, taking fields from the
+  class and its superclasses. A field that only a subclass of the referenced
+  type has does not resolve, as a query would need a type constraint for it."
+  [model path]
+  (let [[class-name & fields] (string/split (str path) #"\.")
+        class-kw (keyword class-name)]
+    (and (not (string/blank? class-name))
+         (contains? model class-kw)
+         (loop [class-kw class-kw
+                fields fields]
+           (if-let [field (first fields)]
+             (when-let [{:keys [referencedType]} (get (class-fields model class-kw) (keyword field))]
+               (if (next fields)
+                 (when referencedType (recur (keyword referencedType) (next fields)))
+                 true))
+             true)))))
+
+(defn unmet-depends
+  "The entries of `depends` (class names or dotted paths) which do not resolve
+  in `model`, in order."
+  [model depends]
+  (vec (remove #(path-in-model? model %) depends)))
+
+(defn depends-met?
+  "True when every entry of `depends` resolves in `model`."
+  [model depends]
+  (empty? (unmet-depends model depends)))
+
 (defn suitable-entities
   "Removes key-value pairs from an entities map which don't adhere to config.
   Can also be used to check whether a tool should be displayed, as it will
   return nil if no entity is suitable at all.
   1. Check that the tool's API version matches this Bluegenes
-  2. Check that the tool's model dependencies are present
+  2. Check that the tool's model dependencies are present. Each entry in
+     `depends` is a class name or a dotted path (`Gene.homologues.homologue`)
+     which must resolve in the current mine's model (see `path-in-model?`).
   3. Remove entity pairs which don't match tool's accepted formats
   4. Pick entity pairs whose class match tool's classes
      a. All entity classes match when `*` wildcard is used
@@ -210,7 +258,7 @@
   (when-let [{:keys [accepts classes depends version]
               :or {version 1}} config]
     (when (and (= version version/tool-api)
-               (every? #(contains? model %) (map keyword depends)))
+               (depends-met? model depends))
       (as-> entities $
         (into {} (filter (comp (set accepts) :format val)) $)
         (if (some #{"*"} classes)

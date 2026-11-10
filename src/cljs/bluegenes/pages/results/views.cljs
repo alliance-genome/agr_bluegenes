@@ -5,6 +5,7 @@
             [bluegenes.pages.results.events]
             [bluegenes.pages.results.subs]
             [bluegenes.pages.results.orthologs :as orthologs]
+            [bluegenes.pages.results.orthologs-compare :as orthologs-compare]
             [bluegenes.pages.results.send-to-mine :as send-to-mine]
             [bluegenes.pages.results.bundle :as bundle]
             [bluegenes.pages.results.enrichment.views :as enrichment]
@@ -166,6 +167,7 @@
      (when list
        [:<>
         [orthologs/convert-button (:name list)]
+        [orthologs-compare/compare-button (:name list)]
         [send-to-mine/send-button (:name list)]
         [bundle/download-button list]])]))
 

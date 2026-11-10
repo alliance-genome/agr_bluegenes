@@ -1,0 +1,24 @@
+{
+  "accepts": ["ids"],
+  "classes": ["Gene"],
+  "depends": [
+    "Gene.organism.shortName",
+    "Gene.phenotypeAnnotations.id",
+    "Gene.phenotypeAnnotations.ontologyTerm.id",
+    "Gene.phenotypeAnnotations.ontologyTerm.identifier",
+    "Gene.phenotypeAnnotations.ontologyTerm.name"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Phenotype enrichment",
+    "cljs": "bluegenesAlliancePhenotypeEnrichment"
+  },
+  "version": 2
+}

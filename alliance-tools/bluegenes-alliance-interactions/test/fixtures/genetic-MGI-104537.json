@@ -1,0 +1,203 @@
+{
+ "results": [
+  {
+   "category": "gene_genetic_interaction",
+   "searchable": false,
+   "geneGeneticInteraction": {
+    "evidence": [
+     {
+      "type": "Reference",
+      "curie": "AGRKB:101000000207292",
+      "shortCitation": "Wang X (2007) Cell Death Differ 14(5):924-31",
+      "pubModID": "MGI:3807622",
+      "referenceID": "PMID:17318223",
+      "crossReferences": [
+       {
+        "referencedCurie": "PMID:17318223",
+        "displayName": "PMID:17318223"
+       }
+      ]
+     }
+    ],
+    "geneAssociationSubject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000259511",
+     "primaryExternalId": "MGI:104537",
+     "taxon": {
+      "curie": "NCBITaxon:10090",
+      "name": "Mus musculus",
+      "species": {
+       "fullName": "Mus musculus",
+       "abbreviation": "Mmu",
+       "displayName": "MGI",
+       "phylogeneticOrder": 30
+      }
+     },
+     "geneSymbol": {
+      "formatText": "Brca1",
+      "displayText": "Brca1"
+     }
+    },
+    "geneGeneAssociationObject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000059651",
+     "primaryExternalId": "MGI:1340806",
+     "taxon": {
+      "curie": "NCBITaxon:10090",
+      "name": "Mus musculus",
+      "species": {
+       "fullName": "Mus musculus",
+       "abbreviation": "Mmu",
+       "displayName": "MGI",
+       "phylogeneticOrder": 30
+      }
+     },
+     "geneSymbol": {
+      "formatText": "Parp1",
+      "displayText": "Parp1"
+     }
+    },
+    "relation": {
+     "name": "genetically_interacts_with"
+    },
+    "uniqueId": "biogrid:658348|MGI:1340806|genetically_interacts_with|MGI:104537|AGRKB:101000000207292|MI:2370|MI:0250|MI:0250|MI:0463",
+    "interactionId": "biogrid:658348",
+    "interactionSource": {
+     "curie": "MI:0463",
+     "name": "biogrid"
+    },
+    "interactionType": {
+     "curie": "MI:2370",
+     "name": "synthetic lethality (sensu BioGRID)"
+    },
+    "interactorARole": {
+     "curie": "MI:0499",
+     "name": "unspecified role"
+    },
+    "interactorBRole": {
+     "curie": "MI:0499",
+     "name": "unspecified role"
+    },
+    "interactorAType": {
+     "curie": "MI:0250",
+     "name": "gene"
+    },
+    "interactorBType": {
+     "curie": "MI:0250",
+     "name": "gene"
+    }
+   }
+  },
+  {
+   "category": "gene_genetic_interaction",
+   "searchable": false,
+   "geneGeneticInteraction": {
+    "evidence": [
+     {
+      "type": "Reference",
+      "curie": "AGRKB:101000000261269",
+      "shortCitation": "Bowman-Colin C (2013) Proc Natl Acad Sci U S A 110(21):8632-7",
+      "pubModID": "MGI:5492311",
+      "referenceID": "PMID:23657012",
+      "crossReferences": [
+       {
+        "referencedCurie": "PMID:23657012",
+        "displayName": "PMID:23657012"
+       }
+      ]
+     }
+    ],
+    "geneAssociationSubject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000259511",
+     "primaryExternalId": "MGI:104537",
+     "taxon": {
+      "curie": "NCBITaxon:10090",
+      "name": "Mus musculus",
+      "species": {
+       "fullName": "Mus musculus",
+       "abbreviation": "Mmu",
+       "displayName": "MGI",
+       "phylogeneticOrder": 30
+      }
+     },
+     "geneSymbol": {
+      "formatText": "Brca1",
+      "displayText": "Brca1"
+     }
+    },
+    "geneGeneAssociationObject": {
+     "type": "Gene",
+     "curie": "AGRKB:105000000455161",
+     "primaryExternalId": "MGI:1351320",
+     "taxon": {
+      "curie": "NCBITaxon:10090",
+      "name": "Mus musculus",
+      "species": {
+       "fullName": "Mus musculus",
+       "abbreviation": "Mmu",
+       "displayName": "MGI",
+       "phylogeneticOrder": 30
+      }
+     },
+     "geneSymbol": {
+      "formatText": "Trp53bp1",
+      "displayText": "Trp53bp1"
+     }
+    },
+    "relation": {
+     "name": "genetically_interacts_with"
+    },
+    "uniqueId": "biogrid:2343441|MGI:104537|genetically_interacts_with|MGI:1351320|AGRKB:101000000261269|MI:2374|MI:0582|MI:0581|MI:0250|MI:0250|MI:0463",
+    "interactionId": "biogrid:2343441",
+    "interactionSource": {
+     "curie": "MI:0463",
+     "name": "biogrid"
+    },
+    "interactionType": {
+     "curie": "MI:2374",
+     "name": "phenotypic suppression (sensu BioGRID)"
+    },
+    "interactorARole": {
+     "curie": "MI:0582",
+     "name": "suppressed gene"
+    },
+    "interactorBRole": {
+     "curie": "MI:0581",
+     "name": "suppressor gene"
+    },
+    "interactorAType": {
+     "curie": "MI:0250",
+     "name": "gene"
+    },
+    "interactorBType": {
+     "curie": "MI:0250",
+     "name": "gene"
+    }
+   }
+  }
+ ],
+ "total": 2,
+ "returnedRecords": 2,
+ "requestDuration": "0s",
+ "requestDate": "2026/11/10 19:40:27",
+ "supplementalData": {
+  "distinctFieldValues": {
+   "filter.interactionType": [
+    "phenotypic suppression (sensu BioGRID)",
+    "synthetic lethality (sensu BioGRID)"
+   ],
+   "filter.interactorSpecies": [
+    "Mus musculus"
+   ],
+   "filter.interactorRole": [
+    "suppressor gene",
+    "unspecified role"
+   ],
+   "filter.role": [
+    "suppressed gene",
+    "unspecified role"
+   ]
+  }
+ }
+}
