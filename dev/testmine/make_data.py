@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Regenerate the test-mine input files under dev/testmine/mine/data/.
 
-Real rows (disease annotations, mouse and yeast alleles) are cut from the public
-AllianceMine bio-sources data checkout. Genes, orthologs, phenotypes and the
-ontology are hand-built from the family table below. Nothing here contacts a
-network. Committed output is the source of truth for a normal build; run this only
+Real rows (disease annotations, mouse and yeast alleles, expression, disease
+alleles, AGM names) are cut from the AllianceMine bio-sources
+data checkout. Genes, orthologs, paralogs, phenotypes, disease models, allele
+phenotypes and the small ontologies are hand-built from the tables below. Nothing
+here contacts a network. Committed output is the source of truth for a normal build; run this only
 to change the gene set.
 
     python3 -I dev/testmine/make_data.py [path/to/alliancemine-bio-sources/data]
@@ -166,6 +167,67 @@ PHENOTYPES = {
     "PAX6": ["abnormal eye development", "abnormal brain development"],
 }
 
+# Paralog partners that are not in a family above: (taxon, id, symbol, name). They are
+# loaded as genes so Gene.paralogues.paralogue.symbol resolves.
+PARTNERS = [
+    ("9606", "HGNC:15979", "TP63", "tumor protein p63"), ("9606", "HGNC:12003", "TP73", "tumor protein p73"),
+    ("9606", "HGNC:3430", "ERBB2", "erb-b2 receptor tyrosine kinase 2"),
+    ("9606", "HGNC:3431", "ERBB3", "erb-b2 receptor tyrosine kinase 3"),
+    ("9606", "HGNC:3432", "ERBB4", "erb-b2 receptor tyrosine kinase 4"),
+    ("9606", "HGNC:5173", "HRAS", "HRas proto-oncogene, GTPase"),
+    ("9606", "HGNC:7989", "NRAS", "NRAS proto-oncogene, GTPase"),
+    ("9606", "HGNC:11181", "SOD3", "superoxide dismutase 3"), ("9606", "HGNC:11140", "SNCB", "synuclein beta"),
+    ("9606", "HGNC:11141", "SNCG", "synuclein gamma"), ("9606", "HGNC:7882", "NOTCH2", "notch receptor 2"),
+    ("9606", "HGNC:7883", "NOTCH3", "notch receptor 3"), ("9606", "HGNC:597", "APLP1", "amyloid beta precursor like protein 1"),
+    ("9606", "HGNC:598", "APLP2", "amyloid beta precursor like protein 2"),
+    ("9606", "HGNC:6839", "MAP2", "microtubule associated protein 2"),
+    ("9606", "HGNC:6862", "MAP4", "microtubule associated protein 4"),
+    ("9606", "HGNC:18608", "LRRK1", "leucine rich repeat kinase 1"),
+    ("9606", "HGNC:4023", "FXR1", "FMR1 autosomal homolog 1"), ("9606", "HGNC:4024", "FXR2", "FMR1 autosomal homolog 2"),
+    ("9606", "HGNC:11118", "SMN2", "survival of motor neuron 2, centromeric"),
+    ("10090", "MGI:1330810", "Trp63", "transformation related protein 63"),
+    ("10090", "MGI:1336991", "Trp73", "transformation related protein 73"),
+    ("10090", "MGI:95410", "Erbb2", "erb-b2 receptor tyrosine kinase 2"),
+    ("10090", "MGI:95411", "Erbb3", "erb-b2 receptor tyrosine kinase 3"),
+    ("10090", "MGI:96224", "Hras", "Harvey rat sarcoma virus oncogene"),
+    ("10090", "MGI:97376", "Nras", "neuroblastoma ras oncogene"),
+    ("10090", "MGI:103181", "Sod3", "superoxide dismutase 3, extracellular"),
+    ("10090", "MGI:1889011", "Sncb", "synuclein, beta"), ("10090", "MGI:97364", "Notch2", "notch 2"),
+    ("10090", "MGI:99460", "Notch3", "notch 3"), ("10090", "MGI:88046", "Aplp1", "amyloid beta precursor-like protein 1"),
+    ("10090", "MGI:88047", "Aplp2", "amyloid beta precursor-like protein 2"),
+    ("10090", "MGI:97175", "Map2", "microtubule-associated protein 2"),
+    ("10090", "MGI:2142227", "Lrrk1", "leucine-rich repeat kinase 1"),
+    ("10090", "MGI:104860", "Fxr1", "FMR1 autosomal homolog 1"), ("10090", "MGI:1346074", "Fxr2", "FMR1 autosomal homolog 2"),
+]
+
+# Paralog pairs, written in both directions: (gene id, [partner ids]). Zebrafish
+# pax6a and pax6b are both family members, so they need no partner rows.
+PARALOG_PAIRS = [
+    ("HGNC:11998", ["HGNC:15979", "HGNC:12003"]), ("HGNC:3236", ["HGNC:3430", "HGNC:3431", "HGNC:3432"]),
+    ("HGNC:6407", ["HGNC:5173", "HGNC:7989"]), ("HGNC:11179", ["HGNC:11181"]),
+    ("HGNC:11138", ["HGNC:11140", "HGNC:11141"]), ("HGNC:7881", ["HGNC:7882", "HGNC:7883"]),
+    ("HGNC:620", ["HGNC:597", "HGNC:598"]), ("HGNC:6893", ["HGNC:6839", "HGNC:6862"]),
+    ("HGNC:18618", ["HGNC:18608"]), ("HGNC:3775", ["HGNC:4023", "HGNC:4024"]),
+    ("HGNC:11117", ["HGNC:11118"]),
+    ("MGI:98834", ["MGI:1330810", "MGI:1336991"]), ("MGI:95294", ["MGI:95410", "MGI:95411"]),
+    ("MGI:96680", ["MGI:96224", "MGI:97376"]), ("MGI:98351", ["MGI:103181"]),
+    ("MGI:1277151", ["MGI:1889011"]), ("MGI:97363", ["MGI:97364", "MGI:99460"]),
+    ("MGI:88059", ["MGI:88046", "MGI:88047"]), ("MGI:97180", ["MGI:97175"]),
+    ("MGI:1913975", ["MGI:2142227"]), ("MGI:95564", ["MGI:104860", "MGI:1346074"]),
+    ("ZFIN:ZDB-GENE-990415-200", ["ZFIN:ZDB-GENE-001031-1"]),
+]
+# Identity overrides in percent for pairs that are near copies; every other pair gets 24 to 62.
+IDENTITY_OVERRIDE = {frozenset(("HGNC:11117", "HGNC:11118")): 99, frozenset(("HGNC:6407", "HGNC:5173")): 86,
+                     frozenset(("HGNC:6407", "HGNC:7989")): 85, frozenset(("MGI:96680", "MGI:96224")): 86,
+                     frozenset(("MGI:96680", "MGI:97376")): 85}
+PARALOG_METHODS = ["Ensembl Compara", "HGNC", "OMA", "OrthoFinder", "PANTHER", "PhylomeDB", "SonicParanoid",
+                   "TreeFam", "ZFIN"]
+
+# Real tissue-level expression is cut from the Alliance expression file. Rows per gene:
+MAX_EXPR_ANATOMY_ROWS = 6
+MAX_EXPR_OTHER_ROWS = 3
+MAX_MODELS_PER_GENE = 2
+
 ALGOS = ["Ensembl Compara", "Hieranoid", "InParanoid", "OMA", "OrthoFinder", "OrthoInspector",
          "PANTHER", "PhylomeDB", "Roundup", "SonicParanoid", "TreeFam", "ZFIN"]
 
@@ -200,6 +262,10 @@ def build_genes():
                          "NCBITaxon:" + taxon, chrom, "null", "null", "+", "protein_coding_gene",
                          "2026-03-01T02:48:00.000+00:00", prov, ""])
             genes.append((fam, taxon, gid, sym))
+    for taxon, gid, sym, name in PARTNERS:
+        rows.append([gid, "", "[]", "[]", name, sym, "Test mine paralog partner %s (%s)." % (sym, SPECIES[taxon][3]),
+                     "%s is a paralog partner gene." % sym, "NCBITaxon:" + taxon, "Unassigned", "null", "null", "+",
+                     "protein_coding_gene", "2026-03-01T02:48:00.000+00:00", SPECIES[taxon][4], ""])
     write_tsv(OUT / "alliance-genes.tsv", rows)
     return genes
 
@@ -247,9 +313,10 @@ def build_orthologs(genes):
     return pairs
 
 
-def build_disease(genes, src):
+def build_disease(genes, src, extra_doids=()):
     ids = {g[2]: (g[1], g[3]) for g in genes}
     per_gene = defaultdict(list)
+    extra_names = {}
     comments = []
     header = None
     with open(src / "disease-alliance.tsv") as fh:
@@ -261,6 +328,8 @@ def build_disease(genes, src):
             if r[0] == "Taxon":
                 header = r
                 continue
+            if len(r) >= 18 and r[6] in extra_doids and r[7]:
+                extra_names[r[6]] = r[7]
             if len(r) < 18 or r[2] != "gene" or r[3] not in ids:
                 continue
             per_gene[r[3]].append(r)
@@ -286,6 +355,8 @@ def build_disease(genes, src):
             terms[r[6]] = r[7]
             detail.append([r[6], r[7], gid, r[0], r[5], "", r[13], "", "0", r[15], r[15],
                            "%s|%s|%s" % (gid, r[6], r[15])])
+    for doid in sorted(extra_doids):
+        terms.setdefault(doid, extra_names.get(doid, doid))
     out.sort(key=lambda r: (r[0], r[3], r[6]))
     write_tsv(OUT / "disease-alliance.tsv", [header] + out, comments)
     write_tsv(OUT / "disease-annotations-detail.tsv", detail)
@@ -333,7 +404,7 @@ def build_alleles(genes, src):
     for gid, rows in keep.items():
         out.extend(rows[:4])
     write_tsv(OUT / "alliance-alleles.tsv", [header] + out, comments)
-    return len(out)
+    return out
 
 
 def build_organisms():
@@ -343,17 +414,201 @@ def build_organisms():
     write_tsv(OUT / "organisms.tsv", rows)
 
 
+def read_tsv(path, skip_comments=True):
+    with open(path) as fh:
+        for line in fh:
+            if skip_comments and line.startswith("#"):
+                continue
+            yield line.rstrip("\n").split("\t")
+
+
+def build_disease_alleles(alleles, src):
+    """Real DAF rows for alleles that are already loaded. The allele symbol and the empty taxon
+    column are filled from alliance-alleles, so the two sources agree and the allele key
+    (primaryIdentifier, organism) is complete."""
+    symbol = {a[2]: (a[3], a[0]) for a in alleles}
+    rows = [["diseaseId", "diseaseName", "alleleId", "alleleSymbol", "alleleTaxon", "relationName",
+             "evidenceCodes", "evidencePmids", "evidenceCurie", "negated", "dataProvider"]]
+    for r in read_tsv(src / "disease-alleles.tsv"):
+        if r[0] == "diseaseId" or len(r) < 11 or r[2] not in symbol:
+            continue
+        r[3], r[4] = symbol[r[2]]
+        rows.append(r[:11])
+    write_tsv(OUT / "disease-alleles.tsv", rows)
+    return rows[1:]
+
+
+def build_allele_phenotypes(alleles, src):
+    """Gives each mouse allele up to 3 phenotype terms. The terms, statements and PMIDs are real
+    MGI allele-phenotype rows of the same gene. Which allele gets which row is arbitrary,
+    because the real alleles with phenotype rows are not in the loaded allele set."""
+    by_gene = defaultdict(list)
+    wanted = {a[9] for a in alleles if a[0] == "NCBITaxon:10090"}
+    for r in read_tsv(src / "allele-phenotypes.tsv"):
+        if len(r) >= 6 and r[0] in wanted and r[4].startswith("PMID:"):
+            by_gene[r[0]].append(r)
+    rows = [["geneId", "alleleId", "termId", "phenotypeStatement", "evidencePmid", "dataProvider"]]
+    for a in alleles:
+        if a[0] != "NCBITaxon:10090":
+            continue
+        pool = {}
+        for r in sorted(by_gene.get(a[9], []), key=lambda x: (x[2], x[4])):
+            pool.setdefault(r[2], r)
+        terms = sorted(pool)
+        if not terms:
+            continue
+        start = int(a[2].split(":")[1]) % len(terms)
+        for i in range(min(3, len(terms))):
+            r = pool[terms[(start + i) % len(terms)]]
+            rows.append([a[9], a[2], r[2], r[3], r[4], r[5]])
+    write_tsv(OUT / "allele-phenotypes.tsv", rows)
+    return len(rows) - 1
+
+
+def build_paralogs(genes):
+    rng = random.Random(20260310)
+    sym = {g[2]: (g[1], g[3]) for g in genes}
+    for taxon, gid, s_, _ in PARTNERS:
+        sym[gid] = (taxon, s_)
+    header = ["subjectGeneId", "subjectGeneSymbol", "subjectGeneTaxon", "paralogGeneId", "paralogGeneSymbol",
+              "paralogGeneTaxon", "identity", "similarity", "length", "rank", "predictionMethodsMatched",
+              "predictionMethodsNotMatched", "predictionMethodsNotCalled"]
+    pairs = {}
+    for gid, partners in PARALOG_PAIRS:
+        for p in partners:
+            key = frozenset((gid, p))
+            ident = IDENTITY_OVERRIDE.get(key, rng.randint(24, 62))
+            sim = min(99, ident + rng.randint(8, 18))
+            pairs[key] = (ident, sim, rng.randint(180, 1600))
+    per_subject = defaultdict(list)
+    for key, (ident, sim, length) in pairs.items():
+        a, b = sorted(key)
+        per_subject[a].append((b, ident, sim, length))
+        per_subject[b].append((a, ident, sim, length))
+    rows = [header]
+    for subj in sorted(per_subject):
+        for rank, (par, ident, sim, length) in enumerate(sorted(per_subject[subj], key=lambda x: (-x[1], x[0])), 1):
+            n = rng.randint(4, len(PARALOG_METHODS))
+            matched = sorted(rng.sample(PARALOG_METHODS, n))
+            rows.append([subj, sym[subj][1], "NCBITaxon:" + sym[subj][0], par, sym[par][1],
+                         "NCBITaxon:" + sym[par][0], ident, sim, length, rank, "|".join(matched),
+                         "|".join(m for m in PARALOG_METHODS if m not in matched), ""])
+    write_tsv(OUT / "paralogs.tsv", rows)
+    return len(rows) - 1, len(per_subject)
+
+
+def build_disease_models(genes, per_gene, src):
+    """Real AGM ids and names whose name starts with the gene symbol, linked to a real disease of
+    the gene. Association type and the phenotype list are hand-built."""
+    by_symbol = defaultdict(list)
+    symbols = {(g[3], "NCBITaxon:" + g[1]) for g in genes}
+    for r in read_tsv(src / "agms.tsv"):
+        if len(r) < 5 or r[0] == "modelId":
+            continue
+        name = r[1]
+        end = len(name)
+        for ch in "<[/ ":
+            i = name.find(ch)
+            if i > 0:
+                end = min(end, i)
+        sym = name[:end]
+        if (sym, r[3]) in symbols and r[2] == "genotype" and "[background:]" in name:
+            by_symbol[(sym, r[3])].append(r)
+    rows = [["subjectGeneId", "subjectGeneTaxon", "modelId", "modelName", "modelSubtype", "dataProvider",
+             "diseaseId", "diseaseName", "associationType", "associatedPhenotypes", "modifierRelationshipTypes",
+             "hasDiseaseAnnotations", "hasPhenotypeAnnotations"]]
+    for fam, taxon, gid, sym in genes:
+        diseases = []
+        for r in per_gene.get(gid, []):
+            if r[6] not in [d[0] for d in diseases]:
+                diseases.append((r[6], r[7]))
+        models = sorted(by_symbol.get((sym, "NCBITaxon:" + taxon), []), key=lambda r: r[0])[:MAX_MODELS_PER_GENE]
+        if not diseases or not models:
+            continue
+        for i, m in enumerate(models):
+            d = diseases[i % len(diseases)]
+            rows.append([gid, "NCBITaxon:" + taxon, m[0], m[1], m[2], m[4], d[0], d[1], "is_model_of",
+                         "|".join(PHENOTYPES[fam]), "", "true", "true"])
+    write_tsv(OUT / "disease-models.tsv", rows)
+    return len(rows) - 1, len({r[0] for r in rows[1:]})
+
+
+ONTOLOGY_FILES = OrderedDict([("EMAPA", "ONTOLOGY_EMAPA.obo"), ("ZFA", "ONTOLOGY_ZFA.obo"),
+                              ("WBbt", "ONTOLOGY_WBBT.obo"), ("FBbt", "ONTOLOGY_FBBT.obo"),
+                              ("MMO", "ONTOLOGY_MMO.obo")])
+
+
+def build_expression(genes, src):
+    """Real Alliance expression rows. Genes with anatomy rows: up to 6 rows with distinct anatomy
+    terms that have stage, assay and PMIDs. Other genes: up to 3 rows."""
+    wanted = {g[2] for g in genes}
+    head = []
+    colhead = None
+    per_gene = defaultdict(list)
+    for line in open(src / "expression-alliance.tsv"):
+        if line.startswith("#"):
+            head.append(line.rstrip("\n"))
+            continue
+        r = line.rstrip("\n").split("\t")
+        if r[0] == "Species":
+            colhead = r
+            continue
+        if len(r) >= 23 and r[2] in wanted:
+            per_gene[r[2]].append(r)
+    names = defaultdict(dict)
+    out = []
+    for gid in sorted(per_gene):
+        rows = per_gene[gid]
+        full = sorted((r for r in rows if r[16] and r[5] and r[22] and r[6]), key=lambda r: (r[16], r[5]))
+        picked, seen = [], set()
+        for r in full:
+            if r[16] in seen:
+                continue
+            seen.add(r[16])
+            picked.append(r)
+            if len(picked) == MAX_EXPR_ANATOMY_ROWS:
+                break
+        if not picked:
+            seen_rows = set()
+            for r in sorted((r for r in rows if r[22] and r[6]), key=lambda r: (r[4], r[6], r[8])):
+                if tuple(r[4:22]) not in seen_rows and len(picked) < MAX_EXPR_OTHER_ROWS:
+                    seen_rows.add(tuple(r[4:22]))
+                    picked.append(r)
+        for r in picked:
+            out.append(r[:23])
+            if r[16]:
+                names[r[16].split(":")[0]][r[16]] = r[17]
+            names["MMO"][r[6]] = r[7]
+    # The converter skips the first 15 lines (14 comment lines plus the column header).
+    write_tsv(OUT / "expression-alliance.tsv", [colhead[:23]] + out, head[:14])
+    for prefix, fname in ONTOLOGY_FILES.items():
+        with open(OUT / fname, "w") as fh:
+            fh.write("format-version: 1.2\ndata-version: test\nontology: %s\n\n" % prefix.lower())
+            for tid, name in sorted(names.get(prefix, {}).items()):
+                fh.write("[Term]\nid: %s\nname: %s\n\n" % (tid, name))
+    return len(out), len({r[2] for r in out}), {k: len(v) for k, v in names.items()}
+
+
 def main():
     src = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_SRC
     OUT.mkdir(parents=True, exist_ok=True)
     genes = build_genes()
     pairs = build_orthologs(genes)
-    per_gene, ndis, nterms = build_disease(genes, src)
+    alleles = build_alleles(genes, src)
+    disease_alleles = build_disease_alleles(alleles, src)
+    per_gene, ndis, nterms = build_disease(genes, src, {r[0] for r in disease_alleles})
     nph = build_phenotypes(genes, per_gene)
-    nal = build_alleles(genes, src)
     build_organisms()
-    print("genes=%d orthologs=%d disease_rows=%d do_terms=%d phenotypes=%d alleles=%d"
-          % (len(genes), pairs, ndis, nterms, nph, nal))
+    nexp, nexp_genes, nterm_by_ont = build_expression(genes, src)
+    npar, npar_genes = build_paralogs(genes)
+    nmod, nmod_genes = build_disease_models(genes, per_gene, src)
+    nap = build_allele_phenotypes(alleles, src)
+    print("genes=%d partners=%d orthologs=%d disease_rows=%d do_terms=%d phenotypes=%d alleles=%d"
+          % (len(genes), len(PARTNERS), pairs, ndis, nterms, nph, len(alleles)))
+    print("expression_rows=%d expression_genes=%d ontology_terms=%s" % (nexp, nexp_genes, nterm_by_ont))
+    print("paralog_rows=%d paralog_genes=%d disease_model_rows=%d disease_model_genes=%d"
+          % (npar, npar_genes, nmod, nmod_genes))
+    print("allele_phenotype_rows=%d disease_allele_rows=%d" % (nap, len(disease_alleles)))
     missing = [g[3] for g in genes if g[2] not in per_gene]
     print("genes without disease rows:", missing)
 
