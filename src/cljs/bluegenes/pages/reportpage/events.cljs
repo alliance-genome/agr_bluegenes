@@ -128,6 +128,9 @@
                        [:fetch-fasta mine-kw type id])
                      (when (= type "Gene")
                        [::fetch-homologues [mine-kw type id] (lookup-value summary)])
+                     (when (and (= type "Gene")
+                                (get-in db [:mines mine-kw :service :model :classes :Gene :collections :homologues]))
+                       [:report-other-mines/start [mine-kw type id]])
                      (when (isa? hier class-kw :SequenceFeature)
                        [::fetch-strand mine-kw type id])]})
      ;; No results mean the object ID likely doesn't exist.
