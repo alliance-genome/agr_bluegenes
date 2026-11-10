@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-go-ribbon",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GO slim ribbon for a gene and optionally its orthologs, with annotation details on click.",
   "main": "dist/bundle.js",
   "scripts": {

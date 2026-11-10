@@ -52,9 +52,6 @@ test('toAllianceCurie keeps curies from AllianceMine for all 7 species', () => {
 
 test('toAllianceCurie adds the prefix to bare ids from other mines, by name or taxon id', () => {
 	const c = tool.toAllianceCurie;
-	assert.strictEqual(c('11998', 'H. sapiens'), 'HGNC:11998');
-	assert.strictEqual(c('104537', '10090'), 'MGI:104537');
-	assert.strictEqual(c('2218', 'NCBITaxon:10116'), 'RGD:2218');
 	assert.strictEqual(c('ZDB-GENE-990415-8', 'Danio rerio'), 'ZFIN:ZDB-GENE-990415-8');
 	assert.strictEqual(c('FBgn0003731', 'D. melanogaster'), 'FB:FBgn0003731');
 	assert.strictEqual(c('WBGene00001234', '6239'), 'WB:WBGene00001234');
@@ -70,6 +67,46 @@ test('toAllianceCurie fixes MGI:MGI: and returns null when no curie can be made'
 	assert.strictEqual(c('FBgn0003731', 'H. sapiens'), null);
 	assert.strictEqual(c('11998', 'X. laevis'), null);
 	assert.strictEqual(c('11998', undefined), null);
+});
+
+test('toAllianceCurie handles the identifiers production mines store', () => {
+	const c = tool.toAllianceCurie;
+	// WormMine, FlyMine, YeastMine as queried: own genes bare, taxon ids as strings, yeast taxon 4932.
+	assert.strictEqual(c('WBGene00000001', '6239'), 'WB:WBGene00000001');
+	assert.strictEqual(c('FBgn0000001', '7227'), 'FB:FBgn0000001');
+	assert.strictEqual(c('S000000001', '4932'), 'SGD:S000000001');
+	assert.strictEqual(c('S000000001', 'S. cerevisiae'), 'SGD:S000000001');
+	// Homologue ids as WormMine returns them: curies for human, mouse, rat; bare for fly and zebrafish.
+	assert.strictEqual(c('HGNC:6091', '9606'), 'HGNC:6091');
+	assert.strictEqual(c('MGI:96575', '10090'), 'MGI:96575');
+	assert.strictEqual(c('RGD:2917', '10116'), 'RGD:2917');
+	assert.strictEqual(c('FBgn0283499', '7227'), 'FB:FBgn0283499');
+	assert.strictEqual(c('ZDB-GENE-020503-4', '7955'), 'ZFIN:ZDB-GENE-020503-4');
+	// Numeric NCBI ids (WormMine D. rerio 110292, FlyMine D. erecta 113563677) and other species.
+	assert.strictEqual(c('110292', '7955'), null);
+	assert.strictEqual(c('11998', '9606'), null);
+	assert.strictEqual(c('113563677', '7220'), null);
+	assert.strictEqual(c('AFLA_000690', '332952'), null);
+	assert.strictEqual(c('L000003336', '4932'), null);
+});
+
+test('pickOrthologs skips paralogs of the focus species (FlyMine Egfr homologues)', () => {
+	const rows = [
+		['FBgn0000017', 'Abl', 'D. melanogaster', '7227'],
+		['FBgn0003733', 'tor', 'D. melanogaster', '7227'],
+		['HGNC:3236', 'EGFR', 'H. sapiens', '9606'],
+		['MGI:95294', 'Egfr', 'M. musculus', '10090']
+	];
+	const r = tool.pickOrthologs(rows, 'FB:FBgn0003731', 8);
+	assert.deepStrictEqual(r.picked.map((s) => s.curie), ['HGNC:3236', 'MGI:95294']);
+	assert.strictEqual(r.total, 2);
+});
+
+test('ortholog query is limited to the Alliance taxa, the gene query is not', () => {
+	const o = tool.buildQuery(['Gene.homologues.homologue.primaryIdentifier'], 5, 'Gene.homologues.homologue.organism.taxonId');
+	assert.ok(o.includes('path="Gene.homologues.homologue.organism.taxonId" op="ONE OF"'));
+	assert.ok(o.includes('<value>4932</value>') && o.includes('<value>559292</value>') && o.includes('<value>9606</value>'));
+	assert.ok(!tool.buildQuery(['Gene.symbol'], 5).includes('ONE OF'));
 });
 
 test('buildColumns orders each aspect as all, terms, other and keys other groups apart', () => {

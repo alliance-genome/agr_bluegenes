@@ -30,18 +30,21 @@
 
 	// Alliance curie prefix, bare-id pattern, organism short names and taxon ids.
 	var SPECIES = [
-		{ prefix: 'HGNC', bare: /^\d+$/, names: ['h. sapiens', 'homo sapiens'], taxon: '9606' },
-		{ prefix: 'MGI', bare: /^\d+$/, names: ['m. musculus', 'mus musculus'], taxon: '10090' },
-		{ prefix: 'RGD', bare: /^\d+$/, names: ['r. norvegicus', 'rattus norvegicus'], taxon: '10116' },
+		{ prefix: 'HGNC', bare: null, names: ['h. sapiens', 'homo sapiens'], taxon: '9606' },
+		{ prefix: 'MGI', bare: null, names: ['m. musculus', 'mus musculus'], taxon: '10090' },
+		{ prefix: 'RGD', bare: null, names: ['r. norvegicus', 'rattus norvegicus'], taxon: '10116' },
 		{ prefix: 'ZFIN', bare: /^ZDB-GENE-/, names: ['d. rerio', 'danio rerio'], taxon: '7955' },
 		{ prefix: 'FB', bare: /^FBgn\d+$/, names: ['d. melanogaster', 'drosophila melanogaster'], taxon: '7227' },
 		{ prefix: 'WB', bare: /^WBGene\d+$/, names: ['c. elegans', 'caenorhabditis elegans'], taxon: '6239' },
 		{ prefix: 'SGD', bare: /^S\d{9}$/, names: ['s. cerevisiae', 'saccharomyces cerevisiae'], taxon: '559292' }
 	];
+	// YeastMine tags S. cerevisiae with taxon 4932; the Alliance uses 559292.
+	var TAXON_ALIAS = { '4932': '559292' };
 
 	function speciesOf(organism) {
 		var o = String(organism == null ? '' : organism).trim().toLowerCase().replace(/^ncbitaxon:/, '');
 		if (!o) return null;
+		if (TAXON_ALIAS[o]) o = TAXON_ALIAS[o];
 		for (var i = 0; i < SPECIES.length; i++) {
 			if (SPECIES[i].taxon === o || SPECIES[i].names.indexOf(o) >= 0) return SPECIES[i];
 		}
@@ -49,7 +52,10 @@
 	}
 
 	// Alliance gene curie from a mine's primaryIdentifier. AllianceMine already
-	// stores curies; other mines store bare ids (FBgn..., WBGene..., S000...).
+	// stores curies (so do the MOD mines for human, mouse and rat homologues);
+	// WormMine, FlyMine and YeastMine store bare ids for their own genes
+	// (WBGene..., FBgn..., S000...) and ZFIN genes (ZDB-GENE-...).
+	// Bare numbers are not mapped: the MOD mines use them as NCBI Gene ids.
 	// organism is a short name ("D. rerio") or a taxon id (7955, NCBITaxon:7955).
 	// Returns null when no curie can be made.
 	function toAllianceCurie(primaryIdentifier, organism) {
@@ -65,7 +71,7 @@
 			return null;
 		}
 		var sp = speciesOf(organism);
-		return sp && sp.bare.test(id) ? sp.prefix + ':' + id : null;
+		return sp && sp.bare && sp.bare.test(id) ? sp.prefix + ':' + id : null;
 	}
 
 	function escapeXml(s) {
@@ -84,10 +90,20 @@
 		'Gene.homologues.homologue.organism.taxonId'
 	];
 
-	function buildQuery(view, id) {
+	// Taxon ids of the 7 Alliance species, plus 4932 for YeastMine's S. cerevisiae.
+	var ALLIANCE_TAXA = SPECIES.map(function (sp) { return sp.taxon; }).concat(['4932']);
+
+	// taxonPath, when given, limits the rows to the Alliance species so the 1000-row
+	// cap is not spent on fungi or other species that have no Alliance page.
+	function buildQuery(view, id, taxonPath) {
 		return (
 			'<query model="genomic" view="' + view.join(' ') + '">' +
 			'<constraint path="Gene.id" op="=" value="' + escapeXml(id) + '"/>' +
+			(taxonPath
+				? '<constraint path="' + taxonPath + '" op="ONE OF">' +
+					ALLIANCE_TAXA.map(function (t) { return '<value>' + t + '</value>'; }).join('') +
+					'</constraint>'
+				: '') +
 			'</query>'
 		);
 	}
@@ -184,13 +200,19 @@
 		return { curie: curie, symbol: r[1] || r[0], species: r[2] || '' };
 	}
 
+	function prefixOf(curie) {
+		return curie.slice(0, curie.indexOf(':'));
+	}
+
 	// Up to max orthologs, one species at a time in turn so every species shows.
+	// Homologues of the focus gene's own species are paralogs and are skipped.
 	function pickOrthologs(rows, focusCurie, max) {
+		var focusPrefix = prefixOf(focusCurie);
 		var bySpecies = {};
 		var order = [];
 		var seen = {};
 		rows.map(toSubject).forEach(function (s) {
-			if (!s || s.curie === focusCurie || seen[s.curie]) return;
+			if (!s || s.curie === focusCurie || prefixOf(s.curie) === focusPrefix || seen[s.curie]) return;
 			seen[s.curie] = true;
 			if (!bySpecies[s.species]) {
 				bySpecies[s.species] = [];
@@ -518,7 +540,7 @@
 			}
 			var mine = ++seq;
 			message(body, 'Loading orthologs...');
-			fetchMineRows(sr, buildQuery(ORTHOLOG_VIEW, internalId))
+			fetchMineRows(sr, buildQuery(ORTHOLOG_VIEW, internalId, 'Gene.homologues.homologue.organism.taxonId'))
 				.then(function (res) {
 					if (stale() || mine !== seq) return;
 					orthologs = pickOrthologs(res, focus.curie, MAX_ORTHOLOGS);

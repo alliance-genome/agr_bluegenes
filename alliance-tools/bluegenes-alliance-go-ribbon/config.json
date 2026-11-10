@@ -15,5 +15,6 @@
     "human": "GO ribbon (Alliance)",
     "cljs": "bluegenesAllianceGoRibbon"
   },
-  "version": 2
+  "version": 2,
+  "depends": ["Gene.id", "Gene.primaryIdentifier", "Gene.symbol", "Gene.organism.shortName", "Gene.organism.taxonId"]
 }
