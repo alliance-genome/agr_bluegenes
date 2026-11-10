@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-gene-link",
+  "version": "0.1.0",
+  "description": "Links a Gene report page to the gene's page on alliancegenome.org.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
