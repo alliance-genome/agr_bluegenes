@@ -85,11 +85,31 @@
          (second (:where (om/lookup-query ["X:3"] no-taxon))))))
 
 (deftest ordering
-  (is (= [mouse worm no-taxon]
-         (om/order-genes [mouse] [no-taxon mouse worm]))))
+  (is (= [(assoc mouse :self? true) worm no-taxon]
+         (om/order-genes [mouse] [no-taxon mouse worm])))
+  (testing "with no self gene nothing is flagged as self"
+    (is (= [worm no-taxon]
+           (om/order-genes [] [no-taxon worm])))))
+
+(deftest escaping
+  (is (= "a&amp;b&lt;c&gt;d&quot;e" (om/escape-xml "a&b<c>d\"e")))
+  (is (= "WB:1" (om/escape-xml "WB:1")))
+  (testing "lookup values are escaped, resolution still uses raw candidates"
+    (let [candidates ["X:a&b<c" "a&b<c"]
+          q (om/lookup-query candidates worm)]
+      (is (= ["X:a&amp;b&lt;c" "a&amp;b&lt;c"] (:values (first (:where q)))))
+      (is (= {:id 1 :symbol "s"}
+             (om/pick-resolved candidates [[1 "a&b<c" "s"]]))))))
 
 (deftest panel
-  (let [rows (om/panel-rows {:genes [mouse worm]
+  (testing "first ortholog is not labelled self when the self query is empty"
+    (let [rows (om/panel-rows {:genes (om/order-genes [] [mouse worm])
+                               :results {}
+                               :organisms-by-mine organisms
+                               :current-mine :flymine
+                               :mine-names {}})]
+      (is (= [false false] (map :self? rows)))))
+  (let [rows (om/panel-rows {:genes (om/order-genes [mouse] [worm])
                              :results {[:mousemine "MGI:1"] {:status :found :id 5 :symbol "a"}}
                              :organisms-by-mine organisms
                              :current-mine :flymine
@@ -142,6 +162,33 @@
    (testing "a full pump does not start more"
      (rf/dispatch [::om/pump [:alliancetestmine "Gene" "7"]])
      (is (= om/max-parallel (get-in @app-db [:report :other-mines :inflight]))))))
+
+(deftest failed-organisms-are-refetched
+  (run-test-sync
+   (let [fetched (atom [])]
+     (rf/reg-event-fx ::om/fetch-organisms (fn [_ [_ k]] (swap! fetched conj k) nil))
+     (rf/reg-event-fx ::om/fetch-genes (fn [_ _] nil))
+     (rf/dispatch [::seed-db {:current-mine :alliancetestmine
+                              :report {:key [:alliancetestmine "Gene" "7"]}
+                              :other-mines {:organisms {:mousemine {:status :error}
+                                                        :wormmine {:status :done :organisms []}}}
+                              :env {:mines {:alliancetestmine {:service {:root "x"}}
+                                            :mousemine {:name "MouseTestMine" :service {:root "y"}}
+                                            :wormmine {:name "WormMine" :service {:root "z"}}}}}])
+     (rf/dispatch [:report-other-mines/start [:alliancetestmine "Gene" "7"]])
+     (is (= [:mousemine] @fetched))
+     (is (= :loading (get-in @app-db [:other-mines :organisms :mousemine :status])))
+     (is (= :done (get-in @app-db [:other-mines :organisms :wormmine :status]))))))
+
+(deftest unavailable-mines
+  (run-test-sync
+   (rf/dispatch [::seed-db {:current-mine :alliancetestmine
+                            :report {:key [:alliancetestmine "Gene" "7"]
+                                     :other-mines {:inflight 0}}
+                            :other-mines {:organisms {:mousemine {:status :error}}}
+                            :env {:mines {:alliancetestmine {:service {:root "x"}}
+                                          :mousemine {:name "MouseTestMine" :service {:root "y"}}}}}])
+   (is (= ["MouseTestMine"] (:unavailable @(rf/subscribe [::om/panel]))))))
 
 (deftest hidden-with-one-mine
   (run-test-sync

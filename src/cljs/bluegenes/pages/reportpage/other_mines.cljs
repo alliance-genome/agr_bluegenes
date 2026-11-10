@@ -75,6 +75,14 @@
 (defn task-key [[mine-kw gene]]
   [mine-kw (:primaryIdentifier gene)])
 
+(def ^:private xml-escapes {\& "&amp;" \< "&lt;" \> "&gt;" \" "&quot;"})
+
+(defn escape-xml
+  "Escape a value for use as XML text. imcljs writes ONE OF values into the
+  query XML as they are, so they must be escaped here."
+  [s]
+  (str/escape (str s) xml-escapes))
+
 (defn lookup-query
   "Query finding the gene in a target mine by any of `candidates`, restricted to
   the organism of `gene`."
@@ -83,7 +91,7 @@
    :select ["Gene.id" "Gene.primaryIdentifier" "Gene.symbol"]
    :where [{:path "Gene.primaryIdentifier"
             :op "ONE OF"
-            :values candidates}
+            :values (mapv escape-xml candidates)}
            (if (str/blank? taxonId)
              {:path "Gene.organism.shortName" :op "=" :value shortName}
              {:path "Gene.organism.taxonId" :op "=" :value taxonId})]})
@@ -101,9 +109,9 @@
   "Rows for the panel: one per gene and covering mine, with lookup status."
   [{:keys [genes results organisms-by-mine current-mine mine-names]}]
   (let [organisms-by-mine (dissoc organisms-by-mine current-mine)]
-    (vec (for [[index gene] (map-indexed vector genes)
+    (vec (for [gene genes
                mine-kw (covering-mines organisms-by-mine gene)]
-           (merge {:self? (zero? index)
+           (merge {:self? (boolean (:self? gene))
                    :gene gene
                    :mine-kw mine-kw
                    :mine-name (get mine-names mine-kw (name mine-kw))
@@ -115,7 +123,7 @@
   gene is dropped from the orthologs if it is listed there."
   [self orthologs]
   (let [self-ids (set (map :primaryIdentifier self))]
-    (into (vec self)
+    (into (mapv #(assoc % :self? true) self)
           (->> orthologs
                (remove (comp self-ids :primaryIdentifier))
                (sort-by (juxt :shortName #(or (:symbol %) (:primaryIdentifier %))))))))
@@ -138,7 +146,7 @@
  :report-other-mines/start
  (fn [{db :db} [_ [mine-kw _type id :as report-key]]]
    (let [others (other-mines-env db mine-kw)
-         to-fetch (remove #(get-in db [:other-mines :organisms % :status])
+         to-fetch (remove #(#{:loading :done} (get-in db [:other-mines :organisms % :status]))
                           (keys others))]
      (when (and (current-report? db report-key) (seq others))
        {:db (reduce #(assoc-in %1 [:other-mines :organisms %2] {:status :loading})
@@ -283,6 +291,11 @@
          env-mines (get-in db [:env :mines])]
      (when (and state (seq (dissoc env-mines current-mine)))
        {:loading? (not planned?)
+        :unavailable (->> (dissoc env-mines current-mine)
+                          (filter #(= :error (get-in db [:other-mines :organisms (key %) :status])))
+                          (map (comp :name val))
+                          (sort)
+                          (vec))
         :rows (panel-rows
                {:genes (:genes state)
                 :results (:results state)

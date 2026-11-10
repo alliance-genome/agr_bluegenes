@@ -166,8 +166,8 @@
     [mini-loader "tiny"]))
 
 (defn other-mines-panel []
-  (let [{:keys [loading? rows]} @(subscribe [::other-mines/panel])]
-    (when (or loading? (seq rows))
+  (let [{:keys [loading? rows unavailable]} @(subscribe [::other-mines/panel])]
+    (when (or loading? (seq rows) (seq unavailable))
       [section
        {:title "In other Alliance mines"
         :id "other-alliance-mines"}
@@ -189,7 +189,10 @@
                                                             :type "Gene"
                                                             :id id})}
                       (str (or (:symbol row) nom) " in " mine-name)]
-                     [:span mine-name " " [other-mines-status row]])]])]])])))
+                     [:span mine-name " " [other-mines-status row]])]])]])
+       (when (seq unavailable)
+         [:p.text-muted.other-alliance-mines-unavailable
+          "Unavailable: " (str/join ", " unavailable)])])))
 
 (defn summary-location [[label value]]
   [:<>
