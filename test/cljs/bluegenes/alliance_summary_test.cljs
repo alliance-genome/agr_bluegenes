@@ -41,10 +41,12 @@
     (is (= "WB:WBGene00000913" (to-alliance-curie "WBGene00000913" "C. elegans")))
     (is (= "SGD:S000001855" (to-alliance-curie "S000001855" "S. cerevisiae")))
     (is (= "ZFIN:ZDB-GENE-000616-13" (to-alliance-curie "ZDB-GENE-000616-13" "D. rerio"))))
-  (testing "bare numbers are prefixed by organism, as short name or taxon id"
-    (is (= "RGD:2018" (to-alliance-curie "2018" "R. norvegicus")))
-    (is (= "RGD:2018" (to-alliance-curie "2018" 10116)))
-    (is (= "MGI:104537" (to-alliance-curie "104537" "Mus musculus"))))
+  (testing "bare numbers are never prefixed: in the MOD mines they are Entrez ids"
+    (is (nil? (to-alliance-curie "2018" "R. norvegicus")))
+    (is (nil? (to-alliance-curie "2018" 10116)))
+    (is (nil? (to-alliance-curie "104537" "Mus musculus")))
+    (is (nil? (to-alliance-curie "110292" "D. rerio")))
+    (is (nil? (to-alliance-curie "113563677" "D. erecta"))))
   (testing "bare numbers for human are not mapped (HumanMine uses Entrez ids)"
     (is (nil? (to-alliance-curie "7157" "H. sapiens")))
     (is (nil? (to-alliance-curie "11998" "9606"))))
@@ -62,7 +64,7 @@
   (is (= "HGNC:11998" (as/curie-from-rows {:results [["HGNC:11998" "H. sapiens" "9606"]]})))
   (is (= "FB:FBgn0003731" (as/curie-from-rows {:results [["FBgn0003731" "D. melanogaster" 7227]]})))
   (testing "short name is used when the taxon id is missing"
-    (is (= "RGD:2018" (as/curie-from-rows {:results [["2018" "R. norvegicus" nil]]}))))
+    (is (= "FB:FBgn0003731" (as/curie-from-rows {:results [["FBgn0003731" "D. melanogaster" nil]]}))))
   (is (nil? (as/curie-from-rows {:results []}))))
 
 (deftest urls
@@ -113,3 +115,23 @@
      (is (= {:status :not-found} @(rf/subscribe [::as/block])))
      (rf/dispatch [::as/failure key "HTTP 500"])
      (is (= {:status :error :message "HTTP 500"} @(rf/subscribe [::as/block]))))))
+
+(deftest observed-mod-mine-rows
+  ;; Gene.primaryIdentifier, Gene.organism.shortName, Gene.organism.taxonId as
+  ;; read from the production mines.
+  (testing "WormMine"
+    (is (= "WB:WBGene00000001" (as/curie-from-rows {:results [["WBGene00000001" "C. elegans" "6239"]]})))
+    (is (nil? (as/curie-from-rows {:results [["110292" "D. rerio" "7955"]]})) "Entrez id")
+    (is (nil? (as/curie-from-rows {:results [["Cang_2012_03_13_00001.g1" "C. angaria" "860376"]]})))
+    (is (nil? (as/curie-from-rows {:results [["WBGene00026000" "C. briggsae" "6238"]]}))
+        "a WBGene id of another nematode is not an Alliance gene"))
+  (testing "FlyMine"
+    (is (= "FB:FBgn0000001" (as/curie-from-rows {:results [["FBgn0000001" "D. melanogaster" "7227"]]})))
+    (is (nil? (as/curie-from-rows {:results [["113563677" "D. erecta" "7220"]]}))))
+  (testing "YeastMine"
+    (is (= "SGD:S000000001" (as/curie-from-rows {:results [["S000000001" "S. cerevisiae" "4932"]]})))
+    (is (nil? (as/curie-from-rows {:results [["L000003336" "S. cerevisiae" "4932"]]})) "legacy id")
+    (is (nil? (as/curie-from-rows {:results [["AFLA_000690" "A. flavus NRRL3357" "332952"]]}))))
+  (testing "a bare accession of the wrong species is not mapped"
+    (is (nil? (to-alliance-curie "FBgn0000001" "C. elegans")))
+    (is (nil? (to-alliance-curie "S000000001" "D. melanogaster")))))

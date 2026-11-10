@@ -1,8 +1,12 @@
 (ns bluegenes.alliance-curie
   "Maps a mine gene identifier to the CURIE the Alliance of Genome Resources
-  uses for the gene (HGNC:11998, MGI:104537, FB:FBgn0003731). AllianceMine
-  stores CURIEs already. Other mines store bare identifiers (FBgn..., WBGene...,
-  S000...), which are prefixed by their shape, or by organism (MGI, RGD) for bare numbers."
+  uses for the gene (HGNC:11998, MGI:104537, FB:FBgn0003731). AllianceMine,
+  MouseMine and RatMine store CURIEs already. WormMine, FlyMine and YeastMine
+  store the bare accession (WBGene00000001, FBgn0000001, S000000001), which is
+  prefixed by its shape when the gene's organism is the species of that
+  prefix. Bare numbers are never mapped: in those mines they are NCBI Entrez
+  ids of other species (D. rerio in WormMine, D. erecta in FlyMine), and
+  MGI:<entrez> or RGD:<entrez> would name a different gene."
   (:require [clojure.string :as str]))
 
 (def ^:private species
@@ -20,11 +24,6 @@
    [#"S\d{9}" "SGD"]
    [#"ZDB-GENE-[\w-]+" "ZFIN"]])
 
-(def ^:private numeric-prefixes
-  "Bare numbers are only prefixed for these. HGNC is excluded because HumanMine
-  primaryIdentifier is an Entrez id, which would map to a different HGNC gene."
-  #{"MGI" "RGD"})
-
 (defn species-prefix
   "CURIE prefix of the species given as a short name, full name or taxon id
   (string or number), or nil."
@@ -39,13 +38,15 @@
 
 (defn to-alliance-curie
   "Alliance gene CURIE for `primary-identifier` of an organism given by short
-  name or taxon id, or nil when it can not be mapped."
+  name or taxon id, or nil when it can not be mapped. A bare accession is
+  prefixed only when the organism, if given, is the species of the prefix, so a
+  WBGene id of another Caenorhabditis species gives nil."
   [primary-identifier organism]
   (let [id (str/trim (str primary-identifier))
-        prefix (or (shape-prefix id)
-                   (let [p (species-prefix organism)]
-                     (when (and (numeric-prefixes p) (re-matches #"\d+" id)) p)))]
+        prefix (shape-prefix id)]
     (cond
       (str/blank? id) nil
       (str/includes? id ":") id
-      prefix (str prefix ":" id))))
+      (and prefix (or (str/blank? (str organism))
+                      (= prefix (species-prefix organism))))
+      (str prefix ":" id))))
