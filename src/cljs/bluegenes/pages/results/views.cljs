@@ -7,6 +7,7 @@
             [bluegenes.pages.results.orthologs :as orthologs]
             [bluegenes.pages.results.orthologs-compare :as orthologs-compare]
             [bluegenes.pages.results.send-to-mine :as send-to-mine]
+            [bluegenes.pages.results.bundle :as bundle]
             [bluegenes.pages.results.cite :as cite]
             [bluegenes.pages.results.enrichment.views :as enrichment]
             [bluegenes.pages.results.widgets.views :as widgets]
@@ -168,7 +169,8 @@
        [:<>
         [orthologs/convert-button (:name list)]
         [orthologs-compare/compare-button (:name list)]
-        [send-to-mine/send-button (:name list)]])]))
+        [send-to-mine/send-button (:name list)]
+        [bundle/download-button list]])]))
 
 (defn scroll-into-view! [id]
   (when-let [elem (or (nil? id) (gdom/getElement id))]
