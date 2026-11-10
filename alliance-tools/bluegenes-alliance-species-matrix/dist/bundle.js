@@ -88,12 +88,25 @@
 			body: requestBody(q)
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) {
+					var err = new Error('HTTP ' + res.status);
+					err.status = res.status;
+					throw err;
+				}
 				return res.json();
 			})
 			.then(function (json) {
 				return (json && json.results) || [];
 			});
+	}
+
+	// HTTP 400 is the mine rejecting a path: its model lacks that data. Resolves to
+	// null then; any other failure still rejects.
+	function optional(promise) {
+		return promise.catch(function (err) {
+			if (err && err.status === 400) return null;
+			throw err;
+		});
 	}
 
 	// Runs one query per chunk of ids and concatenates the rows.
@@ -193,8 +206,11 @@
 		return cell.genes.map(function (g) { return g.symbol; }).join(', ');
 	}
 
-	function cellLabel(gene, species, cell) {
+	function cellLabel(gene, species, cell, noPhenotypes) {
 		if (!cell) return 'No ortholog of ' + gene + ' in ' + species;
+		if (noPhenotypes) {
+			return gene + ' in ' + species + ': ' + cell.diseases + ' direct disease annotations. Genes: ' + symbols(cell);
+		}
 		return (
 			gene + ' in ' + species + ': ' + cell.phenotypes + ' phenotype annotations, ' +
 			cell.diseases + ' direct disease annotations. Genes: ' + symbols(cell)
@@ -244,14 +260,20 @@
 		box.appendChild(table);
 	}
 
-	function render(el, genes, species, model, totalGenes) {
+	// noPhenotypes: the mine has no phenotype annotations, so cells show disease counts only.
+	function render(el, genes, species, model, totalGenes, noPhenotypes) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-species-matrix');
 		if (totalGenes > MAX_GENES) {
 			wrap.appendChild(node('p', 'Showing the first ' + MAX_GENES + ' of ' + totalGenes + ' genes.'));
 		}
 		wrap.appendChild(
-			node('p', 'Each cell: phenotype annotations / direct disease annotations, for the gene or its orthologs in that species. Click a cell to list them.')
+			node(
+				'p',
+				noPhenotypes
+					? 'Each cell: direct disease annotations, for the gene or its orthologs in that species. This mine has no phenotype annotations. Click a cell to list them.'
+					: 'Each cell: phenotype annotations / direct disease annotations, for the gene or its orthologs in that species. Click a cell to list them.'
+			)
 		);
 
 		var max = 0;
@@ -279,13 +301,13 @@
 			species.forEach(function (sp) {
 				var cell = (model.cells[g.id] || {})[sp];
 				var td = node('td');
-				var text = cellLabel(name, sp, cell);
+				var text = cellLabel(name, sp, cell, noPhenotypes);
 				td.title = text;
 				if (!cell) {
 					td.textContent = '-';
 					td.setAttribute('aria-label', text);
 				} else {
-					var btn = node('button', cell.phenotypes + ' / ' + cell.diseases, 'btn btn-link btn-xs');
+					var btn = node('button', noPhenotypes ? String(cell.diseases) : cell.phenotypes + ' / ' + cell.diseases, 'btn btn-link btn-xs');
 					btn.type = 'button';
 					btn.title = text;
 					btn.setAttribute('aria-label', text);
@@ -304,7 +326,14 @@
 		wrap.appendChild(table);
 		wrap.appendChild(detail);
 		wrap.appendChild(
-			node('p', 'Phenotype ontologies differ per species (MP, WBPhenotype, FBcv, ZP, HP), so phenotype counts are not directly comparable across columns. Disease counts exclude annotations via orthology and is_not_implicated_in.', 'alliance-species-matrix-note')
+			node(
+				'p',
+				(noPhenotypes
+					? ''
+					: 'Phenotype ontologies differ per species (MP, WBPhenotype, FBcv, ZP, HP), so phenotype counts are not directly comparable across columns. ') +
+					'Disease counts exclude annotations via orthology and is_not_implicated_in.',
+				'alliance-species-matrix-note'
+			)
 		);
 		el.appendChild(wrap);
 	}
@@ -329,10 +358,15 @@
 				}
 			});
 			return Promise.all([
-				runChunked(svc, phenotypesQuery, targets),
+				optional(runChunked(svc, phenotypesQuery, targets)),
 				runChunked(svc, diseasesQuery, targets)
 			]).then(function (ann) {
-				return { species: species, genes: genes, model: buildMatrix(genes, orthRows, ann[0], ann[1]) };
+				var model = buildMatrix(genes, orthRows, ann[0] || [], ann[1]);
+				// A mine can list many organisms (MOD mines carry dozens of genomes): keep the ones with a gene or ortholog in the matrix.
+				var used = species.filter(function (sp) {
+					return genes.some(function (g) { return model.cells[g.id] && model.cells[g.id][sp]; });
+				});
+				return { species: used, genes: genes, model: model, noPhenotypes: ann[0] === null };
 			});
 		});
 	}
@@ -362,7 +396,7 @@
 					message(el, 'No genes to show');
 					return;
 				}
-				render(el, r.genes, r.species, r.model, total);
+				render(el, r.genes, r.species, r.model, total, r.noPhenotypes);
 			})
 			.catch(function (err) {
 				console.error('Species matrix failed', err);
