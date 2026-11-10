@@ -120,7 +120,7 @@ test('main renders rows, total, attribution link and asks the API once for page 
 	assert.ok(log[0].url.startsWith(MINE + '/service/query/results'));
 	assert.strictEqual(log[0].init.method, 'POST');
 	assert.strictEqual(el.find('tr').length, 3);
-	assert.ok(texts(el, 'p').includes('1-2 of 2160 records'));
+	assert.ok(texts(el, 'p').includes('1-2 of 2160 records (alleles and variants), 2 variant rows on this page'));
 	assert.ok(texts(el, 'p').some((t) => t.startsWith('Data from the Alliance of Genome Resources API')));
 	assert.strictEqual(el.find('a')[0].getAttribute('href'), 'https://www.alliancegenome.org/gene/MGI:104537');
 });
@@ -217,7 +217,7 @@ test('a filter change refetches page 1 with filter params; Next asks for page 2'
 	el.find('select')[0].listeners.change();
 	await tick();
 	assert.ok(gets[2].includes('page=1') && gets[2].includes('filter.variantType=SNP'));
-	assert.ok(texts(el, 'p').includes('1-2 of 65 records'));
+	assert.ok(texts(el, 'p').includes('1-2 of 65 records (alleles and variants), 2 variant rows on this page'));
 	// Options stay from the unfiltered load.
 	assert.ok(el.find('select')[1].children.map((o) => o.textContent).includes('intron_variant'));
 });
@@ -285,4 +285,37 @@ test('a list shows a gene selector and switching genes loads that gene', async (
 
 test('main rejects a missing entity', () => {
 	assert.throws(() => tool.main(fakeEl(), { root: MINE }, null), /signature/);
+});
+
+test('config accepts a single id and a list', () => {
+    const cfg = require('../config.json');
+    assert.deepStrictEqual(cfg.accepts, ['id', 'ids']);
+});
+
+test('a failed page request keeps the filters and pager and restores the page', async () => {
+    const gets = [];
+    let fail = false;
+    globalThis.fetch = stub(['8', 'MGI:104537', 'Brca1', 'M. musculus', '10090'], async (u) => {
+        gets.push(u);
+        return fail ? new Error('boom') : fx('mouse-brca1-page1.json');
+    }, []);
+    const errors = [];
+    const orig = console.error;
+    console.error = (...a) => errors.push(a);
+    const el = fakeEl();
+    tool.main(el, { root: MINE }, entity('8'), {}, {}, () => {});
+    await tick();
+    await tick();
+    fail = true;
+    el.find('button').find((b) => b.textContent === 'Next').listeners.click();
+    await tick();
+    console.error = orig;
+    assert.strictEqual(errors.length, 1);
+    assert.ok(texts(el, 'p').includes('Could not load variants from the Alliance API'));
+    assert.strictEqual(el.find('select').length, 2);
+    assert.ok(texts(el, 'p').some((t) => t.startsWith('1-2 of 2160')));
+    fail = false;
+    el.find('button').find((b) => b.textContent === 'Next').listeners.click();
+    await tick();
+    assert.ok(gets[gets.length - 1].includes('page=2'));
 });

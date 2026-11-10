@@ -328,11 +328,11 @@
 
 			// A new gene resets page and filters. view.req guards each request against a newer one.
 			function start() {
-				view = { page: 1, type: '', consequence: '', types: [], consequences: [], req: 0 };
+				view = { page: 1, type: '', consequence: '', types: [], consequences: [], req: 0, last: null };
 				load();
 			}
 
-			function load() {
+			function load(prev) {
 				var v = view;
 				var myReq = ++v.req;
 				var curie = toAllianceCurie(cur.identifier, cur.taxonId || cur.organism);
@@ -348,18 +348,28 @@
 				var current = function () { return !stale() && view === v && v.req === myReq; };
 				fetchVariants(base, curie, v.page, { type: v.type, consequence: v.consequence })
 					.then(function (res) {
-						if (current()) render(curie, res);
+						if (!current()) return;
+						v.last = res;
+						render(curie, res);
 					})
 					.catch(function (err) {
 						if (!current()) return;
 						console.error('variants: Alliance request failed', err);
+						var msg = 'Could not load variants from the Alliance API';
+						if (prev && v.last) {
+							v.page = prev.page;
+							v.type = prev.type;
+							v.consequence = prev.consequence;
+							render(curie, v.last, msg);
+							return;
+						}
 						clear(panel);
-						panel.appendChild(node('span', 'Could not load variants from the Alliance API'));
+						panel.appendChild(node('span', msg));
 						panel.appendChild(attribution(curie));
 					});
 			}
 
-			function render(curie, res) {
+			function render(curie, res, errMsg) {
 				var v = view;
 				var total = res && typeof res.total === 'number' ? res.total : 0;
 				var results = (res && res.results) || [];
@@ -372,23 +382,25 @@
 					panel.appendChild(attribution(curie));
 					return;
 				}
+				var prevOf = function () { return { page: v.page, type: v.type, consequence: v.consequence }; };
 				var bar = node('div', null, 'alliance-variants-filters');
-				bar.appendChild(select('Type', v.types, v.type, function (x) { v.type = x; v.page = 1; load(); }));
-				bar.appendChild(select('Consequence', v.consequences, v.consequence, function (x) { v.consequence = x; v.page = 1; load(); }));
+				bar.appendChild(select('Type', v.types, v.type, function (x) { var p = prevOf(); v.type = x; v.page = 1; load(p); }));
+				bar.appendChild(select('Consequence', v.consequences, v.consequence, function (x) { var p = prevOf(); v.consequence = x; v.page = 1; load(p); }));
 				panel.appendChild(bar);
+				if (errMsg) panel.appendChild(node('p', errMsg, 'alliance-variants-error'));
 				var rows = [];
 				results.forEach(function (r) {
 					toVariantRows(r).forEach(function (x) { rows.push(x); });
 				});
 				var first = (v.page - 1) * PAGE_SIZE + 1;
 				var last = (v.page - 1) * PAGE_SIZE + results.length;
-				var count = total ? first + '-' + last + ' of ' + total + ' records' : 'No variants match the filters';
+				var count = total ? first + '-' + last + ' of ' + total + ' records (alleles and variants), ' + rows.length + ' variant rows on this page' : 'No variants match the filters';
 				panel.appendChild(node('p', count, 'alliance-variants-count'));
 				if (rows.length) panel.appendChild(table(rows));
 				else if (total) panel.appendChild(node('p', 'No variants on this page'));
 				var pager = node('div', null, 'alliance-variants-pager');
-				pager.appendChild(button('Previous', v.page <= 1, function () { if (v.page > 1) { v.page -= 1; load(); } }));
-				pager.appendChild(button('Next', last >= total, function () { if (last < total) { v.page += 1; load(); } }));
+				pager.appendChild(button('Previous', v.page <= 1, function () { if (v.page > 1) { var p = prevOf(); v.page -= 1; load(p); } }));
+				pager.appendChild(button('Next', last >= total, function () { if (last < total) { var p = prevOf(); v.page += 1; load(p); } }));
 				panel.appendChild(pager);
 				panel.appendChild(attribution(curie));
 			}
