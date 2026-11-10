@@ -180,3 +180,8 @@ test('missing entity value shows an empty message, bad signature throws', () => 
 	assert.ok(el.textContent.includes('No alleles, models or paralogs'));
 	assert.throws(() => tool.main(null, {}, {}));
 });
+
+test('config.json accepts both id and ids', () => {
+	const config = require('../config.json');
+	assert.deepStrictEqual(config.accepts, ['id', 'ids']);
+});
