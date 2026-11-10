@@ -14,6 +14,40 @@
 		return /\/service$/.test(r) ? r : r + '/service';
 	}
 
+	// BlueGenes passes the mine's model as service.model.classes. Resolves a dotted
+	// path in it, following references and collections and taking fields from the
+	// class and its superclasses. True when no model is passed.
+	function fieldOf(classes, cls, name, seen) {
+		var c = classes[cls];
+		if (!c || seen[cls]) return null;
+		seen[cls] = true;
+		var f = (c.attributes && c.attributes[name]) || (c.references && c.references[name]) || (c.collections && c.collections[name]);
+		if (f) return f;
+		var ext = c.extends || [];
+		for (var i = 0; i < ext.length; i++) {
+			var r = fieldOf(classes, ext[i], name, seen);
+			if (r) return r;
+		}
+		return null;
+	}
+
+	function hasPath(service, path) {
+		var classes = service && service.model && service.model.classes;
+		if (!classes) return true;
+		var parts = String(path).split('.');
+		var cls = parts[0];
+		if (!classes[cls]) return false;
+		for (var i = 1; i < parts.length; i++) {
+			var f = fieldOf(classes, cls, parts[i], {});
+			if (!f) return false;
+			if (i < parts.length - 1) {
+				if (!f.referencedType) return false;
+				cls = f.referencedType;
+			}
+		}
+		return true;
+	}
+
 	var MAX_ROWS = 2000;
 	var MAX_ANNOTATION_ROWS = 50000;
 
@@ -26,6 +60,10 @@
 		'Gene.alleles.alleleType',
 		'Gene.alleles.category'
 	];
+	// The other paths of ALLELE_VIEW are required (config.json depends). alleleSymbol is
+	// missing in YeastMine, and alleleType and category in FlyMine and YeastMine, so each
+	// is left out of the query when the model lacks it.
+	var ALLELE_OPTIONAL = ['Gene.alleles.alleleSymbol', 'Gene.alleles.alleleType', 'Gene.alleles.category'];
 	var PHENOTYPE_VIEW = ['Gene.alleles.id', 'Gene.alleles.phenotypeAnnotations.id'];
 	var DISEASE_VIEW = ['Gene.alleles.id', 'Gene.alleles.diseaseAnnotations.id'];
 	var MODEL_VIEW = [
@@ -52,6 +90,26 @@
 		models: 'Gene.diseaseModels.id',
 		paralogs: 'Gene.paralogues.id'
 	};
+
+	function alleleViewFor(service) {
+		return ALLELE_VIEW.filter(function (path) {
+			return ALLELE_OPTIONAL.indexOf(path) === -1 || hasPath(service, path);
+		});
+	}
+
+	// Tabs whose queries the mine's model can run. Models and paralogs are optional:
+	// FlyMine has no Gene.diseaseModels, YeastMine neither and no Gene.paralogues,
+	// WormMine has no Gene.alleles at all (the tool is hidden there by depends).
+	function availableTabs(service) {
+		var need = {
+			alleles: [],
+			models: MODEL_VIEW.concat(COUNT_VIEW.models),
+			paralogs: PARALOG_VIEW.concat(COUNT_VIEW.paralogs)
+		};
+		return TABS.filter(function (t) {
+			return need[t.key].every(function (path) { return hasPath(service, path); });
+		});
+	}
 
 	function escapeXml(s) {
 		return String(s)
@@ -131,16 +189,20 @@
 		return by;
 	}
 
-	function toAlleleRow(r, phenotypes, diseases) {
+	// A row is read by column name, so a view without the optional columns still maps.
+	function toAlleleRow(r, phenotypes, diseases, view) {
+		var at = {};
+		(Array.isArray(view) ? view : ALLELE_VIEW).forEach(function (path, i) { at[path] = r[i]; });
+		var id = at['Gene.alleles.id'];
 		return {
-			source: r[0],
-			id: r[1],
-			identifier: r[2],
-			symbol: plain(r[3] || r[4]),
-			type: r[5] || '',
-			category: r[6] || '',
-			phenotypes: phenotypes[r[1]] || 0,
-			diseases: diseases[r[1]] || 0
+			source: at['Gene.primaryIdentifier'],
+			id: id,
+			identifier: at['Gene.alleles.primaryIdentifier'],
+			symbol: plain(at['Gene.alleles.alleleSymbol'] || at['Gene.alleles.symbol']),
+			type: at['Gene.alleles.alleleType'] || '',
+			category: at['Gene.alleles.category'] || '',
+			phenotypes: phenotypes[id] || 0,
+			diseases: diseases[id] || 0
 		};
 	}
 
@@ -244,7 +306,7 @@
 		{ key: 'paralogs', label: 'Paralogs', empty: 'No paralogs in this mine' }
 	];
 
-	function renderPanel(panel, key, rows, navigate, multi, truncated) {
+	function renderPanel(panel, key, rows, navigate, multi, truncated, cols) {
 		clear(panel);
 		var tab = TABS.filter(function (t) { return t.key === key; })[0];
 		if (!rows.length) {
@@ -254,9 +316,19 @@
 		var heads;
 		var cells;
 		if (key === 'alleles') {
-			heads = ['Identifier', 'Symbol', 'Type', 'Category', 'Phenotype annotations', 'Disease annotations'];
+			cols = cols || {};
+			heads = ['Identifier', 'Symbol'];
+			if (cols.type) heads.push('Type');
+			if (cols.category) heads.push('Category');
+			if (cols.phenotypes) heads.push('Phenotype annotations');
+			if (cols.diseases) heads.push('Disease annotations');
 			cells = function (r) {
-				return [reportLink(r.identifier, 'Allele', r.id, navigate), r.symbol, r.type, r.category, r.phenotypes, r.diseases];
+				var c = [reportLink(r.identifier, 'Allele', r.id, navigate), r.symbol];
+				if (cols.type) c.push(r.type);
+				if (cols.category) c.push(r.category);
+				if (cols.phenotypes) c.push(r.phenotypes);
+				if (cols.diseases) c.push(r.diseases);
+				return c;
 			};
 		} else if (key === 'models') {
 			heads = ['Model', 'Disease', 'Association type', 'Data provider'];
@@ -283,17 +355,30 @@
 		panel.appendChild(table(heads, rows, cells));
 	}
 
-	function loadTab(root, key, ids) {
+	// Which allele columns the mine's model supports.
+	function alleleColumns(service) {
+		var view = alleleViewFor(service);
+		return {
+			view: view,
+			type: view.indexOf('Gene.alleles.alleleType') !== -1,
+			category: view.indexOf('Gene.alleles.category') !== -1,
+			phenotypes: PHENOTYPE_VIEW.every(function (p) { return hasPath(service, p); }),
+			diseases: DISEASE_VIEW.every(function (p) { return hasPath(service, p); })
+		};
+	}
+
+	function loadTab(root, key, ids, cols) {
 		if (key === 'alleles') {
 			var sort = 'Gene.primaryIdentifier asc Gene.alleles.primaryIdentifier asc';
+			var none = Promise.resolve([]);
 			return Promise.all([
-				fetchRows(root, buildQuery(ALLELE_VIEW, ids, sort), MAX_ROWS),
-				fetchRows(root, buildQuery(PHENOTYPE_VIEW, ids), MAX_ANNOTATION_ROWS),
-				fetchRows(root, buildQuery(DISEASE_VIEW, ids), MAX_ANNOTATION_ROWS)
+				fetchRows(root, buildQuery(cols.view, ids, sort), MAX_ROWS),
+				cols.phenotypes ? fetchRows(root, buildQuery(PHENOTYPE_VIEW, ids), MAX_ANNOTATION_ROWS) : none,
+				cols.diseases ? fetchRows(root, buildQuery(DISEASE_VIEW, ids), MAX_ANNOTATION_ROWS) : none
 			]).then(function (res) {
 				var ph = countBy(res[1]);
 				var di = countBy(res[2]);
-				return sortAlleles(res[0].map(function (r) { return toAlleleRow(r, ph, di); }));
+				return sortAlleles(res[0].map(function (r) { return toAlleleRow(r, ph, di, cols.view); }));
 			});
 		}
 		if (key === 'models') {
@@ -324,6 +409,8 @@
 		}
 		var root = serviceRoot(service.root);
 		var multi = list.length > 1;
+		var tabs = availableTabs(service);
+		var cols = alleleColumns(service);
 		var stale = function () { return el.__agrAllelesReq !== token; };
 
 		var bar = node('div', null, 'alliance-alleles-models-tabs');
@@ -350,7 +437,7 @@
 				clear(panel);
 				panel.appendChild(node('span', 'Could not load ' + active + ' from the mine'));
 			} else if (s.status === 'done') {
-				renderPanel(panel, active, s.rows, navigate, multi, s.rows.length >= MAX_ROWS);
+				renderPanel(panel, active, s.rows, navigate, multi, s.rows.length >= MAX_ROWS, cols);
 			}
 		}
 
@@ -358,7 +445,7 @@
 			var s = st[key];
 			if (s.status !== 'idle') return;
 			s.status = 'loading';
-			loadTab(root, key, list)
+			loadTab(root, key, list, cols)
 				.then(function (rows) {
 					if (stale()) return;
 					s.rows = rows;
@@ -378,19 +465,19 @@
 		}
 
 		function refreshLabels() {
-			TABS.forEach(function (t) { buttons[t.key].textContent = labelOf(t); });
+			tabs.forEach(function (t) { buttons[t.key].textContent = labelOf(t); });
 		}
 
 		function select(key) {
 			active = key;
-			TABS.forEach(function (t) {
+			tabs.forEach(function (t) {
 				buttons[t.key].setAttribute('aria-selected', t.key === key ? 'true' : 'false');
 			});
 			load(key);
 			showActive();
 		}
 
-		TABS.forEach(function (t) {
+		tabs.forEach(function (t) {
 			st[t.key] = { status: 'idle', rows: [], count: null };
 			var b = node('button', t.label, 'btn btn-default');
 			b.setAttribute('type', 'button');
@@ -402,7 +489,7 @@
 		});
 
 		select('alleles');
-		TABS.forEach(function (t) {
+		tabs.forEach(function (t) {
 			fetchCount(root, list, t.key)
 				.then(function (n) {
 					if (stale()) return;
@@ -424,6 +511,9 @@
 		escapeXml: escapeXml,
 		plain: plain,
 		toAlleleRow: toAlleleRow,
+		hasPath: hasPath,
+		availableTabs: availableTabs,
+		alleleColumns: alleleColumns,
 		toModelRow: toModelRow,
 		toParalogRow: toParalogRow,
 		countBy: countBy
