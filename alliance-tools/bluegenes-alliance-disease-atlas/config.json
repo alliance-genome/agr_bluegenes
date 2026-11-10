@@ -1,6 +1,18 @@
 {
   "accepts": ["id"],
   "classes": ["DOTerm"],
+  "depends": [
+    "DOTerm.id",
+    "DOTerm.identifier",
+    "DOTerm.name",
+    "Gene.symbol",
+    "Gene.primaryIdentifier",
+    "Gene.organism.shortName",
+    "Gene.diseaseAnnotation.ontologyTerm.identifier",
+    "Gene.diseaseAnnotation.ontologyTerm.name",
+    "Gene.diseaseAnnotation.qualifier",
+    "Gene.diseaseAnnotation.evidence.code.code"
+  ],
   "files": {
     "js": "dist/bundle.js"
   },

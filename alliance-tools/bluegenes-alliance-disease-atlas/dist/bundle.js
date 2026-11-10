@@ -105,8 +105,24 @@
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
 		}).then(function (res) {
-			if (!res.ok) throw new Error('HTTP ' + res.status);
+			if (!res.ok) {
+				var err = new Error('HTTP ' + res.status);
+				err.status = res.status;
+				throw err;
+			}
 			return res.json();
+		});
+	}
+
+	// HTTP 400 is the mine rejecting a path: its model lacks that part. Optional
+	// queries resolve to the fallback and call onMissing; any other failure still rejects.
+	function optionalRows(sr, q, fallback, onMissing) {
+		return rows(sr, q).catch(function (err) {
+			if (err && err.status === 400) {
+				onMissing();
+				return fallback;
+			}
+			throw err;
 		});
 	}
 
@@ -218,12 +234,19 @@
 
 	// ---- loading ----
 
-	// Resolves to { term, terms: [{identifier, name}], annotations, models, capped }.
+	// Resolves to { term, terms: [{identifier, name}], annotations, models, capped,
+	// modelsUnavailable, childrenUnavailable }.
 	function load(sr, id, includeChildren) {
+		var modelsUnavailable = false;
+		var childrenUnavailable = false;
 		return rows(sr, termQuery(id)).then(function (t) {
-			if (!t.length) return { term: null, terms: [], annotations: [], models: [], capped: false };
+			if (!t.length) {
+				return { term: null, terms: [], annotations: [], models: [], capped: false, modelsUnavailable: false, childrenUnavailable: false };
+			}
 			var term = { id: t[0][0], identifier: t[0][1], name: t[0][2] };
-			var kids = includeChildren ? rows(sr, childTermsQuery(id)) : Promise.resolve([]);
+			var kids = includeChildren
+				? optionalRows(sr, childTermsQuery(id), [], function () { childrenUnavailable = true; })
+				: Promise.resolve([]);
 			return kids.then(function (children) {
 				var seen = {};
 				var terms = [];
@@ -233,13 +256,18 @@
 					terms.push({ identifier: r[1], name: r[2] });
 				});
 				var idents = terms.map(function (x) { return x.identifier; });
-				return Promise.all([rows(sr, annotationQuery(idents)), rows(sr, modelQuery(idents))]).then(function (res) {
+				return Promise.all([
+					rows(sr, annotationQuery(idents)),
+					optionalRows(sr, modelQuery(idents), [], function () { modelsUnavailable = true; })
+				]).then(function (res) {
 					return {
 						term: term,
 						terms: terms,
 						annotations: res[0],
 						models: res[1],
-						capped: res[0].length >= MAX_ROWS || res[1].length >= MAX_ROWS
+						capped: res[0].length >= MAX_ROWS || res[1].length >= MAX_ROWS,
+						modelsUnavailable: modelsUnavailable,
+						childrenUnavailable: childrenUnavailable
 					};
 				});
 			});
@@ -296,7 +324,7 @@
 		return e.label.replace(/<\/?[a-z]+>/gi, '') + (e.type ? ' (' + e.type + ')' : '');
 	}
 
-	function organismSection(org, navigate, withTerm) {
+	function organismSection(org, navigate, withTerm, showModels) {
 		var sec = node('div', null, 'alliance-disease-atlas-organism');
 		var head = node('h4', org.name + ' (' + org.genes.length + ' genes)');
 		sec.appendChild(head);
@@ -311,7 +339,8 @@
 			var table = node('table', null, 'table table-striped');
 			var thead = node('thead');
 			var hr = node('tr');
-			['Gene', 'Direct', 'Via orthology', 'Disease models'].forEach(function (h) { hr.appendChild(node('th', h)); });
+			['Gene', 'Direct', 'Via orthology'].concat(showModels ? ['Disease models'] : [])
+					.forEach(function (h) { hr.appendChild(node('th', h)); });
 			thead.appendChild(hr);
 			table.appendChild(thead);
 			var tbody = node('tbody');
@@ -322,7 +351,7 @@
 				tr.appendChild(first);
 				tr.appendChild(evidenceCell(g.direct, withTerm, annotationText));
 				tr.appendChild(evidenceCell(g.orthology, withTerm, annotationText));
-				tr.appendChild(evidenceCell(g.models, withTerm, modelText));
+				if (showModels) tr.appendChild(evidenceCell(g.models, withTerm, modelText));
 				tbody.appendChild(tr);
 			});
 			table.appendChild(tbody);
@@ -346,7 +375,8 @@
 		var label = node('label', ' ');
 		var box = node('input');
 		box.type = 'checkbox';
-		box.checked = !!includeChildren;
+		box.checked = !!includeChildren && !data.childrenUnavailable;
+		box.disabled = !!data.childrenUnavailable;
 		label.appendChild(box);
 		label.appendChild(document.createTextNode(' include child terms'));
 		box.addEventListener('change', function () { onToggle(!!box.checked); });
@@ -364,12 +394,18 @@
 				'alliance-disease-atlas-summary'
 			)
 		);
+		if (data.modelsUnavailable) {
+			wrap.appendChild(node('p', 'This mine has no disease model data, so the disease models column is left out.', 'alliance-disease-atlas-note'));
+		}
+		if (data.childrenUnavailable) {
+			wrap.appendChild(node('p', 'This mine has no child term data, so only the term itself is used.', 'alliance-disease-atlas-note'));
+		}
 		if (data.capped) wrap.appendChild(node('p', 'Result limit reached, the list may be incomplete.'));
 		if (!g.organisms.length) {
 			wrap.appendChild(node('p', 'No genes annotated to this disease term'));
 		}
 		g.organisms.forEach(function (o) {
-			wrap.appendChild(organismSection(o, navigate, includeChildren));
+			wrap.appendChild(organismSection(o, navigate, includeChildren, !data.modelsUnavailable));
 		});
 		el.appendChild(wrap);
 	}
