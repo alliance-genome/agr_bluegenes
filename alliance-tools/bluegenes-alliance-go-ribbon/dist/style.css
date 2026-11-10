@@ -1,0 +1,22 @@
+.alliance-go-ribbon { overflow-x: auto; }
+.alliance-go-ribbon-controls { margin: 0 0 8px; }
+.alliance-go-ribbon-controls label { font-weight: 400; margin-right: 12px; }
+.alliance-go-ribbon-grid { border-collapse: collapse; font-size: 12px; }
+.alliance-go-ribbon-grid th,
+.alliance-go-ribbon-grid td { border: 1px solid #fff; padding: 0; text-align: center; min-width: 30px; height: 26px; }
+.alliance-go-ribbon-grid thead th { padding: 2px 4px; font-weight: 600; vertical-align: bottom; }
+.alliance-go-ribbon-grid thead th.alliance-go-ribbon-group { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; font-weight: 400; height: 150px; }
+.alliance-go-ribbon-grid tbody th { padding: 2px 8px; text-align: left; font-weight: 400; white-space: nowrap; }
+.alliance-go-ribbon-cell { display: block; width: 100%; height: 100%; min-height: 26px; border: 0; padding: 0 4px; font: inherit; cursor: pointer; background: transparent; color: inherit; }
+.alliance-go-ribbon-cell:disabled { cursor: default; }
+.alliance-go-ribbon-cell:focus { outline: 2px solid #1a4f8b; outline-offset: -2px; }
+.alliance-go-ribbon-cell[aria-pressed="true"] { box-shadow: inset 0 0 0 2px #1a1a1a; }
+.alliance-go-ribbon-l0 { background: #f4f4f4; }
+.alliance-go-ribbon-l1 { background: #d6e6f5; color: #1a1a1a; }
+.alliance-go-ribbon-l2 { background: #9cc3e6; color: #1a1a1a; }
+.alliance-go-ribbon-l3 { background: #4f8fcc; color: #fff; }
+.alliance-go-ribbon-l4 { background: #1a4f8b; color: #fff; }
+.alliance-go-ribbon-note { margin: 8px 0; }
+.alliance-go-ribbon-details { margin-top: 12px; }
+.alliance-go-ribbon-details h4 { font-size: 14px; margin: 0 0 6px; }
+.alliance-go-ribbon-source { margin: 8px 0 0; font-size: 12px; }
