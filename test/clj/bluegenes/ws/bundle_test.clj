@@ -54,3 +54,30 @@
     (is (str/includes? text "InterMine version: 5.1.0"))
     (is (str/includes? text "genes.tsv (3 rows)"))
     (is (str/includes? text "<query/>"))))
+
+(deftest query-xml-subclass
+  (let [xml (bundle/query-xml {:view ["A.s.x"] :list-path "A.s" :subclass [["A.s" "Gene"]]} "l")]
+    (is (< (.indexOf xml "<constraint path=\"A.s\" type=\"Gene\"/>")
+           (.indexOf xml "op=\"IN\"")))))
+
+(deftest annotation-queries-constrain-subject-to-gene
+  (doseq [[file spec] bundle/files
+          :when (str/includes? (first (:view spec)) "Annotation.subject")]
+    (is (some #{[(:list-path spec) "Gene"]} (:subclass spec)) file)))
+
+(deftest resolve-mine-with-backend-root
+  (let [env {:bluegenes-default-service-root "https://public.example.org/mine"
+             :bluegenes-backend-service-root "http://internal:8080/mine"
+             :bluegenes-default-mine-name "Default"
+             :bluegenes-default-namespace "default"
+             :bluegenes-additional-mines [{:root "https://other.example.org/o" :name "Other" :namespace "o"}]}]
+    (testing "public default maps to the backend root"
+      (is (= "http://internal:8080/mine" (:root (bundle/resolve-mine env "https://public.example.org/mine/")))))
+    (testing "additional mines and the backend root itself match"
+      (is (= "Other" (:name (bundle/resolve-mine env "https://other.example.org/o"))))
+      (is (= "Default" (:name (bundle/resolve-mine env "http://internal:8080/mine")))))
+    (testing "unknown roots are rejected"
+      (is (nil? (bundle/resolve-mine env "http://evil.example.com/mine"))))
+    (testing "no backend root"
+      (is (= "Default" (:name (bundle/resolve-mine (dissoc env :bluegenes-backend-service-root)
+                                                   "https://public.example.org/mine")))))))

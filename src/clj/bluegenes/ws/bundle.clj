@@ -33,6 +33,19 @@
   (when-let [wanted (normalise-root root)]
     (first (filter #(= wanted (normalise-root (:root %))) mines))))
 
+(defn resolve-mine
+  "The mine to call for the root the browser sent. The browser sends the
+  public default service root, while the backend may be configured with a
+  different root for server-side requests (`:bluegenes-backend-service-root`),
+  so the public default maps to the backend root. Returns nil for any other
+  root."
+  [env root]
+  (let [mines (env->mines env)
+        default (normalise-root (:bluegenes-default-service-root env))]
+    (or (find-mine mines root)
+        (when (and default (= default (normalise-root root)))
+          (first mines)))))
+
 (defn xml-escape [s]
   (-> (str s)
       (str/replace "&" "&amp;")
@@ -42,13 +55,17 @@
 
 (defn query-xml
   "PathQuery XML for `view` constrained to `list-name` through `list-path`.
-  `outer` is a collection of paths to join with an outer join."
-  [{:keys [view list-path outer]} list-name]
+  `outer` is a collection of paths to join with an outer join. `subclass` is a
+  collection of [path type] pairs, needed where a path is typed by a
+  superclass such as DiseaseAnnotation.subject (Annotatable)."
+  [{:keys [view list-path outer subclass]} list-name]
   (str "<query name=\"\" model=\"genomic\" view=\""
        (str/join " " view)
        "\" sortOrder=\"" (first view) " asc\">"
        (apply str (for [p outer]
                     (str "<join path=\"" p "\" style=\"OUTER\"/>")))
+       (apply str (for [[p t] subclass]
+                    (str "<constraint path=\"" p "\" type=\"" t "\"/>")))
        "<constraint path=\"" list-path "\" op=\"IN\" value=\""
        (xml-escape list-name) "\"/>"
        "</query>"))
@@ -77,6 +94,7 @@
                                       "DiseaseAnnotation.evidence.publications.pubMedId"]
                                :outer ["DiseaseAnnotation.evidence"
                                        "DiseaseAnnotation.evidence.publications"]
+                               :subclass [["DiseaseAnnotation.subject" "Gene"]]
                                :list-path "DiseaseAnnotation.subject"}]
    ["phenotype_annotations.tsv" {:view ["PhenotypeAnnotation.subject.primaryIdentifier"
                                         "PhenotypeAnnotation.subject.symbol"
@@ -84,6 +102,7 @@
                                         "PhenotypeAnnotation.ontologyTerm.identifier"
                                         "PhenotypeAnnotation.ontologyTerm.name"]
                                  :outer ["PhenotypeAnnotation.ontologyTerm"]
+                                 :subclass [["PhenotypeAnnotation.subject" "Gene"]]
                                  :list-path "PhenotypeAnnotation.subject"}]])
 
 (defn tsv-cell
@@ -125,6 +144,7 @@
                 (throw (ex 502 "The mine could not be reached."))))]
     (case (long (:status res))
       200 (:body res)
+      404 (throw (ex 404 "The mine has no such resource."))
       (401 403) (throw (ex 401 "The mine rejected the token. Log in again."))
       (throw (ex 502 (str "The mine answered with status " (:status res) "."))))))
 
@@ -132,7 +152,11 @@
   "The list's metadata map, or an error if it is missing or not a Gene list
   within the size cap."
   [root token list-name]
-  (let [body (mine-get root token "/lists" {"name" list-name "format" "json"})
+  (let [body (try (mine-get root token "/lists" {"name" list-name "format" "json"})
+                  (catch clojure.lang.ExceptionInfo e
+                    (if (= 404 (:status (ex-data e)))
+                      (throw (ex 404 (str "List not found: " list-name)))
+                      (throw e))))
         lst (->> (json/parse-string body true) :lists
                  (filter #(= list-name (:name %))) first)]
     (cond
@@ -210,7 +234,7 @@
 
 (defn bundle-handler
   [{{:keys [root listName token]} :body-params}]
-  (let [mine (find-mine (env->mines env) root)]
+  (let [mine (resolve-mine env root)]
     (cond
       (nil? mine) (response/bad-request {:error "Unknown mine."})
       (str/blank? listName) (response/bad-request {:error "Missing list name."})

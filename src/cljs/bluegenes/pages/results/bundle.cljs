@@ -6,7 +6,11 @@
             [oops.core :refer [ocall]]
             [bluegenes.config :refer [server-vars]]))
 
-(def ^:private state-path [:results :bundle])
+(defn- state-path
+  "State is kept per list, so one list's progress or error does not show on
+  another."
+  [list-name]
+  [:results :bundle list-name])
 
 (def max-genes
   "Matches the cap in the backend namespace bluegenes.ws.bundle."
@@ -76,33 +80,33 @@
  ::download
  (fn [{db :db} [_ list-name]]
    (let [service (get-in db [:mines (:current-mine db) :service])]
-     {:db (assoc-in db state-path {:downloading? true})
+     {:db (assoc-in db (state-path list-name) {:downloading? true})
       ::download {:url (bundle-url)
                   :body (request-body service list-name)
                   :filename (file-name list-name)
-                  :on-success [::download-success]
-                  :on-failure [::download-failure]}})))
+                  :on-success [::download-success list-name]
+                  :on-failure [::download-failure list-name]}})))
 
 (reg-event-db
  ::download-success
- (fn [db _]
-   (assoc-in db state-path nil)))
+ (fn [db [_ list-name]]
+   (assoc-in db (state-path list-name) nil)))
 
 (reg-event-db
  ::download-failure
- (fn [db [_ message]]
-   (assoc-in db state-path {:error message})))
+ (fn [db [_ list-name message]]
+   (assoc-in db (state-path list-name) {:error message})))
 
 (reg-sub
  ::state
- (fn [db]
-   (get-in db state-path)))
+ (fn [db [_ list-name]]
+   (get-in db (state-path list-name))))
 
 (defn download-button
   "Renders nothing unless the list is a Gene list."
   [{:keys [name size type]}]
   (when (= "Gene" type)
-    (let [{:keys [downloading? error]} @(subscribe [::state])
+    (let [{:keys [downloading? error]} @(subscribe [::state name])
           too-large (too-large? size)]
       [:div.download-bundle
        [:button.btn.btn-slim
