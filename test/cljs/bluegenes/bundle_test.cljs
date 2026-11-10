@@ -25,6 +25,12 @@
   (is (bundle/too-large? 5001))
   (is (not (bundle/too-large? nil))))
 
+(deftest model-support
+  (is (bundle/supports-bundle? {:classes {:DiseaseAnnotation {} :PhenotypeAnnotation {} :Gene {}}}))
+  (is (not (bundle/supports-bundle? {:classes {:Gene {} :Disease {}}})))
+  (is (not (bundle/supports-bundle? {:classes {:DiseaseAnnotation {}}})))
+  (is (not (bundle/supports-bundle? nil))))
+
 (deftest error-messages
   (is (= "Unknown mine." (bundle/error-message 400 {:error "Unknown mine."})))
   (is (= "The download failed (status 500)." (bundle/error-message 500 nil))))

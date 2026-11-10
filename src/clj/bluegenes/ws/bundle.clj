@@ -95,6 +95,7 @@
                                :outer ["DiseaseAnnotation.evidence"
                                        "DiseaseAnnotation.evidence.publications"]
                                :subclass [["DiseaseAnnotation.subject" "Gene"]]
+                               :optional? true
                                :list-path "DiseaseAnnotation.subject"}]
    ["phenotype_annotations.tsv" {:view ["PhenotypeAnnotation.subject.primaryIdentifier"
                                         "PhenotypeAnnotation.subject.symbol"
@@ -103,6 +104,7 @@
                                         "PhenotypeAnnotation.ontologyTerm.name"]
                                  :outer ["PhenotypeAnnotation.ontologyTerm"]
                                  :subclass [["PhenotypeAnnotation.subject" "Gene"]]
+                                 :optional? true
                                  :list-path "PhenotypeAnnotation.subject"}]])
 
 (defn tsv-cell
@@ -144,6 +146,7 @@
                 (throw (ex 502 "The mine could not be reached."))))]
     (case (long (:status res))
       200 (:body res)
+      400 (throw (ex 400 "The mine rejected the query."))
       404 (throw (ex 404 "The mine has no such resource."))
       (401 403) (throw (ex 401 "The mine rejected the token. Log in again."))
       (throw (ex 502 (str "The mine answered with status " (:status res) "."))))))
@@ -193,10 +196,13 @@
        "Date: " date "\n\n"
        "Files\n-----\n"
        (apply str
-              (for [{:keys [file rows truncated? xml]} entries]
-                (str "\n" file " (" rows " rows"
-                     (when truncated? (str ", cut at " max-rows " rows"))
-                     ")\nPathQuery XML:\n" xml "\n")))))
+              (for [{:keys [file rows truncated? skipped? xml]} entries]
+                (if skipped?
+                  (str "\n" file " (not included: the mine rejected the query, "
+                       "its model probably lacks these classes)\nPathQuery XML:\n" xml "\n")
+                  (str "\n" file " (" rows " rows"
+                       (when truncated? (str ", cut at " max-rows " rows"))
+                       ")\nPathQuery XML:\n" xml "\n"))))))
 
 (defn zip-bytes
   "`entries` is a seq of [file-name string]."
@@ -209,15 +215,25 @@
         (.closeEntry zip)))
     (.toByteArray out)))
 
+(defn fetch-file
+  "Rows for one file. An optional file whose query the mine rejects with 400
+  (its model lacks the classes) comes back as {:skipped? true}."
+  [root token [file spec] list-name]
+  (let [xml (query-xml spec list-name)
+        base {:file file :xml xml :header (:view spec)}]
+    (try
+      (merge base (fetch-rows root token xml))
+      (catch clojure.lang.ExceptionInfo e
+        (if (and (:optional? spec) (= 400 (:status (ex-data e))))
+          (assoc base :skipped? true :rows [])
+          (throw e))))))
+
 (defn build-bundle
   "Returns the zip as a byte array for a configured `mine`."
   [mine token list-name]
   (let [root (normalise-root (:root mine))
         lst (fetch-list root token list-name)
-        results (for [[file spec] files
-                      :let [xml (query-xml spec list-name)]]
-                  (assoc (fetch-rows root token xml)
-                         :file file :xml xml :header (:view spec)))
+        results (doall (map #(fetch-file root token % list-name) files))
         readme (readme-text
                 {:mine-name (:name mine)
                  :root root
@@ -229,7 +245,8 @@
                  :entries (for [{:keys [rows] :as r} results]
                             (assoc r :rows (count rows)))})]
     (zip-bytes (cons ["README.txt" readme]
-                     (for [{:keys [file header rows]} results]
+                     (for [{:keys [file header rows skipped?]} results
+                           :when (not skipped?)]
                        [file (rows->tsv header rows)])))))
 
 (defn bundle-handler

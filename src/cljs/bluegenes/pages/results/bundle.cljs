@@ -37,6 +37,12 @@
   [size]
   (and (number? size) (> size max-genes)))
 
+(defn supports-bundle?
+  "The annotation files need DiseaseAnnotation and PhenotypeAnnotation, which
+  only the Alliance model has."
+  [model]
+  (every? #(contains? (:classes model) %) [:DiseaseAnnotation :PhenotypeAnnotation]))
+
 (defn error-message
   "Backend errors are JSON with an :error key; anything else gets a generic
   message that includes the status."
@@ -103,9 +109,10 @@
    (get-in db (state-path list-name))))
 
 (defn download-button
-  "Renders nothing unless the list is a Gene list."
+  "Renders nothing unless the list is a Gene list and the current mine's
+  model has the annotation classes."
   [{:keys [name size type]}]
-  (when (= "Gene" type)
+  (when (and (= "Gene" type) (supports-bundle? @(subscribe [:current-model])))
     (let [{:keys [downloading? error]} @(subscribe [::state name])
           too-large (too-large? size)]
       [:div.download-bundle

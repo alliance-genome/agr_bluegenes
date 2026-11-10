@@ -1,7 +1,9 @@
 (ns bluegenes.ws.bundle-test
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.string :as str]
-            [bluegenes.ws.bundle :as bundle])
+            [bluegenes.ws.bundle :as bundle]
+            [clj-http.client :as client]
+            [cheshire.core :as json])
   (:import [java.io ByteArrayInputStream]
            [java.util.zip ZipInputStream]))
 
@@ -81,3 +83,71 @@
     (testing "no backend root"
       (is (= "Default" (:name (bundle/resolve-mine (dissoc env :bluegenes-backend-service-root)
                                                    "https://public.example.org/mine")))))))
+
+(defn- status-of [f]
+  (try (f) nil (catch clojure.lang.ExceptionInfo e (:status (ex-data e)))))
+
+(deftest mine-get-status-mapping
+  (let [call (fn [status]
+               (with-redefs [client/get (fn [_ _] {:status status :body "b"})]
+                 (status-of #(#'bundle/mine-get "http://m/mine" "t" "/x" {}))))]
+    (is (= 404 (call 404)))
+    (is (= 401 (call 401)))
+    (is (= 401 (call 403)))
+    (is (= 400 (call 400)))
+    (is (= 502 (call 500))))
+  (testing "a thrown exception becomes 502"
+    (with-redefs [client/get (fn [_ _] (throw (java.io.IOException. "down")))]
+      (is (= 502 (status-of #(#'bundle/mine-get "http://m/mine" "t" "/x" {})))))))
+
+(defn- list-body [& lists] (json/generate-string {:lists lists}))
+
+(deftest fetch-list-checks
+  (let [fetch (fn [res]
+                (with-redefs [client/get (fn [_ _] res)]
+                  (bundle/fetch-list "http://m/mine" "t" "L")))
+        status (fn [res] (status-of #(fetch res)))]
+    (testing "found"
+      (is (= 3 (:size (fetch {:status 200 :body (list-body {:name "L" :type "Gene" :size 3})})))))
+    (testing "missing list, by 404 or by empty result"
+      (is (= 404 (status {:status 404 :body ""})))
+      (is (= 404 (status {:status 200 :body (list-body)}))))
+    (testing "non-Gene list"
+      (is (= 400 (status {:status 200 :body (list-body {:name "L" :type "Protein" :size 3})}))))
+    (testing "oversize list"
+      (is (= 413 (status {:status 200 :body (list-body {:name "L" :type "Gene" :size (inc bundle/max-genes)})}))))))
+
+(deftest fetch-rows-unwraps-and-truncates
+  (let [rows (fn [n] (json/generate-string
+                      {:results (for [i (range n)] [{:value (str "g" i)} "plain" nil])}))]
+    (testing "cell maps are unwrapped"
+      (with-redefs [client/get (fn [_ _] {:status 200 :body (rows 2)})]
+        (is (= {:rows [["g0" "plain" nil] ["g1" "plain" nil]] :truncated? false}
+               (bundle/fetch-rows "http://m/mine" "t" "<query/>")))))
+    (testing "more than max-rows is cut"
+      (with-redefs [client/get (fn [_ _] {:status 200 :body (rows (inc bundle/max-rows))})]
+        (let [res (bundle/fetch-rows "http://m/mine" "t" "<query/>")]
+          (is (= bundle/max-rows (count (:rows res))))
+          (is (:truncated? res)))))))
+
+(deftest optional-file-skipped-on-400
+  (let [optional ["d.tsv" {:view ["A.b"] :list-path "A" :optional? true}]
+        required ["g.tsv" {:view ["A.b"] :list-path "A"}]]
+    (with-redefs [client/get (fn [_ _] {:status 400 :body ""})]
+      (is (:skipped? (bundle/fetch-file "http://m/mine" "t" optional "L")))
+      (is (= 400 (status-of #(bundle/fetch-file "http://m/mine" "t" required "L")))))
+    (with-redefs [client/get (fn [_ _] {:status 500 :body ""})]
+      (is (= 502 (status-of #(bundle/fetch-file "http://m/mine" "t" optional "L")))))))
+
+(deftest build-bundle-without-annotation-classes
+  (with-redefs [client/get
+                (fn [url opts]
+                  (cond
+                    (str/ends-with? url "/lists") {:status 200 :body (list-body {:name "L" :type "Gene" :size 1})}
+                    (str/includes? url "/version/") {:status 200 :body "x"}
+                    (str/includes? (get-in opts [:query-params "query"]) "Annotation.") {:status 400 :body ""}
+                    :else {:status 200 :body (json/generate-string {:results [["a"]]})}))]
+    (let [bytes (bundle/build-bundle {:root "http://m/mine" :name "M"} "t" "L")
+          zis (ZipInputStream. (ByteArrayInputStream. bytes))
+          names (loop [acc []] (if-let [e (.getNextEntry zis)] (recur (conj acc (.getName e))) acc))]
+      (is (= ["README.txt" "genes.tsv" "orthologs.tsv"] names)))))
