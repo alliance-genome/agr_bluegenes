@@ -11,6 +11,8 @@
             [imcljs.save :as save]
             [bluegenes.route :as route]
             [bluegenes.pages.results.orthologs :as orthologs]
+            [bluegenes.mine-ids :as mine-ids]
+            [bluegenes.mine-support :as mine-support]
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
 (def organism-path "Gene.organism.shortName")
@@ -23,13 +25,35 @@
 ;;; Pure helpers ;;;
 
 (defn id-candidates
-  "Identifiers to try in the target mine for one source identifier: as is, and
-  without a CURIE prefix (\"MGI:104537\" gives \"MGI:104537\" and \"104537\")."
+  "Identifiers to try in the target mine for one source identifier: as is,
+  without CURIE prefix and with CURIE prefix, see `bluegenes.mine-ids/candidates`.
+  \"WB:WBGene1\" gives \"WB:WBGene1\" and \"WBGene1\", and the bare \"WBGene1\" of a
+  MOD mine gives \"WBGene1\" and \"WB:WBGene1\" for AllianceMine. A numeric
+  remainder is never tried (\"HGNC:11998\" stays as is)."
   [id]
-  (let [idx (str/index-of id ":")
-        stripped (when idx (subs id (inc idx)))]
-    (cond-> [id]
-      (not (str/blank? stripped)) (conj stripped))))
+  (mine-ids/candidates id))
+
+;;; Model gates ;;;
+
+(def source-paths
+  "Paths queried in the current mine to read the identifiers to send."
+  {:same ["Gene.primaryIdentifier"]
+   :orthologs [homologue-identifier-path orthologs/organism-path]})
+
+(def target-paths
+  "Paths queried in the target mine: the organism list and the saved list."
+  ["Gene.id" organism-path])
+
+(defn source-blocked-reason
+  "Why `mode` cannot read its identifiers in the current mine, or nil."
+  [source-classes source-label mode]
+  (mine-support/blocked-reason source-classes source-label (get source-paths mode)))
+
+(defn target-blocked-reason
+  "Why the target mine cannot receive a list, or nil. Nil as well when its
+  model is not loaded."
+  [target-classes target-label]
+  (mine-support/blocked-reason target-classes target-label target-paths))
 
 (defn all-candidates
   "Distinct candidate identifiers for all source identifiers."
@@ -144,6 +168,16 @@
       (get-in db [:mines mine-kw :name])
       (name mine-kw)))
 
+(defn- gate
+  "Reasons the send cannot run, from the loaded models: `:source` for `mode` in
+  the current mine, `:target` for the target mine. Nil values when it can."
+  [db target mode]
+  {:source (source-blocked-reason (mine-support/mine-classes db (:current-mine db))
+                                  (mine-label db (:current-mine db))
+                                  (or mode :same))
+   :target (target-blocked-reason (mine-support/mine-classes db target)
+                                  (mine-label db target))})
+
 (defn- bump-run
   "Gives the panel a fresh run number from a counter that outlives the panel
   state, and drops in-flight work: responses carrying an older run are ignored."
@@ -153,7 +187,7 @@
         (assoc :send-to-mine-run run)
         (update-in (state-path) assoc :run run :resolving? false :saving? false))))
 
-(defn- with-timeout
+(defn with-timeout
   "Channel that carries the value of `ch`, or a 408 response after `ms`, so a
   request that never answers still reaches the failure handler."
   [ch ms]
@@ -198,6 +232,7 @@
                                    :mode :same
                                    :loading-organisms? true))
                   bump-run)
+          :dispatch [::mine-support/fetch target nil]
           :im-chan {:chan (fetch/rows svc (target-organisms-query)
                                       {:summaryPath organism-path
                                        :size 1000
@@ -252,7 +287,8 @@
  ::resolve
  (fn [{db :db} _]
    (let [{:keys [target list-source mode organism] :as state} (get-in db (state-path))]
-     (when (ready-to-resolve? state)
+     (when (and (ready-to-resolve? state)
+                (every? nil? (vals (gate db target mode))))
        (let [db (bump-run db)
              run (get-in db (state-path :run))
              source-name (mine-label db (:current-mine db))]
@@ -376,15 +412,42 @@
    (get-in db (state-path))))
 
 (reg-sub
+ ::models
+ ;; Loaded model classes of the configured mines (nil while unknown).
+ (fn [db]
+   (into {}
+         (map (fn [[k _]] [k (mine-support/mine-classes db k)]))
+         (get-in db [:env :mines]))))
+
+(reg-sub
  ::target-mines
  :<- [:env/mines]
  :<- [:current-mine-name]
- (fn [[env-mines current]]
+ :<- [::models]
+ (fn [[env-mines current models]]
    (->> env-mines
         (remove (fn [[k _]] (= k current)))
-        (map (fn [[k m]] {:id k :label (or (:name m) (name k))}))
+        (map (fn [[k m]]
+               (let [label (or (:name m) (name k))
+                     reason (target-blocked-reason (get models k) label)]
+                 (cond-> {:id k :label label}
+                   reason (assoc :reason reason)))))
         (sort-by :label)
         vec)))
+
+(reg-sub
+ ::source-reasons
+ ;; Reason each mode cannot read its identifiers in the current mine, by mode.
+ :<- [::models]
+ :<- [:current-mine-name]
+ :<- [:env/mines]
+ (fn [[models current env-mines]]
+   (let [label (or (get-in env-mines [current :name]) (some-> current name))]
+     (into {}
+           (keep (fn [mode]
+                   (when-let [r (source-blocked-reason (get models current) label mode)]
+                     [mode r])))
+           (keys source-paths)))))
 
 (reg-sub
  ::available?
@@ -398,6 +461,9 @@
 (defn- label-of [mines id]
   (some #(when (= (:id %) id) (:label %)) mines))
 
+(defn- reason-of [mines id]
+  (some #(when (= (:id %) id) (:reason %)) mines))
+
 (defn- unresolved-list [unresolved]
   [:div.unresolved-ids
    [:p [:strong (count unresolved)] " unresolved"]
@@ -408,7 +474,7 @@
    (when (> (count unresolved) max-shown-unresolved)
      [:p.text-muted (str "Showing the first " max-shown-unresolved ".")])])
 
-(defn- login-notice [target label]
+(defn login-notice [target label]
   [:p.alert.alert-warning
    "You are not logged in to " [:strong label] ". "
    [:a {:href (route/href ::route/home {:mine target})}
@@ -419,6 +485,8 @@
   (let [{:keys [target organisms organism mode loading-organisms? resolving?
                 result saving? logged-in? saved] :as state} @(subscribe [::state])
         mines @(subscribe [::target-mines])
+        source-reasons @(subscribe [::source-reasons])
+        target-reason (reason-of mines target)
         list-name (effective-list-name state)]
     [:div.send-to-mine-panel
      [:div.form-group
@@ -427,9 +495,13 @@
        {:value (if target (name target) "")
         :on-change #(dispatch [::select-mine (oget % :target :value)])}
        [:option {:value ""} "Select a mine"]
-       (for [{:keys [id label]} mines]
-         ^{:key id} [:option {:value (name id)} label])]]
-     (when target
+       (for [{:keys [id label reason]} mines]
+         ^{:key id} [:option {:value (name id) :disabled (boolean reason)}
+                     (if reason (str label " (unavailable)") label)])]
+      (when-let [unavailable (seq (filter :reason mines))]
+        [:p.text-muted
+         [:small (str/join ". " (map :reason unavailable)) "."]])]
+     (when (and target (not target-reason))
        [:<>
         (when-not logged-in? [login-notice target (label-of mines target)])
         [:div.form-group
@@ -440,9 +512,12 @@
            " Same genes"]]
          [:div.radio
           [:label [:input {:type "radio" :name "send-mode" :checked (= mode :orthologs)
-                           :disabled (or loading-organisms? (empty? organisms))
+                           :disabled (or loading-organisms? (empty? organisms)
+                                         (contains? source-reasons :orthologs))
                            :on-change #(dispatch [::set-mode :orthologs])}]
-           " Orthologs in a species of the target mine"]]
+           " Orthologs in a species of the target mine"]
+          (when-let [r (:orthologs source-reasons)]
+            [:p.text-muted [:small r "."]])]
          (when (= mode :orthologs)
            [:select.form-control
             {:value (or organism "")

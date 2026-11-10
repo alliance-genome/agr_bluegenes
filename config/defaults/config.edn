@@ -3,8 +3,8 @@
  :google-analytics nil
  :bluegenes-tool-path "./tools"
  :bluegenes-deploy-path "/bluegenes"
- :bluegenes-alliance-api-base "https://www.alliancegenome.org/api"
  :bluegenes-backend-service-root nil
+ :bluegenes-alliance-api-base "https://www.alliancegenome.org/api"
  :bluegenes-default-service-root "https://alliancemine.alliancegenome.org/alliancemine"
  :bluegenes-default-mine-name "AllianceMine"
  :bluegenes-default-namespace "alliancemine"
