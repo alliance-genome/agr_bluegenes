@@ -105,7 +105,8 @@
 ;; SGD:S000000001). WormMine, FlyMine and YeastMine store the bare accession
 ;; in Gene.primaryIdentifier. Stripping any prefix would turn an HGNC or MGI
 ;; curie into a number that can match an unrelated NCBI-keyed gene in a MOD
-;; mine, so mapping goes by the accession pattern of the three MOD mines.
+;; mine, so mapping goes by the accession pattern. The patterns match those of
+;; bluegenes.alliance-curie in the report summary branch.
 
 (def mod-prefixes
   "Curie prefix per MOD mine namespace."
@@ -113,9 +114,10 @@
 
 (def accession-patterns
   "Bare accession pattern to its curie prefix."
-  [[#"^WBGene\d{8}$" "WB"]
-   [#"^FBgn\d{7}$" "FB"]
-   [#"^S\d{9}$" "SGD"]])
+  [[#"^WBGene\d+$" "WB"]
+   [#"^FBgn\d+$" "FB"]
+   [#"^S\d{9}$" "SGD"]
+   [#"^ZDB-GENE-[\w-]+$" "ZFIN"]])
 
 (defn id->curie
   "Curie for a bare MOD accession, nil when the id is not one."

@@ -225,6 +225,8 @@
   (testing "curies stay as they are in AllianceMine"
     (is (= ["HGNC:11998"] (cart/id-candidates :alliancemine "HGNC:11998")))
     (is (= ["WB:WBGene00000001"] (cart/id-candidates :alliancemine "WB:WBGene00000001"))))
+  (is (= ["ZDB-GENE-000616-13" "ZFIN:ZDB-GENE-000616-13"]
+         (cart/id-candidates :alliancemine "ZDB-GENE-000616-13")))
   (testing "numeric ids and other MOD ids are not turned into curies"
     (is (= ["110292"] (cart/id-candidates :alliancemine "110292")))
     (is (= ["AFLA_000690"] (cart/id-candidates :alliancemine "AFLA_000690")))
