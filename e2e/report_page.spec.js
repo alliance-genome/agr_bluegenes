@@ -97,7 +97,9 @@ test.describe('Report page', () => {
 
   test('can copy the permanent URL of the report page of the object', async ({ page }) => {
     const actions = page.locator('.sidebar-actions:visible');
-    await actions.getByText('Copy permanent URL').first().click();
+    // Playwright's hit test reports the wrapping span.dropdown as intercepting
+    // the toggle, so skip the actionability check like Cypress did.
+    await actions.getByText('Copy permanent URL').first().click({ force: true });
     const container = actions.locator('.permanent-url-container');
     await expect(container).toBeVisible();
     // The Cypress spec pinned the Biotestmine host (localhost:9999); only the
@@ -113,8 +115,12 @@ test.describe('Report page', () => {
 
     await createGeneList(page, 'CK1,ABRA,GST');
     const search = page.locator('.typeahead-search');
-    await search.fill('');
+    // The box can be re-filled with the previous keyword just after a fill(''),
+    // so replace the selection instead of clearing first.
+    await search.click();
+    await search.press('ControlOrMeta+a');
     await search.pressSequentially('GST', { delay: 50 });
+    await expect(search).toHaveValue('GST');
     await search.press('Enter');
     await page.locator('.result').first().click();
     await expectUrlIncludes(page, '/report');
@@ -125,15 +131,18 @@ test.describe('Report page', () => {
   });
 
   test('can access the list of data sources', async ({ page }) => {
-    await page.getByText('View all').first().click();
+    // The mobile layout renders a second, hidden copy of the link.
+    await page.getByText('View all').locator('visible=true').first().click();
     await expectUrlIncludes(page, '/results');
     await expect(page.locator('.im-table').first()).toBeVisible();
   });
 
   test('can access homologue of the gene in other mines', async ({ page }) => {
-    const otherMine = page.locator('.other-mine');
+    // The mobile layout renders a hidden second copy of this section.
+    const otherMine = page.locator('.other-mine:visible');
     await expect(otherMine.locator('.mine')).toContainText('FlyMine');
-    await expect(otherMine.locator('img').first()).toBeVisible();
+    // Cypress asserted existence only, and the logo is a remote image.
+    await expect(otherMine.locator('img').first()).toBeAttached();
     // An example FlyMine gene served by the stub above, not necessarily the homologue.
     await otherMine.getByText('Eip75B').first().click();
     await expectUrlIncludes(page, '/flymine/report/Gene/1029368');

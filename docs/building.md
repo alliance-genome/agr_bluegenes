@@ -104,6 +104,8 @@ The Cypress specs are being ported to [Playwright](https://playwright.dev) under
 
 Point the tests elsewhere with `BLUEGENES_URL` (default `http://localhost:5000`, may include a deploy path) and `BLUEGENES_MINE` (default `biotestmine`). `npx playwright test --ui` is the equivalent of `cypress open`.
 
+This fork serves BlueGenes under `/bluegenes`, but the `biotestmine` lein profile does not read `config/defaults`, so start it with `BLUEGENES_DEPLOY_PATH=/bluegenes lein biotestmine` and run the tests with `BLUEGENES_URL=http://localhost:5000/bluegenes`. Without the envvar the client reads `bluegenes` as a mine name and every test fails on the redirect. Biotestmine's keyword search needs Solr up during the build, otherwise the search index is empty and search and report page tests time out.
+
 # Production Builds
 
 ## Testing a minified instance before deploying:

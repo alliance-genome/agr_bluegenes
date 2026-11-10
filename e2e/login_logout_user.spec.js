@@ -17,8 +17,12 @@ test.describe('Login and logout', () => {
   test('logs the user out', async ({ page }) => {
     await submitLogin(page, { email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
     const logon = page.locator('.logon.dropdown');
-    await logon.click();
-    await logon.getByText('Logout').first().click({ force: true });
+    await expect(logon.getByText('Login')).toHaveCount(0);
+    const logout = logon.getByText('Logout').first();
+    // The menu may already be open right after login; only toggle it if hidden.
+    if (!(await logout.isVisible())) await logon.locator('.dropdown-toggle').click();
+    await expect(logout).toBeVisible();
+    await logout.click();
     await expect(page.locator('.main-nav')).toContainText('Login');
   });
 
