@@ -177,3 +177,37 @@ test('a stale response does not overwrite a newer one', async () => {
 	assert.strictEqual(el.find('tr').length, 3);
 	assert.strictEqual(el.__agrPickerReq, 2);
 });
+
+test('a list of two genes renders one section per gene with symbols', async () => {
+	const log = [];
+	const h = handlers();
+	h['Gene.symbol'] = () => ok([[1, 'Brca1'], [2, 'Atm']]);
+	globalThis.fetch = router(h, log);
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [1, 2] } }, {}, {}, () => {});
+	await tick(40);
+	assert.strictEqual(log.length, 13);
+	assert.deepStrictEqual(el.find('h4').map((x) => x.textContent), ['Brca1', 'Atm']);
+	assert.strictEqual(el.find('table').length, 2);
+	assert.ok(log.some((l) => l.q.includes('path="Gene.id" op="=" value="1"')));
+	assert.ok(log.some((l) => l.q.includes('path="Gene.id" op="=" value="2"')));
+});
+
+test('a list longer than 10 genes shows a visible note', async () => {
+	globalThis.fetch = router({ 'Gene.symbol': () => ok([]), 'Gene.homologues': () => ok([]) }, []);
+	const el = fakeEl();
+	const ids = Array.from({ length: 12 }, (_, i) => i + 1);
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ids } }, {}, {}, () => {});
+	await tick(40);
+	assert.ok(el.textContent.includes('Showing the first 10 of 12 genes.'));
+	assert.strictEqual(el.find('h4').length, 10);
+});
+
+test('a one-element list behaves like a single gene', async () => {
+	globalThis.fetch = router(handlers(), []);
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [42] } }, {}, {}, () => {});
+	await tick();
+	assert.strictEqual(el.find('h4').length, 0);
+	assert.strictEqual(el.find('tr').length, 3);
+});

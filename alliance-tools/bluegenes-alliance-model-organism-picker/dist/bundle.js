@@ -221,13 +221,11 @@
 		return details;
 	}
 
-	function render(el, orthologs, navigate, truncated) {
-		clear(el);
+	function buildSection(orthologs, navigate, truncated) {
 		var wrap = node('div', null, 'alliance-model-organism-picker');
 		if (!orthologs.length) {
 			wrap.appendChild(node('span', 'No orthologs'));
-			el.appendChild(wrap);
-			return;
+			return wrap;
 		}
 		var ranked = rank(orthologs);
 		var species = {};
@@ -276,7 +274,26 @@
 		});
 		table.appendChild(tbody);
 		wrap.appendChild(table);
-		el.appendChild(wrap);
+		return wrap;
+	}
+
+	function render(el, orthologs, navigate, truncated) {
+		clear(el);
+		el.appendChild(buildSection(orthologs, navigate, truncated));
+	}
+
+	// One section per gene. genes: [{ id, label, orthologs, truncated }].
+	function renderMany(el, genes, navigate, note) {
+		clear(el);
+		var outer = node('div', null, 'alliance-model-organism-picker-list');
+		if (note) outer.appendChild(node('p', note));
+		genes.forEach(function (g) {
+			var section = node('div', null, 'alliance-model-organism-picker-gene');
+			section.appendChild(node('h4', g.label));
+			section.appendChild(buildSection(g.orthologs, navigate, g.truncated));
+			outer.appendChild(section);
+		});
+		el.appendChild(outer);
 	}
 
 	function fetchRows(serviceRoot, view, ids) {
@@ -317,6 +334,36 @@
 		});
 	}
 
+	var MAX_GENES = 10;
+
+	// Symbols for the gene headings of a list, in one query.
+	function loadLabels(sRoot, ids) {
+		return fetchRows(sRoot, ['Gene.id', 'Gene.symbol', 'Gene.primaryIdentifier'], ids).then(function (rows) {
+			var out = {};
+			rows.forEach(function (r) { out[String(r[0])] = r[1] || r[2]; });
+			return out;
+		}).catch(function (err) {
+			console.error('Model organism picker could not load gene symbols', err);
+			return {};
+		});
+	}
+
+	function loadMany(sRoot, ids) {
+		return Promise.all([
+			loadLabels(sRoot, ids),
+			Promise.all(ids.map(function (id) { return load(sRoot, id); }))
+		]).then(function (both) {
+			return ids.map(function (id, i) {
+				return {
+					id: id,
+					label: both[0][id] || 'Gene ' + id,
+					orthologs: both[1][i].orthologs,
+					truncated: both[1][i].truncated
+				};
+			});
+		});
+	}
+
 	function main(el, service, imEntity, state, config, navigate) {
 		if (!el || !service || !imEntity) {
 			throw new Error('Call main with correct signature');
@@ -325,7 +372,28 @@
 		var token = (el.__agrPickerReq = (el.__agrPickerReq || 0) + 1);
 		var gene = imEntity.Gene;
 		var value = gene && gene.value;
-		if (Array.isArray(value)) value = value[0];
+		if (Array.isArray(value)) {
+			var all = value.filter(function (v) { return v !== undefined && v !== null && v !== ''; }).map(String);
+			if (all.length > 1) {
+				var shown = all.slice(0, MAX_GENES);
+				var note = all.length > shown.length
+					? 'Showing the first ' + shown.length + ' of ' + all.length + ' genes.'
+					: null;
+				message(el, 'Loading...');
+				loadMany(serviceRoot(service.root), shown)
+					.then(function (genes) {
+						if (el.__agrPickerReq !== token) return;
+						renderMany(el, genes, navigate, note);
+					})
+					.catch(function (err) {
+						console.error('Model organism picker failed', err);
+						if (el.__agrPickerReq !== token) return;
+						message(el, 'Could not load orthologs from the mine');
+					});
+				return;
+			}
+			value = all[0];
+		}
 		if (value === undefined || value === null || value === '') {
 			message(el, 'No orthologs');
 			return;
@@ -357,7 +425,8 @@
 		rank: rank,
 		toOrthologs: toOrthologs,
 		countByGene: countByGene,
-		render: render
+		render: render,
+		renderMany: renderMany
 	};
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;
 	root.bluegenesAllianceModelOrganismPicker = api;
