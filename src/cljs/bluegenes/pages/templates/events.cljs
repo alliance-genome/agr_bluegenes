@@ -50,7 +50,8 @@
                                                 :selected-template-name id
                                                 :selected-template-service (get-in db [:mines current-mine :service])
                                                 :count nil
-                                                :results-preview nil)
+                                                :results-preview nil
+                                                :previously-ran nil)
                                  :dispatch-n [[:template-chooser/run-count]
                                               [:template-chooser/fetch-preview]]}
                                 (when scroll?
@@ -62,7 +63,8 @@
                                          :selected-template-name id
                                          :selected-template-service (get-in db [:mines current-mine :service])
                                          :count nil
-                                         :results-preview nil})
+                                         :results-preview nil
+                                         :previously-ran nil})
                           :dispatch-n [[:template-chooser/run-count]
                                        [:template-chooser/fetch-preview]]
                           ;; Will always scroll as this clause means the user cannot see the
@@ -156,7 +158,9 @@
      {:db (-> db
               (assoc-in constraint-location (constraint/clear-constraint-value old-constraint new-constraint))
               (cond->
-                (not= old-op new-op) (assoc-in [:components :template-chooser :results-preview] nil)))})))
+                (not= old-op new-op) (update-in [:components :template-chooser] assoc
+                                                :results-preview nil
+                                                :previously-ran nil)))})))
 
 (reg-event-fx
  :template-chooser/update-preview
@@ -164,7 +168,11 @@
    (if (constraint/satisfied-constraint? new-constraint)
      {:dispatch-n [[:template-chooser/run-count]
                    [:template-chooser/fetch-preview]]}
-     {:db (assoc-in db [:components :template-chooser :results-preview] nil)})))
+     ;; Also forget the last query, so restoring the old value fetches the
+     ;; preview again instead of leaving it empty.
+     {:db (update-in db [:components :template-chooser] assoc
+                     :results-preview nil
+                     :previously-ran nil)})))
 
 (reg-event-db
  :template-chooser/update-count
@@ -190,18 +198,19 @@
  (fn [{db :db}]
    (let [query (prepare-template-query (get-in db [:components :template-chooser :selected-template]))
          service (get-in db [:mines (:current-mine db) :service])
-         count-chan (fetch/table-rows service query {:size 5})
-         query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))
-         new-db (update-in db [:components :template-chooser] assoc
-                           :preview-chan count-chan
-                           :previously-ran query)]
-     (cond-> {:db new-db}
-       query-changed? (-> (update-in [:db :components :template-chooser] assoc
-                                     :fetching-preview? true
-                                     :preview-error nil)
-                          (assoc :im-chan {:chan count-chan
-                                           :on-success [:template-chooser/store-results-preview]
-                                           :on-failure [:template-chooser/fetch-preview-failure]}))))))
+         query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))]
+     (if query-changed?
+       {:db (update-in db [:components :template-chooser] assoc
+                       :previously-ran query
+                       :fetching-preview? true
+                       :preview-error nil)
+        ;; Abort replaces a pending preview, so a slow response for an older
+        ;; query or template can't overwrite the current one.
+        :im-chan {:chan (fetch/table-rows service query {:size 5})
+                  :abort [:template-preview]
+                  :on-success [:template-chooser/store-results-preview]
+                  :on-failure [:template-chooser/fetch-preview-failure]}}
+       {}))))
 
 (reg-event-db
  :template-chooser/fetch-preview-failure
@@ -211,22 +220,24 @@
               :preview-error (or (get-in res [:body :error])
                                  "Error occurred when running template."))))
 
-(reg-fx
- :template-chooser/pipe-count
- (fn [count-chan]
-   (go (dispatch [:template-chooser/update-count (<! count-chan)]))))
+(reg-event-db
+ :template-chooser/run-count-failure
+ (fn [db [_ res]]
+   (.error js/console "Failed to count template results" res)
+   (update-in db [:components :template-chooser] assoc
+              :count nil
+              :counting? false)))
 
 (reg-event-fx
  :template-chooser/run-count
  (fn [{db :db}]
    (let [query (prepare-template-query (get-in db [:components :template-chooser :selected-template]))
-         service (get-in db [:mines (:current-mine db) :service])
-         count-chan (fetch/row-count service query)
-         new-db (update-in db [:components :template-chooser] assoc
-                           :count-chan count-chan
-                           :counting? true)]
-     {:db new-db
-      :template-chooser/pipe-count count-chan})))
+         service (get-in db [:mines (:current-mine db) :service])]
+     {:db (assoc-in db [:components :template-chooser :counting?] true)
+      :im-chan {:chan (fetch/row-count service query)
+                :abort [:template-count]
+                :on-success [:template-chooser/update-count]
+                :on-failure [:template-chooser/run-count-failure]}})))
 
 (reg-event-fx
  :templates/delete-template

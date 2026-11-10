@@ -345,7 +345,7 @@
            (->>
             rows-in-view
             (map-indexed
-             (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
+             (fn [row-idx {:keys [input reason matches] :as duplicate}]
                (->>
                 matches
                 (map-indexed
@@ -369,8 +369,11 @@
                           :checked keep?
                           :on-change
                           (fn [e]
+                            ;; The event indexes the full :DUPLICATE vector,
+                            ;; so offset by the rows on previous pages.
                             (dispatch [::evts/toggle-keep-duplicate
-                                       duplicate-idx match-idx]))}]]]])))))))
+                                       (+ (* (:show @pager) (:page @pager)) row-idx)
+                                       match-idx]))}]]]])))))))
             (apply concat)))]]))))
 
 (defn success-message []

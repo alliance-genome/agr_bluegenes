@@ -4,25 +4,27 @@
  :bluegenes-tool-path "./tools"
  :bluegenes-deploy-path "/bluegenes"
  :bluegenes-backend-service-root nil
- :bluegenes-default-service-root "https://www.alliancegenome.org/alliancemine"
+ :bluegenes-alliance-api-base "https://www.alliancegenome.org/api"
+ :bluegenes-default-service-root "https://alliancemine.alliancegenome.org/alliancemine"
  :bluegenes-default-mine-name "AllianceMine"
  :bluegenes-default-namespace "alliancemine"
- :bluegenes-additional-mines [{:root "http://www.mousemine.org/mousemine"
-                              :name "mousemine"
-                              :namespace "mousemine"
-                              :external true}
-                             {:root "http://ratmine.mcw.edu/ratmine"
-                              :name "ratmine"
-                              :namespace "ratmine"
-                              :external true}
-                             {:root "http://intermine.wormbase.org/tools/wormmine"
+ :bluegenes-additional-mines [{:root "https://wormmine.alliancegenome.org/wormmine"
                               :name "WormMine"
                               :namespace "wormmine"}
-                             {:root "https://www.flymine.org/flymine"
-                              :name "flymine"
+                             {:root "https://flymine.alliancegenome.org/flymine"
+                              :name "FlyMine"
                               :namespace "flymine"}
+                             {:root "https://yeastmine.alliancegenome.org/yeastmine"
+                              :name "YeastMine"
+                              :namespace "yeastmine"
+                              :abbrev "S. cerevisiae"
+                              :default-organism "S. cerevisiae"}
+                             {:root "https://mousemine.alliancegenome.org/mousemine"
+                              :name "MouseMine"
+                              :namespace "mousemine"
+                              :external true}
                              {:root "https://www.humanmine.org/humanmine"
-                              :name "humanmine"
+                              :name "HumanMine"
                               :namespace "humanmine"
                               :external false}]
  :hide-registry-mines true}

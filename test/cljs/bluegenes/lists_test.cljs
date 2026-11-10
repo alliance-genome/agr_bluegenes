@@ -1,10 +1,17 @@
 (ns bluegenes.lists-test
   (:require [cljs.test :refer-macros [deftest is are testing]]
-            [bluegenes.pages.lists.utils :as utils]))
+            [bluegenes.pages.lists.utils :as utils]
+            [bluegenes.pages.lists.views :as views]))
 
 (deftest path-title
   (is (= "nested folder" (utils/path-title "bgpath:my folder.nested folder")))
   (is (= "my folder" (utils/path-title "bgpath:my folder"))))
+
+(deftest valid-folder
+  (is (some? (views/valid-folder? "my folder-2")))
+  (is (nil? (views/valid-folder? "a:b")))
+  (is (nil? (views/valid-folder? "a.b")))
+  (is (nil? (views/valid-folder? ""))))
 
 (deftest top-level-predicates
   (is (true? (utils/top-level-folder? {:path "bgpath:my folder"})))
@@ -265,6 +272,23 @@
     (is (= normalized-2 (utils/normalize-lists identity identity {:by-id denormalized :expanded-paths #{"bgpath:my folder.nested folder"}})))
     (is (= normalized-3 (utils/normalize-lists identity identity {:by-id denormalized :expanded-paths #{"bgpath:my folder"}})))))
 
+(deftest normalize-lists-pagination
+  (let [by-id {"bgpath:a" {:id "bgpath:a" :path "bgpath:a" :title "a" :children '(1)}
+               "bgpath:b" {:id "bgpath:b" :path "bgpath:b" :title "b" :children '(2)}
+               1 {:id 1 :title "a1" :type "Protein" :tags ["bgpath:a.a1"]}
+               2 {:id 2 :title "b1" :type "Gene" :tags ["bgpath:b.b1"]}
+               3 {:id 3 :title "c" :type "Gene" :tags []}
+               4 {:id 4 :title "d" :type "Gene" :tags []}}
+        filterf (utils/->filterf {:type "Gene"})
+        sortf (partial sort-by :title)
+        page (fn [n]
+               (map :id (utils/normalize-lists filterf sortf
+                                               {:by-id by-id :expanded-paths #{}}
+                                               {:per-page 2 :current-page n})))]
+    (testing "folders emptied by the filter are stripped before slicing"
+      (is (= ["bgpath:b" 3] (page 1)))
+      (is (= [4] (page 2))))))
+
 (deftest filtered-list-ids-set
   (is (= #{14000097 8000003 14000064 11000014 10000001}
          (utils/filtered-list-ids-set denormalized {}))))
@@ -284,4 +308,11 @@
   (is (= "foo_11"
          (utils/copy-list-name [{:name "foo"} {:name "foo_9"} {:name "foo_10"}] "foo")))
   (is (= "foo_11"
-         (utils/copy-list-name [{:name "foo"} {:name "foo_10"}] "foo"))))
+         (utils/copy-list-name [{:name "foo"} {:name "foo_10"}] "foo")))
+  (testing "non-numeric postfixes are ignored"
+    (is (= "foo_2"
+           (utils/copy-list-name [{:name "foo"} {:name "foo_1"} {:name "foo_bar"}] "foo")))
+    (is (= "foo_2"
+           (utils/copy-list-name [{:name "foo"} {:name "foo_bar"} {:name "foo_1"}] "foo")))
+    (is (= "foo_1"
+           (utils/copy-list-name [{:name "foo"} {:name "foo_2024-01"}] "foo")))))

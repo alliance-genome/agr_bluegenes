@@ -20,8 +20,24 @@
                                            :timeout 0
                                            :markup msg}]]}}))))
 
+(defn capitalize-first
+  "Uppercases the first character and keeps the rest, so ProteinDomain stays
+  ProteinDomain where str/capitalize would give Proteindomain."
+  [s]
+  (if (empty? s)
+    s
+    (str (str/upper-case (subs s 0 1)) (subs s 1))))
+
+(defn error-message
+  "Returns the error string from an InterMine JSON error body, or nil when the
+  body is missing or not JSON (such as an HTML 502 page)."
+  [body]
+  (try
+    (:error (cheshire/parse-string body true))
+    (catch Exception _ nil)))
+
 (defn query-identifier [lookup-string [object-type identifier] {:keys [root namespace] :as mine}]
-  (let [object-type (str/capitalize object-type)
+  (let [object-type (capitalize-first object-type)
         service {:root root
                  :model {:name "genomic"}}
         q {:from object-type
@@ -46,13 +62,16 @@
       (if (not-empty extension)
         ;; Specify middleware so we can accept other formats than JSON.
         (with-middleware [#'clj-http.client/wrap-request
-                          #'utils/wrap-accept-all]
+                          #'utils/wrap-accept-all
+                          #'utils/wrap-timeout]
           (let [out (im-fetch/entity-representation service (str object-type ":" identifier) extension)]
             (-> (response out)
                 (content-type (extension->content-type extension "text/plain;charset=UTF-8")))))
-        (query-identifier lookup-string lookupv mine)))
+        (with-middleware [#'clj-http.client/wrap-request
+                          #'utils/wrap-timeout]
+          (query-identifier lookup-string lookupv mine))))
     (catch Exception e
-      (let [{:keys [body]} (ex-data e)
-            {:keys [error]} (cheshire/parse-string body true)]
+      (let [error (some-> (ex-data e) :body error-message)]
         (handle-failed-lookup lookup-string mine (or (not-empty error)
+                                                     (ex-message e)
                                                      "Error occurred when parsing identifier"))))))

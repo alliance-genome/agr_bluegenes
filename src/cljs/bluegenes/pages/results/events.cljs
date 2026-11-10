@@ -78,18 +78,34 @@
 ;; and then route the browser to a URL path that runs and displays its results.
 ;;   no-route? - Indicate that the URL path is already correct, and it just
 ;;               needs to load the query package.
+(defn history-key
+  "Key under [:results :queries] and in the /results/:title route. Lists keep
+  their title, as other pages link to /results/<list name>. Other queries keep
+  their title unless it holds a different query, in which case a hash of the
+  query is appended so that runs sharing a title don't overwrite each other."
+  [queries {:keys [intent value]}]
+  (let [title (:title value)
+        existing (get queries title)]
+    (if (or (= intent :list)
+            (nil? existing)
+            (= value (:value existing)))
+      title
+      (str title "_" (hash value)))))
+
 (reg-event-fx
  :results/history+
  (fn [{db :db} [_ {:keys [source value type] :as package} no-route?]]
-   {:db (-> db
-            (update-in [:results :history] conj package)
-            (assoc-in [:results :queries (:title value)]
-                      (assoc package
-                             :last-executed
-                             (time-coerce/to-long (time/now)))))
-    :dispatch (if no-route?
-                [:results/load-history (:title value)]
-                [::route/navigate ::route/results {:title (:title value)}])}))
+   (let [k (history-key (get-in db [:results :queries]) package)]
+     {:db (-> db
+              (update-in [:results :history] conj package)
+              (assoc-in [:results :queries k]
+                        (-> package
+                            (update :display-title #(or % (:title value)))
+                            (assoc :last-executed
+                                   (time-coerce/to-long (time/now))))))
+      :dispatch (if no-route?
+                  [:results/load-history k]
+                  [::route/navigate ::route/results {:title k}])})))
 
 (def im-table-location [:results :table])
 
@@ -240,7 +256,9 @@
  (fn [{db :db} [_ class source query]]
    (let [service (get-in db [:mines source :service])]
      {:im-chan {:chan (fetch/rows service query)
-                :on-success [:success-fetch-ids-tool-entity class]}})))
+                :abort [:ids-tool-entity class]
+                :on-success [:success-fetch-ids-tool-entity class]
+                :on-failure [:failure-fetch-ids-tool-entity class]}})))
 
 (reg-event-fx
  :success-fetch-ids-tool-entity
@@ -248,23 +266,37 @@
    (let [entity {:class (name class)
                  :format "ids"
                  :value (reduce into results)}
-         entities (assoc (get-in db [:tools :entities]) class entity)
+         old-entities (get-in db [:tools :entities])
+         entities (assoc old-entities class entity)
          current-version (get-in db [:assets :intermine-version (:current-mine db)])]
-     (cond-> {:db (assoc-in db [:tools :entities] entities)
-              :dispatch-n []}
-       ;; If there are no nil values, we know all entities are done fetching
-       ;; and can load the viz/tools/widgets. (Tools are loaded through their
-       ;; subscription updating when entities-ready? is set.)
-       (every? some? (vals entities))
-       (cond->
-         ;; Widgets use the same IDs computed for tools so we don't need to do
-         ;; the operation twice.
-         (utils/compatible-version? version/widget-support current-version)
-         (update :dispatch-n conj [:widgets/load])
-         ;; Only load viz and tools if on configured mine.
-         (contains? (get-in db [:env :mines]) (:current-mine db))
-         (-> (update :dispatch-n conj [:viz/run-queries])
-             (assoc-in [:db :results :entities-ready?] true)))))))
+     ;; Entities are initialised with a key per class of the current query, so
+     ;; a missing key means this response belongs to an earlier query.
+     (if-not (contains? old-entities class)
+       {}
+       (cond-> {:db (assoc-in db [:tools :entities] entities)
+                :dispatch-n []}
+         ;; If there are no nil values, we know all entities are done fetching
+         ;; and can load the viz/tools/widgets. (Tools are loaded through their
+         ;; subscription updating when entities-ready? is set.)
+         (every? some? (vals entities))
+         (cond->
+           ;; Widgets use the same IDs computed for tools so we don't need to do
+           ;; the operation twice.
+           (utils/compatible-version? version/widget-support current-version)
+           (update :dispatch-n conj [:widgets/load])
+           ;; Only load viz and tools if on configured mine.
+           (contains? (get-in db [:env :mines]) (:current-mine db))
+           (-> (update :dispatch-n conj [:viz/run-queries])
+               (assoc-in [:db :results :entities-ready?] true))))))))
+
+(reg-event-fx
+ :failure-fetch-ids-tool-entity
+ (fn [_ [_ class res]]
+   (.error js/console "Failed to fetch IDs for tools and widgets" (name class) res)
+   {:dispatch [:messages/add
+               {:markup [:span "Failed to fetch " [:em (name class)]
+                         " IDs. Tools and widgets for this class will not load."]
+                :style "warning"}]}))
 
 (reg-event-db
  :clear-ids-tool-entity
@@ -277,7 +309,18 @@
  :fetch-enrichment-ids-from-query
  (fn [world [_ service query what-to-enrich]]
    {:im-chan {:chan (fetch/rows service query)
-              :on-success [:success-fetch-enrichment-ids-from-query]}}))
+              :abort [:enrichment-ids]
+              :on-success [:success-fetch-enrichment-ids-from-query]
+              :on-failure [:failure-fetch-enrichment-ids-from-query]}}))
+
+(reg-event-fx
+ :failure-fetch-enrichment-ids-from-query
+ (fn [{db :db} [_ res]]
+   {:db (assoc-in db [:results :enrichment-results-loading?] false)
+    :dispatch [:messages/add
+               {:markup [:span "Failed to fetch IDs for enrichment: "
+                         (or (get-in res [:body :error]) "please try again.")]
+                :style "warning"}]}))
 
 (reg-event-fx
  :success-fetch-enrichment-ids-from-query
@@ -308,6 +351,9 @@
  (fn [db]
    (-> db
        (assoc-in [:results :query] nil)
+       (assoc-in [:results :orthologs] nil)
+       (assoc-in [:results :orthologs-compare] nil)
+       (assoc-in [:results :send-to-mine] nil)
        (clear-widget-options))))
 
 (reg-event-db

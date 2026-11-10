@@ -33,10 +33,10 @@
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
-            [clojure.string :as str :refer [join split]]
+            [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-bean.core :refer [->clj]]
-            [bluegenes.utils :refer [read-registry-mine]]
+            [bluegenes.utils :refer [read-registry-mine resolve-class-name]]
             [bluegenes.pages.templates.helpers :refer [prepare-template-query]]))
 
 ;; If a requirement exists for the target panel, it will be called with the db
@@ -182,7 +182,8 @@
  :handle-suggestions
  (fn [db [_ results]]
    (-> db
-       (assoc :suggestion-results (:results results))
+       (assoc :suggestion-results (:results results)
+              :quicksearch-selected-index -1)
        (dissoc :suggestion-error))))
 
 (reg-event-fx
@@ -192,8 +193,11 @@
      (if (empty? term)
        {:db (assoc db
                    :search-term term
-                   :suggestion-results nil)}
-       {:db (assoc db :search-term term)
+                   :suggestion-results nil
+                   :quicksearch-selected-index -1)}
+       {:db (assoc db
+                   :search-term term
+                   :quicksearch-selected-index -1)
         :im-chan {:chan (fetch/quicksearch service term {:size 5})
                   :abort :quicksearch
                   :on-success [:handle-suggestions]
@@ -231,12 +235,12 @@
          current-retry (or retry-count 0)]
      (if (contains? service :model)
        {:im-chan {:chan (fetch/rows service q {:format "jsonobjects"})
-                 :on-success [:cache/store-organisms]
-                 :on-failure [:cache/fetch-organisms-failure current-retry]}}
+                  :on-success [:cache/store-organisms]
+                  :on-failure [:cache/fetch-organisms-failure current-retry]}}
        ;; Retry in 1 second if model isn't available yet and we haven't exceeded max retries
        (when (< current-retry max-retries)
-         {:dispatch-later [{:ms 1000 
-                           :dispatch [:cache/fetch-organisms (inc current-retry)]}]})))))
+         {:dispatch-later [{:ms 1000
+                            :dispatch [:cache/fetch-organisms (inc current-retry)]}]})))))
 
 (reg-event-db
  :cache/store-possible-values
@@ -309,7 +313,7 @@
 (reg-event-fx
  :messages/add
  (fn [{db :db} [_ props]]
-   (let [id (gensym)
+   (let [id (or (:id props) (gensym))
          msg (assoc props
                     :id id
                     :when (.getTime (js/Date.)))]
@@ -347,18 +351,23 @@
 
 (reg-event-fx
  :handle-permanent-url
- (fn [{db :db} [_ mine lookup-string]]
-   (let [[object-type identifier] (split lookup-string #":")
-         object-type (str/capitalize object-type)
-         service (get-in db [:mines (keyword mine) :service])
-         q {:from object-type
-            :select [(str object-type ".id")]
-            :where [{:path object-type
-                     :op "LOOKUP"
-                     :value identifier}]}]
-     {:im-chan {:chan (fetch/rows service q)
-                :on-success [:redirect-to-report-page lookup-string]
-                :on-failure [:notify-invalid-permanent-url lookup-string]}})))
+ (fn [{db :db} [evt-name mine lookup-string]]
+   (if (:fetching-assets? db)
+     ;; Switching mine reboots it, so wait until its model is loaded.
+     {:db (update db :dispatch-after-boot (fnil conj []) [evt-name mine lookup-string])}
+     (let [[type-string identifier] (split lookup-string #":" 2)
+           service (get-in db [:mines (keyword mine) :service])
+           object-type (resolve-class-name (get-in service [:model :classes]) type-string)
+           q {:from object-type
+              :select [(str object-type ".id")]
+              :where [{:path object-type
+                       :op "LOOKUP"
+                       :value identifier}]}]
+       (if object-type
+         {:im-chan {:chan (fetch/rows service q)
+                    :on-success [:redirect-to-report-page lookup-string]
+                    :on-failure [:notify-invalid-permanent-url lookup-string]}}
+         {:dispatch [:notify-invalid-permanent-url lookup-string]})))))
 
 (reg-event-fx
  :redirect-to-report-page

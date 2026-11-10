@@ -11,7 +11,7 @@
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [inflections.core :refer [ordinalize plural]]
             [bluegenes.components.icons :refer [icon]]
-            [bluegenes.pages.querybuilder.logic :refer [vec-swap-indices]]))
+            [bluegenes.pages.querybuilder.logic :refer [constraint-key]]))
 
 (defn query=
   "Returns whether `queries` are all =, ignoring empty values like [] and nil."
@@ -475,6 +475,8 @@
 
 (defn logic-box []
   (let [editing? (reagent/atom false)
+        ;; Edits stay local until :qb/format-constraint-logic validates them.
+        draft (reagent/atom "")
         logic (subscribe [:qb/constraint-logic])]
     (fn []
       [:div.logic-container
@@ -485,20 +487,23 @@
         (if @editing?
           [:input.form-control.input-sm
            {:type "text"
-            :value @logic
+            :value @draft
             :id "logic-input"
             :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
                                    (reset! editing? false)
-                                   (dispatch [:qb/format-constraint-logic @logic])))
+                                   (dispatch [:qb/format-constraint-logic @draft])))
             :on-blur (fn []
-                       (reset! editing? false)
-                       (dispatch [:qb/format-constraint-logic @logic]))
-            :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]
+                       (when @editing?
+                         (reset! editing? false)
+                         (dispatch [:qb/format-constraint-logic @draft])))
+            :on-change (fn [e] (reset! draft (oget e :target :value)))}]
           [:pre
            [:a {:role "button"
                 :id "logic-input"
                 :title "Edit constraint logic"
-                :on-click (fn [] (reset! editing? true))}
+                :on-click (fn []
+                            (reset! draft @logic)
+                            (reset! editing? true))}
             [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]]
            [:span#logic-input @logic]])]])))
 
@@ -901,7 +906,7 @@
            [:span.check]
            lab])))
 
-(defn template-constraint [const & {:keys [index meta set-meta! drag* constraints-meta*]}]
+(defn template-constraint [const & {:keys [index meta set-meta! drag*]}]
   (let [current-model @(subscribe [:current-model])
         current-constraints @(subscribe [:qb/im-query-constraints])
         model (assoc current-model :type-constraints current-constraints)
@@ -918,7 +923,6 @@
                              target index]
                          (when (not= current target)
                            (reset! drag* index)
-                           (swap! constraints-meta* vec-swap-indices current target)
                            (dispatch [:qb/swap-constraints-ordering current target]))))
       :on-drag-end (fn [_e]
                      (reset! drag* nil))
@@ -962,14 +966,6 @@
         :value (:editable meta)
         :on-change #(set-meta! (update meta :editable not))]]]]))
 
-(defn merge-vectors
-  "Takes two vectors of equal length containing only maps, and returns a new
-  vector containing the merged maps of the same index."
-  [v1 v2]
-  (mapv (fn [e1 e2]
-          (merge e1 e2))
-        v1 v2))
-
 (defn create-template []
   (let [init-data (subscribe [:qb/template-meta])
         name* (reagent/atom (or (:name @init-data) ""))
@@ -987,26 +983,20 @@
         error* (reagent/atom nil)
         ;; Currently active constraints.
         constraints* (subscribe [:qb/im-query-constraints])
-        ;; Vector of maps corresponding to each constraint, in the same order.
-        ;; The map contains keys: editable=true|false [switchable=on|off]
-        empty-meta (fn [] (vec (repeat (count @constraints*) {})))
-        build-meta (fn [] (if-let [const->meta (-> @init-data :const->meta not-empty)]
-                            (mapv #(get const->meta % {}) @constraints*)
-                            (empty-meta)))
-        constraints-meta* (reagent/atom (build-meta))]
+        ;; Map of constraint-key (path and code) to a map with keys:
+        ;; editable=true|false [switchable=on|off]
+        ;; Keying by constraint keeps meta attached when the where clause is
+        ;; rebuilt in tree order or constraints are added and removed.
+        constraints-meta* (reagent/atom (or (:const->meta @init-data) {}))
+        meta-of (fn [const] (get @constraints-meta* (constraint-key const) {}))]
     (reagent/create-class
      {:display-name "create-template"
       :component-will-unmount
       (fn []
          ;; Save local state to template-meta when dismounting, so we can restore it on mount.
-        (dispatch [:qb/update-template-meta (collect-inputs) (zipmap @constraints* @constraints-meta*)]))
+        (dispatch [:qb/update-template-meta (collect-inputs) @constraints-meta*]))
       :reagent-render
       (fn []
-        (when (not= (count @constraints*) (count @constraints-meta*))
-           ;; Reset constraints-meta* if count differs from active constraints.
-           ;; This has to be done as a newly added/removed constraint can be at
-           ;; any point in the vector, causing the meta to go out of sync.
-          (reset! constraints-meta* (build-meta)))
         [:div
          [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
           [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
@@ -1038,21 +1028,19 @@
                 (for [[index const] (map-indexed vector @constraints*)
                        ;; Type constraints shouldn't be editable.
                       :when (not (:type const))
-                      :let [const-meta (get @constraints-meta* index)
-                            set-const-meta! #(dispatch [:qb/update-template-meta-consts (zipmap @constraints* (swap! constraints-meta* assoc index %))])]]
+                      :let [set-const-meta! #(dispatch [:qb/update-template-meta-consts (swap! constraints-meta* assoc (constraint-key const) %)])]]
                   [template-constraint const
                    :index index
-                   :meta const-meta
+                   :meta (meta-of const)
                    :set-meta! set-const-meta!
-                   :drag* drag*
-                   :constraints-meta* constraints-meta*]))]
+                   :drag* drag*]))]
          [:div.template-actions
           [:button.btn.btn-primary.btn-raised
            {:on-click #(if-let [err (invalid?)]
                          (reset! error* err)
                          (do (reset! error* nil)
                              (dispatch [:qb/save-template (collect-inputs)
-                                        (merge-vectors @constraints* @constraints-meta*)])))}
+                                        (mapv (fn [c] (merge c (meta-of c))) @constraints*)])))}
            "Save template"]
           [:button.btn.btn-default.btn-raised
            {:on-click (fn []

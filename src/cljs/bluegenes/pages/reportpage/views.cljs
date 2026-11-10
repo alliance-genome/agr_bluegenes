@@ -10,6 +10,9 @@
             [bluegenes.components.tools.views :as tools]
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
+            [bluegenes.pages.reportpage.other-mines :as other-mines]
+            [bluegenes.pages.reportpage.alliance-summary :as alliance-summary]
+            [bluegenes.components.cart :as cart]
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
@@ -157,6 +160,48 @@
              ^{:key id}
              [report-comp child]))]]))]))
 
+(defn other-mines-status [{:keys [status message]}]
+  (case status
+    :found nil
+    :not-found [:span.text-muted "not found"]
+    :error [poppable {:data message :children [:span.text-danger "error"]}]
+    [mini-loader "tiny"]))
+
+(defn other-mines-panel []
+  (let [{:keys [loading? rows unavailable skipped orthologs-reason]} @(subscribe [::other-mines/panel])]
+    (when (or loading? (seq rows) (seq unavailable) (seq skipped) orthologs-reason)
+      [section
+       {:title "In other Alliance mines"
+        :id "other-alliance-mines"}
+       (cond
+         loading? [mini-loader "tiny"]
+         :else
+         [:table.table.table-condensed.other-alliance-mines
+          [:thead
+           [:tr [:th "Species"] [:th "Symbol"] [:th "Mine"]]]
+          [:tbody
+           (for [{:keys [gene mine-kw mine-name self? id] :as row} rows
+                 :let [nom (some gene [:symbol :primaryIdentifier])]]
+             ^{:key (str mine-kw "/" (:primaryIdentifier gene))}
+             [:tr
+              [:td (:shortName gene)]
+              [:td nom (when self? [:span.text-muted " (this gene)"])]
+              [:td (if (= :found (:status row))
+                     [:a {:href (route/href ::route/report {:mine mine-kw
+                                                            :type "Gene"
+                                                            :id id})}
+                      (str (or (:symbol row) nom) " in " mine-name)]
+                     [:span mine-name " " [other-mines-status row]])]])]])
+       (when (seq unavailable)
+         [:p.text-muted.other-alliance-mines-unavailable
+          "Unavailable: " (str/join ", " unavailable)])
+       (when (seq skipped)
+         [:p.text-muted.other-alliance-mines-skipped
+          "Skipped. " (str/join ". " (map :reason skipped)) "."])
+       (when orthologs-reason
+         [:p.text-muted.other-alliance-mines-orthologs
+          "Orthologs not listed. " orthologs-reason "."])])))
+
 (defn summary-location [[label value]]
   [:<>
    [:div.report-table-cell.report-table-header
@@ -253,6 +298,34 @@
                {:on-click #(swap! show-more* not)}
                (if @show-more* "Show less" "Show more")])]])))))
 
+(defn alliance-summary-row [label value]
+  [:div.report-table-row
+   [:div.report-table-cell.report-table-header label]
+   [:div.report-table-cell value]])
+
+(defn alliance-summary-block []
+  (let [{:keys [status curie description synonyms gene-type message]}
+        @(subscribe [::alliance-summary/block])]
+    (case status
+      :loading [:div.alliance-summary [mini-loader "tiny"]]
+      :error [:p.text-muted.alliance-summary
+              (str "Alliance summary unavailable (" message ").")]
+      :done [:div.alliance-summary
+             [:div.report-table-body
+              (when description
+                [alliance-summary-row "Alliance summary" description])
+              (when (seq synonyms)
+                [alliance-summary-row "Alliance synonyms" (str/join ", " synonyms)])
+              (when gene-type
+                [alliance-summary-row "Gene type" gene-type])]
+             [:p.text-muted
+              alliance-summary/attribution ": "
+              [:a {:href (alliance-summary/gene-url curie)
+                   :target "_blank"
+                   :rel "noopener noreferrer"}
+               (str curie " at alliancegenome.org")]]]
+      nil)))
+
 (defn summary []
   (let [{:keys [columnHeaders results]} @(subscribe [::subs/report-summary])
         fasta               @(subscribe [::subs/fasta])
@@ -279,6 +352,7 @@
                        :location [summary-location cell]
                        :fasta [summary-fasta cell]
                        [summary-cell cell])))))
+     [alliance-summary-block]
      [:div.hidden-lg.sidebar-collapsed
       [sidebar/main]]]))
 
@@ -304,7 +378,8 @@
         title @(subscribe [::subs/report-title])]
     [:h1.report-page-heading
      title
-     [:code.start {:class (str "start-" rootClass)} rootClass]]))
+     [:code.start {:class (str "start-" rootClass)} rootClass]
+     [cart/add-button]]))
 
 (defn invalid-object []
   (let [{error-type :type ?message :message} @(subscribe [::subs/report-error])]
@@ -342,6 +417,7 @@
                 [toc/main]]
                [:div.col-xs-10.col-lg-8
                 [summary]
-                [report]]
+                [report]
+                [other-mines-panel]]
                [:div.col-lg-2.visible-lg-block.sidebar-container
                 [sidebar/main]]]])]))

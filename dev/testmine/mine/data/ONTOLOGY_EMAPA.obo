@@ -1,0 +1,216 @@
+format-version: 1.2
+data-version: test
+ontology: emapa
+
+[Term]
+id: EMAPA:16033
+name: 1-cell stage embryo
+
+[Term]
+id: EMAPA:16036
+name: 2-cell stage embryo
+
+[Term]
+id: EMAPA:16037
+name: 4-8 cell stage embryo
+
+[Term]
+id: EMAPA:16039
+name: embryo
+
+[Term]
+id: EMAPA:16040
+name: compacted morula
+
+[Term]
+id: EMAPA:16041
+name: inner cell mass
+
+[Term]
+id: EMAPA:16042
+name: extraembryonic component
+
+[Term]
+id: EMAPA:16046
+name: trophectoderm
+
+[Term]
+id: EMAPA:16050
+name: epiblast
+
+[Term]
+id: EMAPA:16051
+name: primitive endoderm
+
+[Term]
+id: EMAPA:16052
+name: extraembryonic endoderm
+
+[Term]
+id: EMAPA:16060
+name: body cavity or lining
+
+[Term]
+id: EMAPA:16065
+name: extraembryonic ectoderm
+
+[Term]
+id: EMAPA:16069
+name: embryo ectoderm
+
+[Term]
+id: EMAPA:16071
+name: embryo mesoderm
+
+[Term]
+id: EMAPA:16072
+name: primitive streak
+
+[Term]
+id: EMAPA:16073
+name: neural ectoderm
+
+[Term]
+id: EMAPA:16085
+name: yolk sac
+
+[Term]
+id: EMAPA:16089
+name: future brain
+
+[Term]
+id: EMAPA:16090
+name: future brain neural fold
+
+[Term]
+id: EMAPA:16092
+name: future spinal cord
+
+[Term]
+id: EMAPA:16096
+name: surface ectoderm
+
+[Term]
+id: EMAPA:16098
+name: head mesenchyme
+
+[Term]
+id: EMAPA:16104
+name: cardiovascular system
+
+[Term]
+id: EMAPA:16105
+name: heart
+
+[Term]
+id: EMAPA:16117
+name: branchial arch
+
+[Term]
+id: EMAPA:16118
+name: 1st branchial arch
+
+[Term]
+id: EMAPA:16140
+name: future midbrain
+
+[Term]
+id: EMAPA:16148
+name: future hindbrain
+
+[Term]
+id: EMAPA:16164
+name: neural tube
+
+[Term]
+id: EMAPA:16166
+name: neural tube lateral wall
+
+[Term]
+id: EMAPA:16193
+name: ear
+
+[Term]
+id: EMAPA:16194
+name: inner ear
+
+[Term]
+id: EMAPA:16198
+name: eye
+
+[Term]
+id: EMAPA:16247
+name: gut
+
+[Term]
+id: EMAPA:16255
+name: midgut
+
+[Term]
+id: EMAPA:16469
+name: nervous system
+
+[Term]
+id: EMAPA:16470
+name: central nervous system
+
+[Term]
+id: EMAPA:16542
+name: nose
+
+[Term]
+id: EMAPA:16658
+name: central nervous system ganglion
+
+[Term]
+id: EMAPA:16659
+name: cranial ganglion
+
+[Term]
+id: EMAPA:16665
+name: peripheral nervous system
+
+[Term]
+id: EMAPA:16667
+name: spinal ganglion
+
+[Term]
+id: EMAPA:16668
+name: dorsal root ganglion
+
+[Term]
+id: EMAPA:16728
+name: lung
+
+[Term]
+id: EMAPA:16797
+name: trigeminal ganglion
+
+[Term]
+id: EMAPA:16846
+name: liver
+
+[Term]
+id: EMAPA:16851
+name: main bronchus epithelium
+
+[Term]
+id: EMAPA:16896
+name: diencephalon
+
+[Term]
+id: EMAPA:16910
+name: telencephalon
+
+[Term]
+id: EMAPA:16916
+name: hindbrain
+
+[Term]
+id: EMAPA:16974
+name: midbrain
+
+[Term]
+id: EMAPA:17168
+name: retina
+

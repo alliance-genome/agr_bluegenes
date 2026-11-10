@@ -3,7 +3,8 @@
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :as fx]
             [bluegenes.crud.tools :as tools-crud]
-            [bluegenes.config :refer [read-default-ns]]))
+            [bluegenes.config :refer [read-default-ns]]
+            [clojure.string :as string]))
 
 (reg-event-fx
  ::init
@@ -46,18 +47,32 @@
                   :on-unauthorised [::error-tool]
                   :on-failure [::error-tool]}]})))
 
+(def official-tool-scope
+  "npm scope of the tools that bluegenes-tool-store installs on `lein tools init`.
+  Anyone can publish a package with the bluegenes-intermine-tool keyword, so
+  bulk install is limited to this scope; other tools need a per-tool install."
+  "@intermine/")
+
+(defn official-tool? [tool-name]
+  (and (string? tool-name)
+       (string/starts-with? tool-name official-tool-scope)))
+
 (reg-event-fx
  ::install-all-tools
  (fn [{db :db} _]
    (let [available-tools (get-in db [:tools :available])
-         tool-names (mapv #(-> % :package :name) available-tools)]
-     {:dispatch [::tool-operation
-                 {:method :post
-                  :uri "/api/tools/install"
-                  :json-params {:packages tool-names}
-                  :on-success [::success-tool]
-                  :on-unauthorised [::error-tool]
-                  :on-failure [::error-tool]}]})))
+         tool-names (filterv official-tool? (map #(-> % :package :name) available-tools))]
+     {:dispatch (if (seq tool-names)
+                  [::tool-operation
+                   {:method :post
+                    :uri "/api/tools/install"
+                    :json-params {:packages tool-names}
+                    :on-success [::success-tool]
+                    :on-unauthorised [::error-tool]
+                    :on-failure [::error-tool]}]
+                  [:messages/add
+                   {:markup [:span "No official tools left to install."]
+                    :style "info"}])})))
 
 ;; # How we communicate tool operations to the user
 ;;     SUB   :bluegenes.pages.developer.subs/tool-working?

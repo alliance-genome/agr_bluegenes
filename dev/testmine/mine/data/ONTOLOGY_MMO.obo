@@ -1,0 +1,60 @@
+format-version: 1.2
+data-version: test
+ontology: mmo
+
+[Term]
+id: MMO:0000498
+name: immunohistochemistry
+
+[Term]
+id: MMO:0000534
+name: mass spectrometry
+
+[Term]
+id: MMO:0000538
+name: ex vivo light microscopy with immunohistochemistry
+
+[Term]
+id: MMO:0000640
+name: expression assay
+
+[Term]
+id: MMO:0000641
+name: transcript expression assay
+
+[Term]
+id: MMO:0000642
+name: protein expression assay
+
+[Term]
+id: MMO:0000647
+name: Northern blot assay
+
+[Term]
+id: MMO:0000655
+name: reverse transcription polymerase chain reaction assay
+
+[Term]
+id: MMO:0000658
+name: ribonucleic acid in situ hybridization assay
+
+[Term]
+id: MMO:0000661
+name: protein function-based expression assay
+
+[Term]
+id: MMO:0000669
+name: western blot assay
+
+[Term]
+id: MMO:0000670
+name: in situ reporter assay
+
+[Term]
+id: MMO:0000672
+name: knock-in in situ reporter assay
+
+[Term]
+id: MMO:0000686
+name: immunofluorescence confocal microscopy
+

@@ -1,6 +1,6 @@
 (ns bluegenes.pages.querybuilder.logic
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [clojure.string :refer [split join blank? starts-with? ends-with?]]
+            [clojure.string :refer [split join blank? starts-with? ends-with? lower-case]]
             [oops.core :refer [ocall oget]]
             [cljs.reader :refer [read-string]]
             [cljs.reader :refer [read-string]]
@@ -83,20 +83,21 @@
 (defn remove-code
   "Recursively removes a symbol from a tree and raises neighbours with a count of one"
   [v code]
-  (->
-   (clojure.walk/postwalk
-    (fn [e]
-      (if (vector? e)
-        (let [removed     (vec (remove (partial = code) e))
-              without-ops (without-operators removed)]
-          (cond
-            (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
-            (single-vec-of-symbol? without-ops) (first without-ops)
-            :else (remove-repeats removed)))
-        e))
-    v)
-   group-ands
-   raise))
+  (when (seq v)
+    (->
+     (clojure.walk/postwalk
+      (fn [e]
+        (if (vector? e)
+          (let [removed     (vec (remove (partial = code) e))
+                without-ops (without-operators removed)]
+            (cond
+              (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
+              (single-vec-of-symbol? without-ops) (first without-ops)
+              :else (remove-repeats removed)))
+          e))
+      v)
+     group-ands
+     raise)))
 
 (defn read-logic-string [s]
   (some-> s
@@ -105,6 +106,50 @@
           list->vec
           group-ands
           raise))
+
+(defn- lower-case-operators
+  "Turns AND/OR symbols typed in any case into the 'and and 'or symbols."
+  [v]
+  (clojure.walk/postwalk
+   (fn [e]
+     (if (and (symbol? e) (#{"and" "or"} (lower-case (name e))))
+       (symbol (lower-case (name e)))
+       e))
+   v))
+
+(defn well-formed-logic?
+  "True when every vector alternates operands (code symbols or nested vectors)
+  with 'and or 'or, starting and ending with an operand."
+  [v]
+  (and (vector? v)
+       (odd? (count v))
+       (every? (fn [[i e]]
+                 (if (even? i)
+                   (or (and (symbol? e) (not (#{'and 'or} e)))
+                       (well-formed-logic? e))
+                   (contains? #{'and 'or} e)))
+               (map-indexed vector v))))
+
+(defn logic-codes
+  "Returns the names of the constraint codes used in a logic vector."
+  [v]
+  (set (map name (remove #{'and 'or} (flatten v)))))
+
+(defn parse-logic-string
+  "Parses user-typed constraint logic. Returns the logic vector, [] for blank
+  input, or nil when the text cannot be read or is not well formed. Only
+  letters, spaces and parentheses are accepted, so the whole text is read as
+  one vector."
+  [s]
+  (cond
+    (blank? s) []
+    (not (re-matches #"[A-Za-z\s()]*" s)) nil
+    :else
+    (let [v (try
+              (-> (str "[" s "]") read-string list->vec lower-case-operators)
+              (catch :default _ nil))]
+      (when (well-formed-logic? v)
+        (raise (group-ands v))))))
 
 (defn find-type-constraints
   "Returns a vector of type constraints for a zipper location."
@@ -145,3 +190,8 @@
   (let [replacem {val1 val2
                   val2 val1}]
     (mapv #(get replacem % %) v)))
+
+(def constraint-key
+  "Identifies a constraint by path and code. Template constraint meta is keyed
+  by this, so it stays attached when the where clause is rebuilt or reordered."
+  (juxt :path :code))

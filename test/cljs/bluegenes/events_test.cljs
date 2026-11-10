@@ -108,3 +108,56 @@
        (testing "remove invalid login from localstorage"
          (let [login (get @utils/stubbed-storage ":bluegenes/login")]
            (is (empty? login))))))))
+
+(deftest keep-login-on-failed-token-check
+  (run-test-async
+   (utils/stub-local-storage)
+   (rf/dispatch-sync [:save-login nil {:token "login-token"}])
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {:statusCode 500})
+                 config/init-vars (delay nil)]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:assets/failure]
+       (testing "keep persisted login when token check fails without 401"
+         (let [login (get @utils/stubbed-storage ":bluegenes/login")]
+           (is (= {nil {:token "login-token"}} login))))))))
+
+(deftest clear-fetching-lists-on-failure
+  (run-test-async
+   (rf/reg-sub ::fetching-lists? (fn [db] (get-in db [:lists :fetching-lists?])))
+   (with-redefs [fetch/lists (utils/stub-fetch-fn {:statusCode 500})]
+     (rf/dispatch-sync [:assets/fetch-lists])
+     (wait-for [:assets/failure]
+       (testing "failed list fetch clears fetching-lists?"
+         (is (false? @(rf/subscribe [::fetching-lists?]))))))))
+
+(deftest asset-failures-share-one-warning
+  (run-test-sync
+   (rf/reg-event-db :test/set-mine
+                    (fn [db _] (assoc db :current-mine :test-mine
+                                      :mines {:test-mine {:name "TestMine"}})))
+   (rf/reg-sub ::warnings
+               (fn [db]
+                 (filter #(= "warning" (:style %)) (vals (:messages db)))))
+   (rf/dispatch-sync [:test/set-mine])
+   (rf/dispatch-sync [:assets/failure :assets/fetch-lists])
+   (rf/dispatch-sync [:assets/failure :assets/fetch-templates])
+   (rf/dispatch-sync [:assets/failure :assets/fetch-templates])
+   (let [warnings @(rf/subscribe [::warnings])
+         text (pr-str (:markup (first warnings)))]
+     (testing "exactly one warning for the mine"
+       (is (= 1 (count warnings))))
+     (testing "warning names both failed assets once"
+       (is (re-find #"lists, templates" text))))))
+
+(deftest reboot-clears-assets-failure-warning
+  (run-test-sync
+   (rf/reg-event-db :test/set-mine
+                    (fn [db _] (assoc db :current-mine :test-mine
+                                      :mines {:test-mine {:name "TestMine"}})))
+   (rf/reg-sub ::message-ids (fn [db] (set (keys (:messages db)))))
+   (rf/dispatch-sync [:test/set-mine])
+   (rf/dispatch-sync [:assets/failure :assets/fetch-lists])
+   (rf/dispatch-sync [:messages/add {:id :other :markup [:span "x"] :style "info" :timeout 0}])
+   (rf/dispatch-sync [:reboot])
+   (testing "reboot removes the assets-failure warning and keeps other messages"
+     (is (= #{:other} @(rf/subscribe [::message-ids]))))))

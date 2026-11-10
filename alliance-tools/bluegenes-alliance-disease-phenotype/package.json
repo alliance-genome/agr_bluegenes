@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-disease-phenotype",
+  "version": "0.1.2",
+  "description": "Shows disease and phenotype annotations for the genes of a Gene report page or list.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}

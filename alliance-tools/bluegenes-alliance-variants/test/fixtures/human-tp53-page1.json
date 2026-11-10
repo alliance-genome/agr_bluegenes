@@ -1,0 +1,253 @@
+{
+ "results": [
+  {
+   "category": "variant_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "rs530941076"
+   },
+   "alterationType": "variant",
+   "alterationTypeSortOrder": 4,
+   "hasPhenotype": false,
+   "hasDisease": false,
+   "variantList": [
+    {
+     "type": "Variant",
+     "variantType": {
+      "name": "SNP",
+      "descendantCount": 0
+     },
+     "curatedVariantGenomicLocations": [
+      {
+       "start": 7674873,
+       "end": 7674873,
+       "hgvs": "NC_000017.11:g.7674873A>C",
+       "variantGenomicLocationAssociationObject": {
+        "type": "AssemblyComponent",
+        "name": "17"
+       },
+       "predictedVariantConsequences": [
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        }
+       ],
+       "mostSevereConsequence": {
+        "vepConsequences": [
+         {
+          "name": "missense_variant",
+          "descendantCount": 0
+         }
+        ],
+        "geneLevelConsequence": false
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "category": "variant_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "rs587778719"
+   },
+   "alterationType": "variant",
+   "alterationTypeSortOrder": 4,
+   "hasPhenotype": false,
+   "hasDisease": false,
+   "variantList": [
+    {
+     "type": "Variant",
+     "variantType": {
+      "name": "SNP",
+      "descendantCount": 0
+     },
+     "curatedVariantGenomicLocations": [
+      {
+       "start": 7674926,
+       "end": 7674926,
+       "hgvs": "NC_000017.11:g.7674926C>A",
+       "variantGenomicLocationAssociationObject": {
+        "type": "AssemblyComponent",
+        "name": "17"
+       },
+       "predictedVariantConsequences": [
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        }
+       ],
+       "mostSevereConsequence": {
+        "vepConsequences": [
+         {
+          "name": "missense_variant",
+          "descendantCount": 0
+         }
+        ],
+        "geneLevelConsequence": false
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "category": "variant_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "rs587778719"
+   },
+   "alterationType": "variant",
+   "alterationTypeSortOrder": 4,
+   "hasPhenotype": false,
+   "hasDisease": false,
+   "variantList": [
+    {
+     "type": "Variant",
+     "variantType": {
+      "name": "SNP",
+      "descendantCount": 0
+     },
+     "curatedVariantGenomicLocations": [
+      {
+       "start": 7674926,
+       "end": 7674926,
+       "hgvs": "NC_000017.11:g.7674926C>T",
+       "variantGenomicLocationAssociationObject": {
+        "type": "AssemblyComponent",
+        "name": "17"
+       },
+       "predictedVariantConsequences": [
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        }
+       ],
+       "mostSevereConsequence": {
+        "vepConsequences": [
+         {
+          "name": "missense_variant",
+          "descendantCount": 0
+         }
+        ],
+        "geneLevelConsequence": false
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "total": 2920,
+ "returnedRecords": 3,
+ "requestDuration": "0s",
+ "requestDate": "2026/11/10 19:43:19",
+ "supplementalData": {
+  "distinctFieldValues": {
+   "variantType": [
+    "deletion",
+    "insertion",
+    "SNP"
+   ],
+   "molecularConsequence": [
+    "3_prime_UTR_variant",
+    "5_prime_UTR_variant",
+    "coding_sequence_variant",
+    "frameshift_variant",
+    "inframe_insertion",
+    "intron_variant",
+    "missense_variant",
+    "non_coding_transcript_exon_variant",
+    "non_coding_transcript_variant",
+    "protein_altering_variant",
+    "splice_acceptor_variant",
+    "splice_donor_5th_base_variant",
+    "splice_donor_region_variant",
+    "splice_donor_variant",
+    "splice_polypyrimidine_tract_variant",
+    "splice_region_variant",
+    "start_lost",
+    "stop_gained",
+    "stop_lost",
+    "stop_retained_variant",
+    "synonymous_variant"
+   ],
+   "alleleCategory": [
+    "variant"
+   ]
+  }
+ }
+}

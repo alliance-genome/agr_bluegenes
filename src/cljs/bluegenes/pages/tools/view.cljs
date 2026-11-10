@@ -4,7 +4,7 @@
             [bluegenes.pages.tools.events :as events]
             [bluegenes.version :as version]
             [bluegenes.components.viz.views :refer [all-viz]]
-            [bluegenes.utils :refer [md-paragraph]]
+            [bluegenes.utils :as utils :refer [md-paragraph]]
             [bluegenes.config :refer [server-vars]]))
 
 ;; You may notice that this page is only linked from the admin's profile
@@ -55,9 +55,8 @@
   [depends]
   (let [model       @(subscribe [:model])
         mine-name   (:name @(subscribe [:current-mine]))
-        supported?  (every? #(contains? model %) (map keyword depends))
-        unsupported (remove #(contains? model (keyword %)) depends)]
-    (when-not supported?
+        unsupported (utils/unmet-depends model depends)]
+    (when (seq unsupported)
       [:div.tool-alert
        [:p (str "This tool will not show on " mine-name " as it doesn't support: ")
         (into [:<>]
@@ -173,7 +172,7 @@
            [:h4 "Available tools"]
            [:button.btn.btn-primary.btn-raised
             {:on-click (action #(dispatch [::events/install-all-tools]))}
-            "Install all tools"]])
+            "Install all official tools"]])
         [available-tool-list remaining-tools]
         (when (seq all-viz)
           [:div.info

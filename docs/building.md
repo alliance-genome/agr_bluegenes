@@ -4,7 +4,7 @@ Start by installing the dependencies in [System Requirements](/docs/building.md#
 
 ## System Requirements
 
-* Java 8-11 (we recommend [OpenJDK](https://adoptopenjdk.net/))
+* Java 17 or newer (we recommend [OpenJDK](https://adoptium.net/))
 * Latest [Leiningen](https://leiningen.org/)
 * Latest supported [nodejs](https://nodejs.org/). You can check your version using `node -v`. We recommend installing node using [nvm](https://github.com/creationix/nvm)
 * Latest supported [npm](https://www.npmjs.com/)
@@ -53,13 +53,9 @@ Note: if you use `lein run` or any alias calling it like `dev` or `repl`, Figwhe
 
 ### Start the web server
 
-If you have OpenJDK 8, run this command:
+Run this command:
 
     lein with-profile +dev run
-
-If you have OpenJDK 9, run this command:
-
-    lein with-profile +java9 figwheel
 
 By default, the web server will be started on http://localhost:5000/. To change this value, edit the corresponding `config.edn`.
 

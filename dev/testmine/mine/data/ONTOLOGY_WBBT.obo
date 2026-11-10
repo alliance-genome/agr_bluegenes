@@ -1,0 +1,156 @@
+format-version: 1.2
+data-version: test
+ontology: wbbt
+
+[Term]
+id: WBbt:0000100
+name: C. elegans anatomical entity
+
+[Term]
+id: WBbt:0001976
+name: Ea nucleus
+
+[Term]
+id: WBbt:0001985
+name: Ep nucleus
+
+[Term]
+id: WBbt:0003673
+name: marginal cell
+
+[Term]
+id: WBbt:0003675
+name: muscle cell
+
+[Term]
+id: WBbt:0003679
+name: neuron
+
+[Term]
+id: WBbt:0003681
+name: pharynx
+
+[Term]
+id: WBbt:0003721
+name: pm7
+
+[Term]
+id: WBbt:0003724
+name: pm6
+
+[Term]
+id: WBbt:0003737
+name: pm5
+
+[Term]
+id: WBbt:0003739
+name: pm4
+
+[Term]
+id: WBbt:0003740
+name: pm3
+
+[Term]
+id: WBbt:0003823
+name: BAGR
+
+[Term]
+id: WBbt:0003824
+name: BAGL
+
+[Term]
+id: WBbt:0003903
+name: ASER
+
+[Term]
+id: WBbt:0003930
+name: RIGR
+
+[Term]
+id: WBbt:0003932
+name: RIGL
+
+[Term]
+id: WBbt:0003955
+name: ALA
+
+[Term]
+id: WBbt:0004017
+name: Cell
+
+[Term]
+id: WBbt:0004145
+name: P8.pp
+
+[Term]
+id: WBbt:0004376
+name: hyp12
+
+[Term]
+id: WBbt:0004377
+name: hyp11
+
+[Term]
+id: WBbt:0004506
+name: posterior distal tip cell
+
+[Term]
+id: WBbt:0004520
+name: anterior distal tip cell
+
+[Term]
+id: WBbt:0004540
+name: excretory duct cell
+
+[Term]
+id: WBbt:0004575
+name: Z3
+
+[Term]
+id: WBbt:0004576
+name: Z2
+
+[Term]
+id: WBbt:0004780
+name: G1
+
+[Term]
+id: WBbt:0004947
+name: CANR
+
+[Term]
+id: WBbt:0005460
+name: pharyngeal cell
+
+[Term]
+id: WBbt:0005733
+name: hypodermis
+
+[Term]
+id: WBbt:0005772
+name: intestine
+
+[Term]
+id: WBbt:0005784
+name: germ line
+
+[Term]
+id: WBbt:0005785
+name: somatic gonad
+
+[Term]
+id: WBbt:0005792
+name: intestinal cell
+
+[Term]
+id: WBbt:0005812
+name: excretory cell
+
+[Term]
+id: WBbt:0005813
+name: body wall musculature
+
+[Term]
+id: WBbt:0005829
+name: ventral nerve cord
+

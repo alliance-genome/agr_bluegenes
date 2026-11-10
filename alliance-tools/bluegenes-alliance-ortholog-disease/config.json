@@ -1,0 +1,27 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.homologues.homologue.symbol",
+    "Gene.homologues.homologue.primaryIdentifier",
+    "Gene.homologues.homologue.organism.shortName",
+    "Gene.homologues.homologue.diseaseAnnotation.ontologyTerm.identifier",
+    "Gene.homologues.homologue.diseaseAnnotation.ontologyTerm.name",
+    "Gene.homologues.homologue.diseaseAnnotation.qualifier",
+    "Gene.homologues.homologue.diseaseAnnotation.evidence.code.code"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Disease via orthologs",
+    "cljs": "bluegenesAllianceOrthologDisease"
+  },
+  "version": 2
+}

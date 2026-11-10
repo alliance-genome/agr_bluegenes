@@ -1,0 +1,254 @@
+[
+ {
+  "subject": "HGNC:11998",
+  "slim": "GO:0003824",
+  "assocs": [
+   {
+    "id": "556e6950726f744b420950303436333709545035330909474f3a3030333530333309474f5f5245463a303030303130370949454109556e6950726f744b423a5030323334307c656e73656d626c3a454e534d555350303030303031303432393809460943656c6c756c61722074756d6f7220616e746967656e20703533095035330970726f7465696e097461786f6e3a3936303609323032363037323409456e73656d626c0909556e6950726f744b423a50303436333709",
+    "subject": {
+     "id": "HGNC:11998",
+     "iri": "http://identifiers.org/uniprot/P04637",
+     "label": "TP53",
+     "taxon": {
+      "id": "NCBITaxon:9606",
+      "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+      "label": "Homo sapiens"
+     }
+    },
+    "object": {
+     "id": "GO:0035033",
+     "iri": "http://purl.obolibrary.org/obo/GO_0035033",
+     "label": "histone deacetylase regulator activity",
+     "category": [
+      "molecular_activity"
+     ],
+     "taxon": {
+      "id": "NCBITaxon:9606",
+      "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+      "label": "Homo sapiens"
+     }
+    },
+    "negated": false,
+    "relation": null,
+    "publications": [
+     {
+      "id": "UniProtKB"
+     }
+    ],
+    "evidence_types": [
+     {
+      "id": "ECO:0000501",
+      "label": "evidence used in automatic assertion"
+     }
+    ],
+    "provided_by": [
+     "Ensembl"
+    ],
+    "reference": [
+     "GO_REF:0000107"
+    ],
+    "type": "protein",
+    "evidence": "ECO:0000501",
+    "evidence_label": "evidence used in automatic assertion",
+    "evidence_type": "IEA",
+    "evidence_with": [
+     "UniProtKB:P02340",
+     "ensembl:ENSMUSP00000104298"
+    ],
+    "evidence_closure": [
+     "ECO:0000000",
+     "ECO:0000501"
+    ],
+    "evidence_closure_label": [
+     "evidence",
+     "evidence used in automatic assertion"
+    ],
+    "evidence_subset_closure": [
+     "ECO:0000501"
+    ],
+    "evidence_subset_closure_label": [
+     "evidence used in automatic assertion"
+    ],
+    "evidence_type_closure": [
+     "evidence",
+     "evidence used in automatic assertion"
+    ],
+    "slim": [
+     "GO:0003824"
+    ]
+   },
+   {
+    "id": "556e6950726f744b420950303436333709545035330909474f3a3030333633313009504d49443a38313833353736094944410909460943656c6c756c61722074756d6f7220616e746967656e20703533095035330970726f7465696e097461786f6e3a3936303609323032313035313909556e6950726f740909556e6950726f744b423a50303436333709",
+    "subject": {
+     "id": "HGNC:11998",
+     "iri": "http://identifiers.org/uniprot/P04637",
+     "label": "TP53",
+     "taxon": {
+      "id": "NCBITaxon:9606",
+      "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+      "label": "Homo sapiens"
+     }
+    },
+    "object": {
+     "id": "GO:0036310",
+     "iri": "http://purl.obolibrary.org/obo/GO_0036310",
+     "label": "ATP-dependent DNA/DNA annealing activity",
+     "category": [
+      "molecular_activity"
+     ],
+     "taxon": {
+      "id": "NCBITaxon:9606",
+      "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+      "label": "Homo sapiens"
+     }
+    },
+    "negated": false,
+    "relation": null,
+    "publications": [
+     {
+      "id": "UniProtKB"
+     }
+    ],
+    "evidence_types": [
+     {
+      "id": "ECO:0000314",
+      "label": "direct assay evidence used in manual assertion"
+     }
+    ],
+    "provided_by": [
+     "UniProt"
+    ],
+    "reference": [
+     "PMID:8183576"
+    ],
+    "type": "protein",
+    "evidence": "ECO:0000314",
+    "evidence_label": "direct assay evidence used in manual assertion",
+    "evidence_type": "IDA",
+    "evidence_closure": [
+     "ECO:0000000",
+     "ECO:0000352",
+     "ECO:0000002",
+     "ECO:0000006",
+     "ECO:0000314",
+     "ECO:0000269"
+    ],
+    "evidence_closure_label": [
+     "evidence",
+     "evidence used in manual assertion",
+     "direct assay evidence",
+     "experimental evidence",
+     "direct assay evidence used in manual assertion",
+     "experimental evidence used in manual assertion"
+    ],
+    "evidence_subset_closure": [
+     "ECO:0000006",
+     "ECO:0000314"
+    ],
+    "evidence_subset_closure_label": [
+     "experimental evidence",
+     "direct assay evidence used in manual assertion"
+    ],
+    "evidence_type_closure": [
+     "evidence",
+     "evidence used in manual assertion",
+     "direct assay evidence",
+     "experimental evidence",
+     "direct assay evidence used in manual assertion",
+     "experimental evidence used in manual assertion"
+    ],
+    "slim": [
+     "GO:0003824"
+    ]
+   },
+   {
+    "id": "556e6950726f744b420950303436333709545035330909474f3a3030353130393709504d49443a37363633353134095441530909500943656c6c756c61722074756d6f7220616e746967656e20703533095035330970726f7465696e097461786f6e3a3936303609323030343038303509556e6950726f740909556e6950726f744b423a50303436333709",
+    "subject": {
+     "id": "HGNC:11998",
+     "iri": "http://identifiers.org/uniprot/P04637",
+     "label": "TP53",
+     "taxon": {
+      "id": "NCBITaxon:9606",
+      "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+      "label": "Homo sapiens"
+     }
+    },
+    "object": {
+     "id": "GO:0051097",
+     "iri": "http://purl.obolibrary.org/obo/GO_0051097",
+     "label": "negative regulation of helicase activity",
+     "category": [
+      "biological_process"
+     ],
+     "taxon": {
+      "id": "NCBITaxon:9606",
+      "iri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+      "label": "Homo sapiens"
+     }
+    },
+    "negated": false,
+    "relation": null,
+    "publications": [
+     {
+      "id": "UniProtKB"
+     }
+    ],
+    "evidence_types": [
+     {
+      "id": "ECO:0000304",
+      "label": "author statement supported by traceable reference used in manual assertion"
+     }
+    ],
+    "provided_by": [
+     "UniProt"
+    ],
+    "reference": [
+     "PMID:7663514"
+    ],
+    "type": "protein",
+    "evidence": "ECO:0000304",
+    "evidence_label": "author statement supported by traceable reference used in manual assertion",
+    "evidence_type": "TAS",
+    "evidence_closure": [
+     "ECO:0000033",
+     "ECO:0000000",
+     "ECO:0000352",
+     "ECO:0006151",
+     "ECO:0006155",
+     "ECO:0000304",
+     "ECO:0000204",
+     "ECO:0000302"
+    ],
+    "evidence_closure_label": [
+     "author statement supported by traceable reference",
+     "evidence",
+     "evidence used in manual assertion",
+     "documented statement evidence",
+     "documented statement evidence used in manual assertion",
+     "author statement supported by traceable reference used in manual assertion",
+     "author statement",
+     "author statement used in manual assertion"
+    ],
+    "evidence_subset_closure": [
+     "ECO:0000304"
+    ],
+    "evidence_subset_closure_label": [
+     "author statement supported by traceable reference used in manual assertion"
+    ],
+    "evidence_type_closure": [
+     "author statement supported by traceable reference",
+     "evidence",
+     "evidence used in manual assertion",
+     "documented statement evidence",
+     "documented statement evidence used in manual assertion",
+     "author statement supported by traceable reference used in manual assertion",
+     "author statement",
+     "author statement used in manual assertion"
+    ],
+    "slim": [
+     "GO:0003824"
+    ]
+   }
+  ]
+ }
+]

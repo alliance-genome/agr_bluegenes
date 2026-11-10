@@ -1,0 +1,595 @@
+subjectGeneId	subjectGeneTaxon	orthologGeneId	orthologGeneTaxon	stringencyFilter	predictionMethodsMatched	predictionMethodsNotMatched	predictionMethodsNotCalled
+HGNC:11998	NCBITaxon:9606	MGI:98834	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	Hieranoid|PhylomeDB|SonicParanoid	
+HGNC:11998	NCBITaxon:9606	RGD:3889	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid	
+HGNC:11998	NCBITaxon:9606	ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	moderate	InParanoid|OMA|OrthoInspector|PANTHER|Roundup|TreeFam	Ensembl Compara|Hieranoid|OrthoFinder|PhylomeDB|SonicParanoid|ZFIN	
+HGNC:11998	NCBITaxon:9606	FB:FBgn0039044	NCBITaxon:7227	moderate	Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|OrthoInspector|Roundup	
+HGNC:11998	NCBITaxon:9606	WB:WBGene00000467	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid|OrthoInspector|PhylomeDB	
+MGI:98834	NCBITaxon:10090	HGNC:11998	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OMA|Roundup	
+MGI:98834	NCBITaxon:10090	RGD:3889	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+MGI:98834	NCBITaxon:10090	ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:98834	NCBITaxon:10090	FB:FBgn0039044	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	InParanoid|PhylomeDB|SonicParanoid	
+MGI:98834	NCBITaxon:10090	WB:WBGene00000467	NCBITaxon:6239	moderate	Ensembl Compara|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|Roundup|ZFIN	
+RGD:3889	NCBITaxon:10116	HGNC:11998	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam	PhylomeDB|ZFIN	
+RGD:3889	NCBITaxon:10116	MGI:98834	NCBITaxon:10090	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid	Ensembl Compara|OrthoInspector|Roundup|TreeFam|ZFIN	
+RGD:3889	NCBITaxon:10116	ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid	
+RGD:3889	NCBITaxon:10116	FB:FBgn0039044	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|OrthoFinder	
+RGD:3889	NCBITaxon:10116	WB:WBGene00000467	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	OrthoFinder|PhylomeDB|TreeFam	
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	HGNC:11998	NCBITaxon:9606	moderate	Hieranoid|OMA|OrthoInspector|PANTHER|TreeFam	Ensembl Compara|InParanoid|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	MGI:98834	NCBITaxon:10090	moderate	OMA|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|Roundup|SonicParanoid	
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	RGD:3889	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|Roundup|SonicParanoid|TreeFam	OMA|OrthoInspector|PANTHER|PhylomeDB|ZFIN	
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	FB:FBgn0039044	NCBITaxon:7227	moderate	OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|PANTHER|Roundup	
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	WB:WBGene00000467	NCBITaxon:6239	moderate	OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup	Ensembl Compara|Hieranoid|InParanoid|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+FB:FBgn0039044	NCBITaxon:7227	HGNC:11998	NCBITaxon:9606	moderate	OMA|PANTHER|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|Roundup|TreeFam	
+FB:FBgn0039044	NCBITaxon:7227	MGI:98834	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam	OrthoInspector|PhylomeDB|ZFIN	
+FB:FBgn0039044	NCBITaxon:7227	RGD:3889	NCBITaxon:10116	moderate	Hieranoid|OrthoInspector|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup	
+FB:FBgn0039044	NCBITaxon:7227	ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	moderate	InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|ZFIN	Ensembl Compara|Hieranoid|OrthoFinder|Roundup|SonicParanoid|TreeFam	
+FB:FBgn0039044	NCBITaxon:7227	WB:WBGene00000467	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid	
+WB:WBGene00000467	NCBITaxon:6239	HGNC:11998	NCBITaxon:9606	stringent	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Hieranoid|InParanoid|TreeFam	
+WB:WBGene00000467	NCBITaxon:6239	MGI:98834	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PhylomeDB|ZFIN	Hieranoid|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam	
+WB:WBGene00000467	NCBITaxon:6239	RGD:3889	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB	
+WB:WBGene00000467	NCBITaxon:6239	ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid	OrthoInspector|PANTHER|TreeFam|ZFIN	
+WB:WBGene00000467	NCBITaxon:6239	FB:FBgn0039044	NCBITaxon:7227	moderate	InParanoid|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|OMA|PANTHER|PhylomeDB|TreeFam	
+HGNC:1101	NCBITaxon:9606	MGI:109337	NCBITaxon:10090	moderate	InParanoid|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|Roundup|ZFIN	
+HGNC:1101	NCBITaxon:9606	RGD:2219	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	OMA|OrthoFinder|OrthoInspector|TreeFam	
+HGNC:1101	NCBITaxon:9606	ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	moderate	InParanoid|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER	
+HGNC:1101	NCBITaxon:9606	FB:FBgn0050169	NCBITaxon:7227	moderate	Hieranoid|InParanoid|OMA|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|ZFIN	
+MGI:109337	NCBITaxon:10090	HGNC:1101	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	InParanoid|SonicParanoid	
+MGI:109337	NCBITaxon:10090	RGD:2219	NCBITaxon:10116	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|TreeFam|ZFIN	Hieranoid|PhylomeDB|Roundup	
+MGI:109337	NCBITaxon:10090	ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|Roundup|SonicParanoid|ZFIN	OMA|OrthoInspector|PANTHER|PhylomeDB|TreeFam	
+MGI:109337	NCBITaxon:10090	FB:FBgn0050169	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|ZFIN	PANTHER|PhylomeDB|TreeFam	
+RGD:2219	NCBITaxon:10116	HGNC:1101	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+RGD:2219	NCBITaxon:10116	MGI:109337	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:2219	NCBITaxon:10116	ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam	OrthoFinder|PhylomeDB|ZFIN	
+RGD:2219	NCBITaxon:10116	FB:FBgn0050169	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|OrthoInspector|Roundup|SonicParanoid|ZFIN	InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam	
+ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	HGNC:1101	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	MGI:109337	NCBITaxon:10090	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|ZFIN	Ensembl Compara|InParanoid|PhylomeDB|Roundup|TreeFam	
+ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	RGD:2219	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	FB:FBgn0050169	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	InParanoid|TreeFam|ZFIN	
+FB:FBgn0050169	NCBITaxon:7227	HGNC:1101	NCBITaxon:9606	stringent	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid	
+FB:FBgn0050169	NCBITaxon:7227	MGI:109337	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0050169	NCBITaxon:7227	RGD:2219	NCBITaxon:10116	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|PANTHER|Roundup|SonicParanoid	
+FB:FBgn0050169	NCBITaxon:7227	ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Roundup	
+HGNC:9588	NCBITaxon:9606	MGI:109583	NCBITaxon:10090	moderate	InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|TreeFam	Ensembl Compara|Hieranoid|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+HGNC:9588	NCBITaxon:9606	RGD:61995	NCBITaxon:10116	moderate	Ensembl Compara|OrthoFinder|Roundup|SonicParanoid|ZFIN	Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|TreeFam	
+HGNC:9588	NCBITaxon:9606	FB:FBgn0026379	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|OMA|Roundup|TreeFam	InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|ZFIN	
+HGNC:9588	NCBITaxon:9606	WB:WBGene00000913	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|PhylomeDB	
+MGI:109583	NCBITaxon:10090	HGNC:9588	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|ZFIN	Hieranoid|OrthoFinder|Roundup|TreeFam	
+MGI:109583	NCBITaxon:10090	RGD:61995	NCBITaxon:10116	moderate	Hieranoid|InParanoid|OrthoFinder|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OMA|OrthoInspector|PANTHER|PhylomeDB|ZFIN	
+MGI:109583	NCBITaxon:10090	FB:FBgn0026379	NCBITaxon:7227	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|TreeFam	
+MGI:109583	NCBITaxon:10090	WB:WBGene00000913	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|TreeFam|ZFIN	PhylomeDB|Roundup	
+RGD:61995	NCBITaxon:10116	HGNC:9588	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:61995	NCBITaxon:10116	MGI:109583	NCBITaxon:10090	moderate	Ensembl Compara|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|OrthoFinder|Roundup	
+RGD:61995	NCBITaxon:10116	FB:FBgn0026379	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|ZFIN	Hieranoid|OrthoInspector|PhylomeDB|TreeFam	
+RGD:61995	NCBITaxon:10116	WB:WBGene00000913	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam	OMA|OrthoFinder|SonicParanoid|ZFIN	
+FB:FBgn0026379	NCBITaxon:7227	HGNC:9588	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0026379	NCBITaxon:7227	MGI:109583	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	PANTHER	
+FB:FBgn0026379	NCBITaxon:7227	RGD:61995	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|PANTHER|TreeFam	
+FB:FBgn0026379	NCBITaxon:7227	WB:WBGene00000913	NCBITaxon:6239	moderate	Hieranoid|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam	Ensembl Compara|InParanoid|OrthoInspector|Roundup|SonicParanoid|ZFIN	
+WB:WBGene00000913	NCBITaxon:6239	HGNC:9588	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	SonicParanoid|TreeFam	
+WB:WBGene00000913	NCBITaxon:6239	MGI:109583	NCBITaxon:10090	moderate	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam	Hieranoid|InParanoid|OMA|Roundup|SonicParanoid|ZFIN	
+WB:WBGene00000913	NCBITaxon:6239	RGD:61995	NCBITaxon:10116	stringent	Hieranoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoInspector	
+WB:WBGene00000913	NCBITaxon:6239	FB:FBgn0026379	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:620	NCBITaxon:9606	MGI:88059	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|PANTHER	
+HGNC:620	NCBITaxon:9606	RGD:2139	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+HGNC:620	NCBITaxon:9606	ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	OrthoInspector|SonicParanoid	
+HGNC:620	NCBITaxon:9606	FB:FBgn0000108	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:620	NCBITaxon:9606	WB:WBGene00000149	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:88059	NCBITaxon:10090	HGNC:620	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OMA|PhylomeDB|Roundup|SonicParanoid|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|TreeFam	
+MGI:88059	NCBITaxon:10090	RGD:2139	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	OrthoInspector|SonicParanoid	
+MGI:88059	NCBITaxon:10090	ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OMA|PANTHER|PhylomeDB|TreeFam|ZFIN	InParanoid|OrthoFinder|OrthoInspector|Roundup|SonicParanoid	
+MGI:88059	NCBITaxon:10090	FB:FBgn0000108	NCBITaxon:7227	moderate	Ensembl Compara|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	Hieranoid|InParanoid|OrthoFinder|PANTHER|Roundup|ZFIN	
+MGI:88059	NCBITaxon:10090	WB:WBGene00000149	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|SonicParanoid|TreeFam|ZFIN	PANTHER|PhylomeDB|Roundup	
+RGD:2139	NCBITaxon:10116	HGNC:620	NCBITaxon:9606	moderate	Ensembl Compara|OrthoFinder|PANTHER|PhylomeDB|ZFIN	Hieranoid|InParanoid|OMA|OrthoInspector|Roundup|SonicParanoid|TreeFam	
+RGD:2139	NCBITaxon:10116	MGI:88059	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	OMA|OrthoInspector|SonicParanoid	
+RGD:2139	NCBITaxon:10116	ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|Roundup	OMA|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+RGD:2139	NCBITaxon:10116	FB:FBgn0000108	NCBITaxon:7227	moderate	InParanoid|OrthoFinder|PANTHER|PhylomeDB|Roundup	Ensembl Compara|Hieranoid|OMA|OrthoInspector|SonicParanoid|TreeFam|ZFIN	
+RGD:2139	NCBITaxon:10116	WB:WBGene00000149	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	InParanoid|PANTHER|Roundup	
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	HGNC:620	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|SonicParanoid|TreeFam|ZFIN	OrthoFinder|PANTHER|PhylomeDB|Roundup	
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	MGI:88059	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Roundup|SonicParanoid	
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	RGD:2139	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder|OrthoInspector	
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	FB:FBgn0000108	NCBITaxon:7227	moderate	InParanoid|OrthoInspector|PhylomeDB|Roundup|TreeFam	Ensembl Compara|Hieranoid|OMA|OrthoFinder|PANTHER|SonicParanoid|ZFIN	
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	WB:WBGene00000149	NCBITaxon:6239	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	Hieranoid|OMA|PhylomeDB|SonicParanoid	
+FB:FBgn0000108	NCBITaxon:7227	HGNC:620	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+FB:FBgn0000108	NCBITaxon:7227	MGI:88059	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid|PhylomeDB	
+FB:FBgn0000108	NCBITaxon:7227	RGD:2139	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid|OrthoFinder	
+FB:FBgn0000108	NCBITaxon:7227	ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	ZFIN	
+FB:FBgn0000108	NCBITaxon:7227	WB:WBGene00000149	NCBITaxon:6239	stringent	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|OMA	
+WB:WBGene00000149	NCBITaxon:6239	HGNC:620	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00000149	NCBITaxon:6239	MGI:88059	NCBITaxon:10090	moderate	InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|OrthoInspector|ZFIN	
+WB:WBGene00000149	NCBITaxon:6239	RGD:2139	NCBITaxon:10116	stringent	Ensembl Compara|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoFinder|PhylomeDB	
+WB:WBGene00000149	NCBITaxon:6239	ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OrthoInspector|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder|PANTHER|PhylomeDB	
+WB:WBGene00000149	NCBITaxon:6239	FB:FBgn0000108	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+HGNC:11179	NCBITaxon:9606	MGI:98351	NCBITaxon:10090	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	Hieranoid|InParanoid|SonicParanoid|TreeFam	
+HGNC:11179	NCBITaxon:9606	RGD:3731	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|SonicParanoid|TreeFam|ZFIN	PANTHER|PhylomeDB|Roundup	
+HGNC:11179	NCBITaxon:9606	ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	moderate	Hieranoid|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup	
+HGNC:11179	NCBITaxon:9606	FB:FBgn0003462	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:11179	NCBITaxon:9606	WB:WBGene00004930	NCBITaxon:6239	moderate	InParanoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OrthoInspector|PhylomeDB	
+HGNC:11179	NCBITaxon:9606	SGD:S000003865	NCBITaxon:559292	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|OrthoInspector	
+MGI:98351	NCBITaxon:10090	HGNC:11179	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:98351	NCBITaxon:10090	RGD:3731	NCBITaxon:10116	moderate	Hieranoid|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OrthoInspector|PhylomeDB|Roundup|ZFIN	
+MGI:98351	NCBITaxon:10090	ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:98351	NCBITaxon:10090	FB:FBgn0003462	NCBITaxon:7227	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|PANTHER|PhylomeDB|Roundup	
+MGI:98351	NCBITaxon:10090	WB:WBGene00004930	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoInspector	
+MGI:98351	NCBITaxon:10090	SGD:S000003865	NCBITaxon:559292	moderate	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Hieranoid|InParanoid|OMA|Roundup|ZFIN	
+RGD:3731	NCBITaxon:10116	HGNC:11179	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:3731	NCBITaxon:10116	MGI:98351	NCBITaxon:10090	moderate	Ensembl Compara|OrthoFinder|PANTHER|TreeFam|ZFIN	Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid	
+RGD:3731	NCBITaxon:10116	ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	InParanoid|Roundup	
+RGD:3731	NCBITaxon:10116	FB:FBgn0003462	NCBITaxon:7227	moderate	Hieranoid|InParanoid|OrthoInspector|PhylomeDB|TreeFam	Ensembl Compara|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|ZFIN	
+RGD:3731	NCBITaxon:10116	WB:WBGene00004930	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|Roundup	OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+RGD:3731	NCBITaxon:10116	SGD:S000003865	NCBITaxon:559292	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|TreeFam	Ensembl Compara|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	HGNC:11179	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|OrthoFinder|PhylomeDB	
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	MGI:98351	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	RGD:3731	NCBITaxon:10116	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Hieranoid|TreeFam	
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	FB:FBgn0003462	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	WB:WBGene00004930	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	InParanoid|ZFIN	
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	SGD:S000003865	NCBITaxon:559292	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	Hieranoid|PhylomeDB|TreeFam	
+FB:FBgn0003462	NCBITaxon:7227	HGNC:11179	NCBITaxon:9606	moderate	OrthoFinder|PANTHER|Roundup|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid	
+FB:FBgn0003462	NCBITaxon:7227	MGI:98351	NCBITaxon:10090	moderate	Hieranoid|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoInspector|Roundup	
+FB:FBgn0003462	NCBITaxon:7227	RGD:3731	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0003462	NCBITaxon:7227	ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|PANTHER	
+FB:FBgn0003462	NCBITaxon:7227	WB:WBGene00004930	NCBITaxon:6239	moderate	OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	Ensembl Compara|Hieranoid|InParanoid|OMA|TreeFam|ZFIN	
+FB:FBgn0003462	NCBITaxon:7227	SGD:S000003865	NCBITaxon:559292	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+WB:WBGene00004930	NCBITaxon:6239	HGNC:11179	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00004930	NCBITaxon:6239	MGI:98351	NCBITaxon:10090	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+WB:WBGene00004930	NCBITaxon:6239	RGD:3731	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|OMA|OrthoInspector|Roundup	InParanoid|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+WB:WBGene00004930	NCBITaxon:6239	ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OrthoInspector|Roundup|TreeFam	Hieranoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	
+WB:WBGene00004930	NCBITaxon:6239	FB:FBgn0003462	NCBITaxon:7227	moderate	Ensembl Compara|OrthoFinder|PANTHER|Roundup|ZFIN	Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	
+WB:WBGene00004930	NCBITaxon:6239	SGD:S000003865	NCBITaxon:559292	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+SGD:S000003865	NCBITaxon:559292	HGNC:11179	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+SGD:S000003865	NCBITaxon:559292	MGI:98351	NCBITaxon:10090	moderate	Hieranoid|InParanoid|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|ZFIN	
+SGD:S000003865	NCBITaxon:559292	RGD:3731	NCBITaxon:10116	moderate	InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|OrthoInspector|PANTHER|TreeFam	
+SGD:S000003865	NCBITaxon:559292	ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OMA|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|Roundup|ZFIN	
+SGD:S000003865	NCBITaxon:559292	FB:FBgn0003462	NCBITaxon:7227	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|ZFIN	
+SGD:S000003865	NCBITaxon:559292	WB:WBGene00004930	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|SonicParanoid|TreeFam	OMA|OrthoInspector|PhylomeDB|Roundup|ZFIN	
+HGNC:4851	NCBITaxon:9606	MGI:96067	NCBITaxon:10090	moderate	Hieranoid|InParanoid|OrthoInspector|PANTHER|TreeFam	Ensembl Compara|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+HGNC:4851	NCBITaxon:9606	RGD:68337	NCBITaxon:10116	moderate	Hieranoid|OMA|OrthoFinder|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	
+HGNC:4851	NCBITaxon:9606	ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	InParanoid|OMA|TreeFam|ZFIN	
+HGNC:4851	NCBITaxon:9606	FB:FBgn0027655	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoInspector|PANTHER	
+MGI:96067	NCBITaxon:10090	HGNC:4851	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:96067	NCBITaxon:10090	RGD:68337	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:96067	NCBITaxon:10090	ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|SonicParanoid	OMA|OrthoFinder|PhylomeDB|Roundup|TreeFam|ZFIN	
+MGI:96067	NCBITaxon:10090	FB:FBgn0027655	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|SonicParanoid|TreeFam|ZFIN	OrthoFinder|PANTHER|PhylomeDB|Roundup	
+RGD:68337	NCBITaxon:10116	HGNC:4851	NCBITaxon:9606	moderate	OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|TreeFam	
+RGD:68337	NCBITaxon:10116	MGI:96067	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+RGD:68337	NCBITaxon:10116	ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OMA|OrthoInspector|Roundup|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid	
+RGD:68337	NCBITaxon:10116	FB:FBgn0027655	NCBITaxon:7227	moderate	InParanoid|PANTHER|Roundup|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|ZFIN	
+ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	HGNC:4851	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|Roundup|TreeFam	OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	
+ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	MGI:96067	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	RGD:68337	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PhylomeDB	InParanoid|OMA|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	FB:FBgn0027655	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoInspector	
+FB:FBgn0027655	NCBITaxon:7227	HGNC:4851	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	OrthoFinder|TreeFam	
+FB:FBgn0027655	NCBITaxon:7227	MGI:96067	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+FB:FBgn0027655	NCBITaxon:7227	RGD:68337	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|PANTHER	
+FB:FBgn0027655	NCBITaxon:7227	ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	InParanoid|OMA|PhylomeDB|SonicParanoid	
+HGNC:1884	NCBITaxon:9606	MGI:88388	NCBITaxon:10090	stringent	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid	
+HGNC:1884	NCBITaxon:9606	RGD:2332	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam	PANTHER|PhylomeDB|ZFIN	
+HGNC:1884	NCBITaxon:9606	ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	moderate	InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OMA|PANTHER	
+HGNC:1884	NCBITaxon:9606	FB:FBgn0039207	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:88388	NCBITaxon:10090	HGNC:1884	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OMA|Roundup|TreeFam|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid	
+MGI:88388	NCBITaxon:10090	RGD:2332	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:88388	NCBITaxon:10090	ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoInspector|Roundup	
+MGI:88388	NCBITaxon:10090	FB:FBgn0039207	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|PANTHER|Roundup|TreeFam|ZFIN	Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid	
+RGD:2332	NCBITaxon:10116	HGNC:1884	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OMA|PANTHER|Roundup	
+RGD:2332	NCBITaxon:10116	MGI:88388	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	OrthoFinder|OrthoInspector|ZFIN	
+RGD:2332	NCBITaxon:10116	ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	moderate	OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|SonicParanoid|TreeFam|ZFIN	
+RGD:2332	NCBITaxon:10116	FB:FBgn0039207	NCBITaxon:7227	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|Roundup	
+ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	HGNC:1884	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|OrthoFinder|Roundup|TreeFam|ZFIN	InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid	
+ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	MGI:88388	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OMA|PhylomeDB|SonicParanoid	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	RGD:2332	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	Hieranoid|PANTHER|Roundup|ZFIN	
+ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	FB:FBgn0039207	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|OMA|PANTHER|SonicParanoid	Hieranoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	
+FB:FBgn0039207	NCBITaxon:7227	HGNC:1884	NCBITaxon:9606	moderate	OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OMA|SonicParanoid	
+FB:FBgn0039207	NCBITaxon:7227	MGI:88388	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0039207	NCBITaxon:7227	RGD:2332	NCBITaxon:10116	moderate	PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER	
+FB:FBgn0039207	NCBITaxon:7227	ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|PhylomeDB	
+HGNC:14581	NCBITaxon:9606	MGI:1916193	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:14581	NCBITaxon:9606	RGD:1305769	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	OMA|SonicParanoid	
+HGNC:14581	NCBITaxon:9606	ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|Roundup	
+HGNC:14581	NCBITaxon:9606	FB:FBgn0029891	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:14581	NCBITaxon:9606	WB:WBGene00017137	NCBITaxon:6239	moderate	Ensembl Compara|OMA|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB	
+MGI:1916193	NCBITaxon:10090	HGNC:14581	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid|OrthoFinder	
+MGI:1916193	NCBITaxon:10090	RGD:1305769	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Hieranoid|OrthoFinder|Roundup|ZFIN	
+MGI:1916193	NCBITaxon:10090	ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|ZFIN	
+MGI:1916193	NCBITaxon:10090	FB:FBgn0029891	NCBITaxon:7227	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+MGI:1916193	NCBITaxon:10090	WB:WBGene00017137	NCBITaxon:6239	moderate	OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|Roundup|SonicParanoid	
+RGD:1305769	NCBITaxon:10116	HGNC:14581	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:1305769	NCBITaxon:10116	MGI:1916193	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|ZFIN	PANTHER|TreeFam	
+RGD:1305769	NCBITaxon:10116	ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|TreeFam	
+RGD:1305769	NCBITaxon:10116	FB:FBgn0029891	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	OrthoFinder|PhylomeDB|SonicParanoid	
+RGD:1305769	NCBITaxon:10116	WB:WBGene00017137	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoInspector|Roundup	
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	HGNC:14581	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	MGI:1916193	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	SonicParanoid|TreeFam	
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	RGD:1305769	NCBITaxon:10116	moderate	OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|TreeFam	
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	FB:FBgn0029891	NCBITaxon:7227	stringent	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|OMA|TreeFam	
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	WB:WBGene00017137	NCBITaxon:6239	moderate	Ensembl Compara|OMA|PANTHER|PhylomeDB|SonicParanoid	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|Roundup|TreeFam|ZFIN	
+FB:FBgn0029891	NCBITaxon:7227	HGNC:14581	NCBITaxon:9606	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	Ensembl Compara|InParanoid|PhylomeDB|TreeFam	
+FB:FBgn0029891	NCBITaxon:7227	MGI:1916193	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|OMA|PhylomeDB|SonicParanoid|ZFIN	InParanoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam	
+FB:FBgn0029891	NCBITaxon:7227	RGD:1305769	NCBITaxon:10116	moderate	Hieranoid|InParanoid|OrthoInspector|PhylomeDB|Roundup|ZFIN	Ensembl Compara|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam	
+FB:FBgn0029891	NCBITaxon:7227	ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OMA|PANTHER|Roundup	Ensembl Compara|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+FB:FBgn0029891	NCBITaxon:7227	WB:WBGene00017137	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid	OMA|PANTHER|TreeFam|ZFIN	
+WB:WBGene00017137	NCBITaxon:6239	HGNC:14581	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+WB:WBGene00017137	NCBITaxon:6239	MGI:1916193	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|PANTHER|PhylomeDB|ZFIN	OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam	
+WB:WBGene00017137	NCBITaxon:6239	RGD:1305769	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	OMA|TreeFam	
+WB:WBGene00017137	NCBITaxon:6239	ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	moderate	Hieranoid|InParanoid|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam	
+WB:WBGene00017137	NCBITaxon:6239	FB:FBgn0029891	NCBITaxon:7227	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam	Ensembl Compara|InParanoid|SonicParanoid|ZFIN	
+HGNC:16369	NCBITaxon:9606	MGI:2135637	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|TreeFam	OrthoFinder|PANTHER|SonicParanoid|ZFIN	
+HGNC:16369	NCBITaxon:9606	RGD:621808	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam	OrthoFinder|PhylomeDB|ZFIN	
+HGNC:16369	NCBITaxon:9606	ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup	Hieranoid|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	
+HGNC:16369	NCBITaxon:9606	WB:WBGene00015184	NCBITaxon:6239	stringent	Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|PANTHER	
+MGI:2135637	NCBITaxon:10090	HGNC:16369	NCBITaxon:9606	moderate	Hieranoid|OMA|Roundup|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|ZFIN	
+MGI:2135637	NCBITaxon:10090	RGD:621808	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|TreeFam|ZFIN	OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	
+MGI:2135637	NCBITaxon:10090	ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	PANTHER	
+MGI:2135637	NCBITaxon:10090	WB:WBGene00015184	NCBITaxon:6239	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB	Ensembl Compara|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	
+RGD:621808	NCBITaxon:10116	HGNC:16369	NCBITaxon:9606	stringent	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid	
+RGD:621808	NCBITaxon:10116	MGI:2135637	NCBITaxon:10090	moderate	Ensembl Compara|PANTHER|Roundup|TreeFam|ZFIN	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid	
+RGD:621808	NCBITaxon:10116	ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+RGD:621808	NCBITaxon:10116	WB:WBGene00015184	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|OMA|PANTHER|PhylomeDB|TreeFam|ZFIN	InParanoid|OrthoFinder|OrthoInspector|Roundup|SonicParanoid	
+ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	HGNC:16369	NCBITaxon:9606	moderate	Hieranoid|OMA|OrthoFinder|PANTHER|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoInspector|PhylomeDB|Roundup|SonicParanoid	
+ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	MGI:2135637	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Hieranoid|OMA|SonicParanoid	
+ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	RGD:621808	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid	OrthoInspector|Roundup|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	WB:WBGene00015184	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam	PANTHER|PhylomeDB|ZFIN	
+WB:WBGene00015184	NCBITaxon:6239	HGNC:16369	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00015184	NCBITaxon:6239	MGI:2135637	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|SonicParanoid	
+WB:WBGene00015184	NCBITaxon:6239	RGD:621808	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid|PANTHER	
+WB:WBGene00015184	NCBITaxon:6239	ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	moderate	Hieranoid|OMA|OrthoFinder|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoInspector|PANTHER|Roundup|SonicParanoid	
+HGNC:18618	NCBITaxon:9606	MGI:1913975	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|SonicParanoid	OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	
+HGNC:18618	NCBITaxon:9606	RGD:1561168	NCBITaxon:10116	moderate	Hieranoid|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB	
+HGNC:18618	NCBITaxon:9606	ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|Roundup|SonicParanoid|ZFIN	OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam	
+HGNC:18618	NCBITaxon:9606	FB:FBgn0038816	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+HGNC:18618	NCBITaxon:9606	WB:WBGene00003068	NCBITaxon:6239	moderate	Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup	Ensembl Compara|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	
+MGI:1913975	NCBITaxon:10090	HGNC:18618	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:1913975	NCBITaxon:10090	RGD:1561168	NCBITaxon:10116	moderate	InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|ZFIN	Ensembl Compara|Hieranoid|OMA|Roundup|SonicParanoid|TreeFam	
+MGI:1913975	NCBITaxon:10090	ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	InParanoid|OrthoInspector|SonicParanoid	
+MGI:1913975	NCBITaxon:10090	FB:FBgn0038816	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:1913975	NCBITaxon:10090	WB:WBGene00003068	NCBITaxon:6239	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoInspector	
+RGD:1561168	NCBITaxon:10116	HGNC:18618	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|Roundup	InParanoid|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+RGD:1561168	NCBITaxon:10116	MGI:1913975	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OMA|PANTHER|SonicParanoid	Hieranoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	
+RGD:1561168	NCBITaxon:10116	ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	InParanoid|OMA|TreeFam	
+RGD:1561168	NCBITaxon:10116	FB:FBgn0038816	NCBITaxon:7227	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|SonicParanoid	
+RGD:1561168	NCBITaxon:10116	WB:WBGene00003068	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|Roundup	InParanoid|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	HGNC:18618	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	MGI:1913975	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	RGD:1561168	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|SonicParanoid|TreeFam|ZFIN	OrthoInspector|PANTHER|PhylomeDB|Roundup	
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	FB:FBgn0038816	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	WB:WBGene00003068	NCBITaxon:6239	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|ZFIN	Hieranoid|Roundup|SonicParanoid|TreeFam	
+FB:FBgn0038816	NCBITaxon:7227	HGNC:18618	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	PANTHER	
+FB:FBgn0038816	NCBITaxon:7227	MGI:1913975	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+FB:FBgn0038816	NCBITaxon:7227	RGD:1561168	NCBITaxon:10116	moderate	InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|OrthoFinder|PANTHER|ZFIN	
+FB:FBgn0038816	NCBITaxon:7227	ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	InParanoid|TreeFam	
+FB:FBgn0038816	NCBITaxon:7227	WB:WBGene00003068	NCBITaxon:6239	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid	Ensembl Compara|InParanoid|PANTHER|PhylomeDB|TreeFam|ZFIN	
+WB:WBGene00003068	NCBITaxon:6239	HGNC:18618	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|PhylomeDB|Roundup|SonicParanoid	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|TreeFam|ZFIN	
+WB:WBGene00003068	NCBITaxon:6239	MGI:1913975	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00003068	NCBITaxon:6239	RGD:1561168	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|PhylomeDB|TreeFam	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	
+WB:WBGene00003068	NCBITaxon:6239	ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	moderate	InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OMA|PANTHER	
+WB:WBGene00003068	NCBITaxon:6239	FB:FBgn0038816	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:3236	NCBITaxon:9606	MGI:95294	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|Roundup	
+HGNC:3236	NCBITaxon:9606	RGD:2543	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Roundup	
+HGNC:3236	NCBITaxon:9606	ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:3236	NCBITaxon:9606	FB:FBgn0003731	NCBITaxon:7227	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|ZFIN	Ensembl Compara|OMA|PANTHER|Roundup|SonicParanoid|TreeFam	
+HGNC:3236	NCBITaxon:9606	WB:WBGene00002299	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	InParanoid|PhylomeDB|TreeFam	
+MGI:95294	NCBITaxon:10090	HGNC:3236	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PhylomeDB|TreeFam	OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	
+MGI:95294	NCBITaxon:10090	RGD:2543	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|OrthoInspector|PhylomeDB|SonicParanoid	InParanoid|OMA|OrthoFinder|PANTHER|Roundup|TreeFam|ZFIN	
+MGI:95294	NCBITaxon:10090	ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OrthoFinder|PANTHER|ZFIN	
+MGI:95294	NCBITaxon:10090	FB:FBgn0003731	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:95294	NCBITaxon:10090	WB:WBGene00002299	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	PANTHER|SonicParanoid	
+RGD:2543	NCBITaxon:10116	HGNC:3236	NCBITaxon:9606	stringent	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|Roundup	
+RGD:2543	NCBITaxon:10116	MGI:95294	NCBITaxon:10090	moderate	OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PhylomeDB	
+RGD:2543	NCBITaxon:10116	ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+RGD:2543	NCBITaxon:10116	FB:FBgn0003731	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|ZFIN	InParanoid|OMA|OrthoInspector|Roundup|TreeFam	
+RGD:2543	NCBITaxon:10116	WB:WBGene00002299	NCBITaxon:6239	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoInspector|Roundup	
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	HGNC:3236	NCBITaxon:9606	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB	Ensembl Compara|OMA|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	MGI:95294	NCBITaxon:10090	moderate	Hieranoid|OrthoFinder|OrthoInspector|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|ZFIN	
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	RGD:2543	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Roundup	
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	FB:FBgn0003731	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid	Hieranoid|OMA|PANTHER|Roundup|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	WB:WBGene00002299	NCBITaxon:6239	moderate	InParanoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|OrthoFinder|PANTHER|Roundup|ZFIN	
+FB:FBgn0003731	NCBITaxon:7227	HGNC:3236	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+FB:FBgn0003731	NCBITaxon:7227	MGI:95294	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	OMA|OrthoFinder|PhylomeDB|SonicParanoid	
+FB:FBgn0003731	NCBITaxon:7227	RGD:2543	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	TreeFam	
+FB:FBgn0003731	NCBITaxon:7227	ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	InParanoid|OMA	
+FB:FBgn0003731	NCBITaxon:7227	WB:WBGene00002299	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Roundup|ZFIN	
+WB:WBGene00002299	NCBITaxon:6239	HGNC:3236	NCBITaxon:9606	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|OMA|Roundup|SonicParanoid	
+WB:WBGene00002299	NCBITaxon:6239	MGI:95294	NCBITaxon:10090	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB	Ensembl Compara|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	
+WB:WBGene00002299	NCBITaxon:6239	RGD:2543	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+WB:WBGene00002299	NCBITaxon:6239	ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00002299	NCBITaxon:6239	FB:FBgn0003731	NCBITaxon:7227	moderate	OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|TreeFam	
+HGNC:6407	NCBITaxon:9606	MGI:96680	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:6407	NCBITaxon:9606	RGD:2981	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam	Hieranoid|PANTHER|PhylomeDB|ZFIN	
+HGNC:6407	NCBITaxon:9606	ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PhylomeDB|Roundup|TreeFam|ZFIN	OMA|OrthoInspector|PANTHER|SonicParanoid	
+HGNC:6407	NCBITaxon:9606	FB:FBgn0003205	NCBITaxon:7227	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|OMA|PANTHER|TreeFam	
+HGNC:6407	NCBITaxon:9606	WB:WBGene00002335	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	ZFIN	
+MGI:96680	NCBITaxon:10090	HGNC:6407	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|OrthoFinder|PhylomeDB|SonicParanoid	InParanoid|OMA|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	
+MGI:96680	NCBITaxon:10090	RGD:2981	NCBITaxon:10116	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup	Ensembl Compara|SonicParanoid|TreeFam|ZFIN	
+MGI:96680	NCBITaxon:10090	ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	moderate	InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam	Ensembl Compara|Hieranoid|OMA|SonicParanoid|ZFIN	
+MGI:96680	NCBITaxon:10090	FB:FBgn0003205	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|SonicParanoid|ZFIN	OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam	
+MGI:96680	NCBITaxon:10090	WB:WBGene00002335	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:2981	NCBITaxon:10116	HGNC:6407	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:2981	NCBITaxon:10116	MGI:96680	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:2981	NCBITaxon:10116	ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:2981	NCBITaxon:10116	FB:FBgn0003205	NCBITaxon:7227	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Hieranoid|TreeFam	
+RGD:2981	NCBITaxon:10116	WB:WBGene00002335	NCBITaxon:6239	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|ZFIN	Hieranoid|PANTHER|PhylomeDB|TreeFam	
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	HGNC:6407	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	TreeFam	
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	MGI:96680	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|OrthoFinder|Roundup|SonicParanoid	InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	RGD:2981	NCBITaxon:10116	moderate	Ensembl Compara|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|InParanoid|OMA|OrthoInspector|ZFIN	
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	FB:FBgn0003205	NCBITaxon:7227	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	Ensembl Compara|SonicParanoid|TreeFam	
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	WB:WBGene00002335	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|ZFIN	OMA|PhylomeDB|Roundup|SonicParanoid|TreeFam	
+FB:FBgn0003205	NCBITaxon:7227	HGNC:6407	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|PANTHER|PhylomeDB|TreeFam	InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|ZFIN	
+FB:FBgn0003205	NCBITaxon:7227	MGI:96680	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0003205	NCBITaxon:7227	RGD:2981	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	TreeFam	
+FB:FBgn0003205	NCBITaxon:7227	ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	InParanoid|PhylomeDB|TreeFam	
+FB:FBgn0003205	NCBITaxon:7227	WB:WBGene00002335	NCBITaxon:6239	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|OMA|Roundup|SonicParanoid	
+WB:WBGene00002335	NCBITaxon:6239	HGNC:6407	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00002335	NCBITaxon:6239	MGI:96680	NCBITaxon:10090	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+WB:WBGene00002335	NCBITaxon:6239	RGD:2981	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	OrthoInspector|TreeFam	
+WB:WBGene00002335	NCBITaxon:6239	ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OMA|Roundup|ZFIN	InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	
+WB:WBGene00002335	NCBITaxon:6239	FB:FBgn0003205	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|PANTHER|PhylomeDB	
+HGNC:3942	NCBITaxon:9606	MGI:1928394	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	SonicParanoid|TreeFam	
+HGNC:3942	NCBITaxon:9606	RGD:68371	NCBITaxon:10116	moderate	InParanoid|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OMA|PhylomeDB|Roundup	
+HGNC:3942	NCBITaxon:9606	ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	OrthoFinder|SonicParanoid|TreeFam	
+HGNC:3942	NCBITaxon:9606	WB:WBGene00002583	NCBITaxon:6239	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|ZFIN	Hieranoid|OMA|Roundup|SonicParanoid|TreeFam	
+MGI:1928394	NCBITaxon:10090	HGNC:3942	NCBITaxon:9606	moderate	InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam|ZFIN	Ensembl Compara|Hieranoid|PhylomeDB|SonicParanoid	
+MGI:1928394	NCBITaxon:10090	RGD:68371	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+MGI:1928394	NCBITaxon:10090	ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OMA|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|OrthoInspector|PhylomeDB	
+MGI:1928394	NCBITaxon:10090	WB:WBGene00002583	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	OrthoFinder|TreeFam	
+RGD:68371	NCBITaxon:10116	HGNC:3942	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|Roundup|TreeFam|ZFIN	InParanoid|PANTHER|PhylomeDB|SonicParanoid	
+RGD:68371	NCBITaxon:10116	MGI:1928394	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Roundup|SonicParanoid	
+RGD:68371	NCBITaxon:10116	ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	InParanoid|OrthoFinder|PANTHER|Roundup|ZFIN	
+RGD:68371	NCBITaxon:10116	WB:WBGene00002583	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	HGNC:3942	NCBITaxon:9606	moderate	Hieranoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|ZFIN	Ensembl Compara|InParanoid|OMA|PANTHER|SonicParanoid|TreeFam	
+ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	MGI:1928394	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	RGD:68371	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|ZFIN	OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam	
+ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	WB:WBGene00002583	NCBITaxon:6239	moderate	Ensembl Compara|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|ZFIN	Hieranoid|InParanoid|OrthoInspector|PANTHER|TreeFam	
+WB:WBGene00002583	NCBITaxon:6239	HGNC:3942	NCBITaxon:9606	moderate	Hieranoid|InParanoid|OMA|OrthoInspector|ZFIN	Ensembl Compara|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	
+WB:WBGene00002583	NCBITaxon:6239	MGI:1928394	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PhylomeDB|TreeFam	InParanoid|OMA|PANTHER|Roundup|SonicParanoid|ZFIN	
+WB:WBGene00002583	NCBITaxon:6239	RGD:68371	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00002583	NCBITaxon:6239	ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	moderate	Hieranoid|InParanoid|PANTHER|PhylomeDB|TreeFam	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|ZFIN	
+HGNC:3775	NCBITaxon:9606	MGI:95564	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam	PhylomeDB|ZFIN	
+HGNC:3775	NCBITaxon:9606	RGD:2623	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	InParanoid|ZFIN	
+HGNC:3775	NCBITaxon:9606	ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	moderate	Ensembl Compara|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid	Hieranoid|InParanoid|OMA|OrthoFinder|Roundup|TreeFam|ZFIN	
+HGNC:3775	NCBITaxon:9606	FB:FBgn0028734	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|ZFIN	OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	
+MGI:95564	NCBITaxon:10090	HGNC:3775	NCBITaxon:9606	moderate	Hieranoid|InParanoid|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup	
+MGI:95564	NCBITaxon:10090	RGD:2623	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	OrthoFinder|Roundup|ZFIN	
+MGI:95564	NCBITaxon:10090	ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoFinder|PANTHER|Roundup	
+MGI:95564	NCBITaxon:10090	FB:FBgn0028734	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:2623	NCBITaxon:10116	HGNC:3775	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|SonicParanoid|ZFIN	OrthoFinder|PhylomeDB|Roundup|TreeFam	
+RGD:2623	NCBITaxon:10116	MGI:95564	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|SonicParanoid|TreeFam|ZFIN	OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup	
+RGD:2623	NCBITaxon:10116	ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	OrthoFinder|ZFIN	
+RGD:2623	NCBITaxon:10116	FB:FBgn0028734	NCBITaxon:7227	moderate	Hieranoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid	Ensembl Compara|InParanoid|OrthoFinder|PANTHER|Roundup|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	HGNC:3775	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	MGI:95564	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	RGD:2623	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|PANTHER|Roundup|SonicParanoid|ZFIN	OMA|OrthoFinder|OrthoInspector|PhylomeDB|TreeFam	
+ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	FB:FBgn0028734	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|OMA|PhylomeDB|Roundup|SonicParanoid|TreeFam	InParanoid|OrthoFinder|OrthoInspector|PANTHER|ZFIN	
+FB:FBgn0028734	NCBITaxon:7227	HGNC:3775	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+FB:FBgn0028734	NCBITaxon:7227	MGI:95564	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|OMA|OrthoFinder|PANTHER|ZFIN	
+FB:FBgn0028734	NCBITaxon:7227	RGD:2623	NCBITaxon:10116	moderate	InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|PANTHER|PhylomeDB|ZFIN	
+FB:FBgn0028734	NCBITaxon:7227	ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder|PhylomeDB	
+HGNC:11117	NCBITaxon:9606	MGI:109257	NCBITaxon:10090	stringent	InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OrthoFinder	
+HGNC:11117	NCBITaxon:9606	RGD:620755	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	InParanoid|Roundup|ZFIN	
+HGNC:11117	NCBITaxon:9606	ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	moderate	OMA|OrthoFinder|Roundup|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|ZFIN	
+HGNC:11117	NCBITaxon:9606	FB:FBgn0036641	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoFinder|OrthoInspector|Roundup	
+HGNC:11117	NCBITaxon:9606	WB:WBGene00004887	NCBITaxon:6239	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|SonicParanoid|ZFIN	Ensembl Compara|OMA|PANTHER|PhylomeDB|Roundup|TreeFam	
+MGI:109257	NCBITaxon:10090	HGNC:11117	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	PANTHER|SonicParanoid	
+MGI:109257	NCBITaxon:10090	RGD:620755	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoInspector|Roundup	
+MGI:109257	NCBITaxon:10090	ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:109257	NCBITaxon:10090	FB:FBgn0036641	NCBITaxon:7227	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|PANTHER|ZFIN	
+MGI:109257	NCBITaxon:10090	WB:WBGene00004887	NCBITaxon:6239	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|PANTHER|Roundup|TreeFam	
+RGD:620755	NCBITaxon:10116	HGNC:11117	NCBITaxon:9606	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|InParanoid|PANTHER|ZFIN	
+RGD:620755	NCBITaxon:10116	MGI:109257	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam|ZFIN	OrthoInspector|Roundup|SonicParanoid	
+RGD:620755	NCBITaxon:10116	ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam	OMA|OrthoInspector|SonicParanoid|ZFIN	
+RGD:620755	NCBITaxon:10116	FB:FBgn0036641	NCBITaxon:7227	stringent	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|Roundup	
+RGD:620755	NCBITaxon:10116	WB:WBGene00004887	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|SonicParanoid|TreeFam|ZFIN	OrthoInspector|PhylomeDB|Roundup	
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	HGNC:11117	NCBITaxon:9606	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|TreeFam	Ensembl Compara|PhylomeDB|Roundup|ZFIN	
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	MGI:109257	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	OMA|SonicParanoid|TreeFam	
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	RGD:620755	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|ZFIN	
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	FB:FBgn0036641	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|ZFIN	OrthoInspector|PANTHER|TreeFam	
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	WB:WBGene00004887	NCBITaxon:6239	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|TreeFam	Hieranoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+FB:FBgn0036641	NCBITaxon:7227	HGNC:11117	NCBITaxon:9606	stringent	Hieranoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoInspector	
+FB:FBgn0036641	NCBITaxon:7227	MGI:109257	NCBITaxon:10090	moderate	Hieranoid|InParanoid|OrthoFinder|PhylomeDB|Roundup	Ensembl Compara|OMA|OrthoInspector|PANTHER|SonicParanoid|TreeFam|ZFIN	
+FB:FBgn0036641	NCBITaxon:7227	RGD:620755	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0036641	NCBITaxon:7227	ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|ZFIN	
+FB:FBgn0036641	NCBITaxon:7227	WB:WBGene00004887	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	InParanoid|OrthoFinder|Roundup	
+WB:WBGene00004887	NCBITaxon:6239	HGNC:11117	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam	Hieranoid|OMA|SonicParanoid|ZFIN	
+WB:WBGene00004887	NCBITaxon:6239	MGI:109257	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00004887	NCBITaxon:6239	RGD:620755	NCBITaxon:10116	moderate	Hieranoid|OMA|Roundup|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|ZFIN	
+WB:WBGene00004887	NCBITaxon:6239	ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00004887	NCBITaxon:6239	FB:FBgn0036641	NCBITaxon:7227	moderate	OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|PANTHER|SonicParanoid	
+HGNC:11571	NCBITaxon:9606	MGI:2387629	NCBITaxon:10090	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+HGNC:11571	NCBITaxon:9606	RGD:1310906	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|SonicParanoid	
+HGNC:11571	NCBITaxon:9606	FB:FBgn0025790	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:11571	NCBITaxon:9606	WB:WBGene00006514	NCBITaxon:6239	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid	Ensembl Compara|InParanoid|PANTHER|Roundup|TreeFam|ZFIN	
+MGI:2387629	NCBITaxon:10090	HGNC:11571	NCBITaxon:9606	moderate	Hieranoid|OrthoFinder|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoInspector|Roundup|SonicParanoid	
+MGI:2387629	NCBITaxon:10090	RGD:1310906	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+MGI:2387629	NCBITaxon:10090	FB:FBgn0025790	NCBITaxon:7227	stringent	Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OrthoFinder|ZFIN	
+MGI:2387629	NCBITaxon:10090	WB:WBGene00006514	NCBITaxon:6239	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+RGD:1310906	NCBITaxon:10116	HGNC:11571	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:1310906	NCBITaxon:10116	MGI:2387629	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:1310906	NCBITaxon:10116	FB:FBgn0025790	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+RGD:1310906	NCBITaxon:10116	WB:WBGene00006514	NCBITaxon:6239	moderate	InParanoid|OMA|OrthoFinder|Roundup|ZFIN	Ensembl Compara|Hieranoid|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	
+FB:FBgn0025790	NCBITaxon:7227	HGNC:11571	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OMA|OrthoFinder|PANTHER	
+FB:FBgn0025790	NCBITaxon:7227	MGI:2387629	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|ZFIN	Hieranoid|OrthoFinder|PANTHER|Roundup|TreeFam	
+FB:FBgn0025790	NCBITaxon:7227	RGD:1310906	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0025790	NCBITaxon:7227	WB:WBGene00006514	NCBITaxon:6239	moderate	OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|SonicParanoid|TreeFam|ZFIN	
+WB:WBGene00006514	NCBITaxon:6239	HGNC:11571	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00006514	NCBITaxon:6239	MGI:2387629	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|OrthoFinder|PANTHER	
+WB:WBGene00006514	NCBITaxon:6239	RGD:1310906	NCBITaxon:10116	moderate	Ensembl Compara|OMA|PANTHER|PhylomeDB|SonicParanoid	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|Roundup|TreeFam|ZFIN	
+WB:WBGene00006514	NCBITaxon:6239	FB:FBgn0025790	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup	InParanoid|PANTHER|SonicParanoid|TreeFam|ZFIN	
+HGNC:7881	NCBITaxon:9606	MGI:97363	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|TreeFam	OrthoFinder|OrthoInspector|SonicParanoid|ZFIN	
+HGNC:7881	NCBITaxon:9606	RGD:3187	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:7881	NCBITaxon:9606	ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB	InParanoid|Roundup|SonicParanoid|TreeFam|ZFIN	
+HGNC:7881	NCBITaxon:9606	FB:FBgn0004647	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:7881	NCBITaxon:9606	WB:WBGene00003001	NCBITaxon:6239	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+MGI:97363	NCBITaxon:10090	HGNC:7881	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:97363	NCBITaxon:10090	RGD:3187	NCBITaxon:10116	stringent	Ensembl Compara|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoFinder|OrthoInspector	
+MGI:97363	NCBITaxon:10090	ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	moderate	Hieranoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoFinder|SonicParanoid	
+MGI:97363	NCBITaxon:10090	FB:FBgn0004647	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Roundup|ZFIN	
+MGI:97363	NCBITaxon:10090	WB:WBGene00003001	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|InParanoid|PhylomeDB|TreeFam	OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	
+RGD:3187	NCBITaxon:10116	HGNC:7881	NCBITaxon:9606	moderate	OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PhylomeDB|TreeFam	
+RGD:3187	NCBITaxon:10116	MGI:97363	NCBITaxon:10090	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Hieranoid|InParanoid|Roundup|ZFIN	
+RGD:3187	NCBITaxon:10116	ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+RGD:3187	NCBITaxon:10116	FB:FBgn0004647	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+RGD:3187	NCBITaxon:10116	WB:WBGene00003001	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|ZFIN	PANTHER|TreeFam	
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	HGNC:7881	NCBITaxon:9606	stringent	Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|PhylomeDB	
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	MGI:97363	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PhylomeDB	OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	RGD:3187	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder	
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	FB:FBgn0004647	NCBITaxon:7227	moderate	Hieranoid|InParanoid|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|ZFIN	
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	WB:WBGene00003001	NCBITaxon:6239	moderate	Ensembl Compara|Hieranoid|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid	InParanoid|OMA|PhylomeDB|Roundup|TreeFam|ZFIN	
+FB:FBgn0004647	NCBITaxon:7227	HGNC:7881	NCBITaxon:9606	moderate	OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|Roundup|SonicParanoid	
+FB:FBgn0004647	NCBITaxon:7227	MGI:97363	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	InParanoid|OrthoFinder|PANTHER|Roundup	
+FB:FBgn0004647	NCBITaxon:7227	RGD:3187	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|SonicParanoid|ZFIN	OrthoInspector|PhylomeDB|Roundup|TreeFam	
+FB:FBgn0004647	NCBITaxon:7227	ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam	Hieranoid|Roundup|SonicParanoid|ZFIN	
+FB:FBgn0004647	NCBITaxon:7227	WB:WBGene00003001	NCBITaxon:6239	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoInspector|PhylomeDB	
+WB:WBGene00003001	NCBITaxon:6239	HGNC:7881	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|TreeFam|ZFIN	Hieranoid|PANTHER|Roundup|SonicParanoid	
+WB:WBGene00003001	NCBITaxon:6239	MGI:97363	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder|PhylomeDB	
+WB:WBGene00003001	NCBITaxon:6239	RGD:3187	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00003001	NCBITaxon:6239	ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|Roundup	OMA|PhylomeDB|SonicParanoid|TreeFam|ZFIN	
+WB:WBGene00003001	NCBITaxon:6239	FB:FBgn0004647	NCBITaxon:7227	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoInspector	
+HGNC:7765	NCBITaxon:9606	MGI:97306	NCBITaxon:10090	stringent	Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoFinder	
+HGNC:7765	NCBITaxon:9606	RGD:3168	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	OMA|ZFIN	
+HGNC:7765	NCBITaxon:9606	ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	OMA|OrthoFinder|Roundup|ZFIN	
+HGNC:7765	NCBITaxon:9606	FB:FBgn0015269	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	Hieranoid|OMA|SonicParanoid|TreeFam	
+MGI:97306	NCBITaxon:10090	HGNC:7765	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:97306	NCBITaxon:10090	RGD:3168	NCBITaxon:10116	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup	Hieranoid|InParanoid|PANTHER|SonicParanoid|TreeFam|ZFIN	
+MGI:97306	NCBITaxon:10090	ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|Roundup|SonicParanoid|TreeFam	OMA|OrthoFinder|PANTHER|PhylomeDB|ZFIN	
+MGI:97306	NCBITaxon:10090	FB:FBgn0015269	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	OMA|PANTHER|SonicParanoid	
+RGD:3168	NCBITaxon:10116	HGNC:7765	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|PANTHER|PhylomeDB|TreeFam|ZFIN	OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid	
+RGD:3168	NCBITaxon:10116	MGI:97306	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	PANTHER	
+RGD:3168	NCBITaxon:10116	ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	moderate	OMA|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid|PANTHER|PhylomeDB	
+RGD:3168	NCBITaxon:10116	FB:FBgn0015269	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|ZFIN	Roundup|TreeFam	
+ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	HGNC:7765	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|ZFIN	OMA|Roundup|TreeFam	
+ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	MGI:97306	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|Roundup|SonicParanoid|ZFIN	OMA|PANTHER|PhylomeDB|TreeFam	
+ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	RGD:3168	NCBITaxon:10116	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|PANTHER	
+ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	FB:FBgn0015269	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	PANTHER|SonicParanoid	
+FB:FBgn0015269	NCBITaxon:7227	HGNC:7765	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	OrthoInspector|ZFIN	
+FB:FBgn0015269	NCBITaxon:7227	MGI:97306	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoInspector|Roundup	
+FB:FBgn0015269	NCBITaxon:7227	RGD:3168	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0015269	NCBITaxon:7227	ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|PhylomeDB|Roundup|SonicParanoid	InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|TreeFam|ZFIN	
+HGNC:4177	NCBITaxon:9606	MGI:95665	NCBITaxon:10090	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|OrthoInspector|ZFIN	
+HGNC:4177	NCBITaxon:9606	RGD:1589149	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|SonicParanoid|TreeFam	OMA|PANTHER|PhylomeDB|Roundup|ZFIN	
+HGNC:4177	NCBITaxon:9606	ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	PANTHER	
+HGNC:4177	NCBITaxon:9606	FB:FBgn0051414	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|PANTHER|PhylomeDB|Roundup|TreeFam	InParanoid|OMA|OrthoFinder|OrthoInspector|SonicParanoid|ZFIN	
+MGI:95665	NCBITaxon:10090	HGNC:4177	NCBITaxon:9606	moderate	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OMA|Roundup|ZFIN	
+MGI:95665	NCBITaxon:10090	RGD:1589149	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	OrthoInspector|ZFIN	
+MGI:95665	NCBITaxon:10090	ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OrthoFinder|Roundup|TreeFam|ZFIN	InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid	
+MGI:95665	NCBITaxon:10090	FB:FBgn0051414	NCBITaxon:7227	moderate	Ensembl Compara|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	Hieranoid|InParanoid|OMA|OrthoFinder|SonicParanoid|TreeFam	
+RGD:1589149	NCBITaxon:10116	HGNC:4177	NCBITaxon:9606	stringent	OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|InParanoid	
+RGD:1589149	NCBITaxon:10116	MGI:95665	NCBITaxon:10090	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|TreeFam|ZFIN	Ensembl Compara|InParanoid|PhylomeDB|Roundup|SonicParanoid	
+RGD:1589149	NCBITaxon:10116	ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	InParanoid|OMA|OrthoFinder|SonicParanoid	
+RGD:1589149	NCBITaxon:10116	FB:FBgn0051414	NCBITaxon:7227	stringent	Hieranoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoFinder	
+ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	HGNC:4177	NCBITaxon:9606	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|TreeFam	Hieranoid|InParanoid|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	MGI:95665	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|Roundup|TreeFam|ZFIN	OrthoInspector|PhylomeDB|SonicParanoid	
+ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	RGD:1589149	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoFinder|PANTHER|Roundup	
+ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	FB:FBgn0051414	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0051414	NCBITaxon:7227	HGNC:4177	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+FB:FBgn0051414	NCBITaxon:7227	MGI:95665	NCBITaxon:10090	moderate	Ensembl Compara|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|OrthoFinder|PANTHER	
+FB:FBgn0051414	NCBITaxon:7227	RGD:1589149	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|ZFIN	Hieranoid|OMA|PANTHER|Roundup|SonicParanoid|TreeFam	
+FB:FBgn0051414	NCBITaxon:7227	ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:795	NCBITaxon:9606	MGI:107202	NCBITaxon:10090	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|TreeFam	
+HGNC:795	NCBITaxon:9606	RGD:1593265	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:795	NCBITaxon:9606	ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OrthoInspector|PANTHER|PhylomeDB|ZFIN	Hieranoid|OMA|OrthoFinder|Roundup|SonicParanoid|TreeFam	
+HGNC:795	NCBITaxon:9606	FB:FBgn0045035	NCBITaxon:7227	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoInspector	
+HGNC:795	NCBITaxon:9606	WB:WBGene00000227	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder|OrthoInspector	
+MGI:107202	NCBITaxon:10090	HGNC:795	NCBITaxon:9606	moderate	OMA|OrthoInspector|PhylomeDB|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|Roundup|TreeFam	
+MGI:107202	NCBITaxon:10090	RGD:1593265	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|TreeFam	
+MGI:107202	NCBITaxon:10090	ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OMA|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|PANTHER	
+MGI:107202	NCBITaxon:10090	FB:FBgn0045035	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|PhylomeDB|TreeFam	Hieranoid|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	
+MGI:107202	NCBITaxon:10090	WB:WBGene00000227	NCBITaxon:6239	moderate	Hieranoid|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OMA|OrthoInspector|Roundup|ZFIN	
+RGD:1593265	NCBITaxon:10116	HGNC:795	NCBITaxon:9606	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|PANTHER|SonicParanoid	Hieranoid|OrthoFinder|PhylomeDB|Roundup|TreeFam|ZFIN	
+RGD:1593265	NCBITaxon:10116	MGI:107202	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|ZFIN	InParanoid|PANTHER|TreeFam	
+RGD:1593265	NCBITaxon:10116	ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|OMA|OrthoFinder|TreeFam	
+RGD:1593265	NCBITaxon:10116	FB:FBgn0045035	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|OrthoInspector|Roundup|SonicParanoid|ZFIN	InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|TreeFam	
+RGD:1593265	NCBITaxon:10116	WB:WBGene00000227	NCBITaxon:6239	moderate	Ensembl Compara|OMA|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB	
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	HGNC:795	NCBITaxon:9606	moderate	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|TreeFam	Hieranoid|InParanoid|OMA|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	MGI:107202	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	RGD:1593265	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|OMA|ZFIN	
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	FB:FBgn0045035	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	WB:WBGene00000227	NCBITaxon:6239	stringent	Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|PhylomeDB	
+FB:FBgn0045035	NCBITaxon:7227	HGNC:795	NCBITaxon:9606	stringent	Ensembl Compara|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|OrthoFinder|PANTHER	
+FB:FBgn0045035	NCBITaxon:7227	MGI:107202	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+FB:FBgn0045035	NCBITaxon:7227	RGD:1593265	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|OrthoInspector|TreeFam	Hieranoid|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+FB:FBgn0045035	NCBITaxon:7227	ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OrthoFinder|TreeFam|ZFIN	Hieranoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	
+FB:FBgn0045035	NCBITaxon:7227	WB:WBGene00000227	NCBITaxon:6239	moderate	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|OMA|PANTHER|ZFIN	
+WB:WBGene00000227	NCBITaxon:6239	HGNC:795	NCBITaxon:9606	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|ZFIN	
+WB:WBGene00000227	NCBITaxon:6239	MGI:107202	NCBITaxon:10090	moderate	Hieranoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	Ensembl Compara|InParanoid|OMA|OrthoFinder|SonicParanoid|TreeFam	
+WB:WBGene00000227	NCBITaxon:6239	RGD:1593265	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Roundup	
+WB:WBGene00000227	NCBITaxon:6239	ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	stringent	InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	Ensembl Compara|Hieranoid|ZFIN	
+WB:WBGene00000227	NCBITaxon:6239	FB:FBgn0045035	NCBITaxon:7227	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|ZFIN	OMA|OrthoFinder|Roundup|SonicParanoid|TreeFam	
+HGNC:6990	NCBITaxon:9606	MGI:99918	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder|PANTHER	
+HGNC:6990	NCBITaxon:9606	RGD:3075	NCBITaxon:10116	moderate	InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|TreeFam	Ensembl Compara|Hieranoid|Roundup|SonicParanoid|ZFIN	
+HGNC:6990	NCBITaxon:9606	ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	moderate	InParanoid|OMA|OrthoInspector|PANTHER|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|OrthoFinder|PhylomeDB|Roundup|TreeFam	
+MGI:99918	NCBITaxon:10090	HGNC:6990	NCBITaxon:9606	stringent	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid|InParanoid|PhylomeDB	
+MGI:99918	NCBITaxon:10090	RGD:3075	NCBITaxon:10116	moderate	Ensembl Compara|OrthoInspector|PANTHER|TreeFam|ZFIN	Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid	
+MGI:99918	NCBITaxon:10090	ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+RGD:3075	NCBITaxon:10116	HGNC:6990	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoInspector	
+RGD:3075	NCBITaxon:10116	MGI:99918	NCBITaxon:10090	moderate	Ensembl Compara|InParanoid|OMA|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|ZFIN	
+RGD:3075	NCBITaxon:10116	ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	moderate	Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|Roundup|SonicParanoid	
+ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	HGNC:6990	NCBITaxon:9606	moderate	OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|TreeFam	
+ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	MGI:99918	NCBITaxon:10090	moderate	Hieranoid|OMA|OrthoFinder|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|InParanoid|OrthoInspector|PANTHER|SonicParanoid	
+ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	RGD:3075	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	OrthoFinder|OrthoInspector|TreeFam	
+HGNC:11138	NCBITaxon:9606	MGI:1277151	NCBITaxon:10090	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|ZFIN	Ensembl Compara|InParanoid|PhylomeDB|Roundup|TreeFam	
+HGNC:11138	NCBITaxon:9606	RGD:3729	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|TreeFam|ZFIN	PhylomeDB|Roundup	
+MGI:1277151	NCBITaxon:10090	HGNC:11138	NCBITaxon:9606	stringent	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|PhylomeDB	
+MGI:1277151	NCBITaxon:10090	RGD:3729	NCBITaxon:10116	moderate	Ensembl Compara|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|ZFIN	Hieranoid|InParanoid|OMA|PANTHER|Roundup|TreeFam	
+RGD:3729	NCBITaxon:10116	HGNC:11138	NCBITaxon:9606	stringent	Ensembl Compara|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Hieranoid|OMA|SonicParanoid	
+RGD:3729	NCBITaxon:10116	MGI:1277151	NCBITaxon:10090	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|Roundup|TreeFam	PANTHER|PhylomeDB|SonicParanoid|ZFIN	
+HGNC:6893	NCBITaxon:9606	MGI:97180	NCBITaxon:10090	moderate	Hieranoid|InParanoid|OrthoFinder|PANTHER|TreeFam|ZFIN	Ensembl Compara|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid	
+HGNC:6893	NCBITaxon:9606	RGD:69329	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:6893	NCBITaxon:9606	FB:FBgn0266579	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:97180	NCBITaxon:10090	HGNC:6893	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+MGI:97180	NCBITaxon:10090	RGD:69329	NCBITaxon:10116	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid	Ensembl Compara|OrthoInspector|TreeFam|ZFIN	
+MGI:97180	NCBITaxon:10090	FB:FBgn0266579	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder|OrthoInspector|PhylomeDB	
+RGD:69329	NCBITaxon:10116	HGNC:6893	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Roundup	
+RGD:69329	NCBITaxon:10116	MGI:97180	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:69329	NCBITaxon:10116	FB:FBgn0266579	NCBITaxon:7227	moderate	Ensembl Compara|OMA|OrthoFinder|PhylomeDB|TreeFam	Hieranoid|InParanoid|OrthoInspector|PANTHER|Roundup|SonicParanoid|ZFIN	
+FB:FBgn0266579	NCBITaxon:7227	HGNC:6893	NCBITaxon:9606	stringent	InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OrthoInspector	
+FB:FBgn0266579	NCBITaxon:7227	MGI:97180	NCBITaxon:10090	moderate	Hieranoid|InParanoid|OrthoFinder|OrthoInspector|TreeFam	Ensembl Compara|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	
+FB:FBgn0266579	NCBITaxon:7227	RGD:69329	NCBITaxon:10116	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PhylomeDB|TreeFam|ZFIN	Hieranoid|InParanoid|PANTHER|Roundup|SonicParanoid	
+HGNC:1100	NCBITaxon:9606	MGI:104537	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA	
+HGNC:1100	NCBITaxon:9606	RGD:2218	NCBITaxon:10116	moderate	Ensembl Compara|InParanoid|OMA|PhylomeDB|SonicParanoid|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam	
+HGNC:1100	NCBITaxon:9606	WB:WBGene00000264	NCBITaxon:6239	moderate	OMA|OrthoFinder|PANTHER|PhylomeDB|Roundup|SonicParanoid|ZFIN	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|TreeFam	
+MGI:104537	NCBITaxon:10090	HGNC:1100	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoInspector|PANTHER|PhylomeDB|TreeFam|ZFIN	OMA|OrthoFinder|Roundup|SonicParanoid	
+MGI:104537	NCBITaxon:10090	RGD:2218	NCBITaxon:10116	stringent	Hieranoid|InParanoid|OMA|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoFinder|OrthoInspector	
+MGI:104537	NCBITaxon:10090	WB:WBGene00000264	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoFinder|PANTHER	
+RGD:2218	NCBITaxon:10116	HGNC:1100	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|PhylomeDB|Roundup|TreeFam|ZFIN	OrthoFinder|OrthoInspector|PANTHER|SonicParanoid	
+RGD:2218	NCBITaxon:10116	MGI:104537	NCBITaxon:10090	moderate	InParanoid|OrthoFinder|PhylomeDB|Roundup|ZFIN	Ensembl Compara|Hieranoid|OMA|OrthoInspector|PANTHER|SonicParanoid|TreeFam	
+RGD:2218	NCBITaxon:10116	WB:WBGene00000264	NCBITaxon:6239	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara	
+WB:WBGene00000264	NCBITaxon:6239	HGNC:1100	NCBITaxon:9606	moderate	Hieranoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup	Ensembl Compara|InParanoid|SonicParanoid|TreeFam|ZFIN	
+WB:WBGene00000264	NCBITaxon:6239	MGI:104537	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+WB:WBGene00000264	NCBITaxon:6239	RGD:2218	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+HGNC:8620	NCBITaxon:9606	MGI:97490	NCBITaxon:10090	moderate	Ensembl Compara|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam	Hieranoid|InParanoid|OMA|SonicParanoid|ZFIN	
+HGNC:8620	NCBITaxon:9606	RGD:3258	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+HGNC:8620	NCBITaxon:9606	ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OMA|PANTHER|Roundup|ZFIN	Hieranoid|OrthoFinder|OrthoInspector|PhylomeDB|SonicParanoid|TreeFam	
+HGNC:8620	NCBITaxon:9606	ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	moderate	InParanoid|OrthoInspector|PhylomeDB|Roundup|SonicParanoid	Ensembl Compara|Hieranoid|OMA|OrthoFinder|PANTHER|TreeFam|ZFIN	
+HGNC:8620	NCBITaxon:9606	FB:FBgn0005558	NCBITaxon:7227	moderate	InParanoid|OMA|OrthoFinder|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|Hieranoid|OrthoInspector|PANTHER|PhylomeDB	
+HGNC:8620	NCBITaxon:9606	WB:WBGene00006870	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+MGI:97490	NCBITaxon:10090	HGNC:8620	NCBITaxon:9606	moderate	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|TreeFam	OMA|OrthoInspector|PANTHER|ZFIN	
+MGI:97490	NCBITaxon:10090	RGD:3258	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER	OrthoFinder|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	
+MGI:97490	NCBITaxon:10090	ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	moderate	Hieranoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam	Ensembl Compara|InParanoid|OrthoInspector|PhylomeDB|ZFIN	
+MGI:97490	NCBITaxon:10090	ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	moderate	Ensembl Compara|Hieranoid|OMA|OrthoInspector|SonicParanoid|TreeFam|ZFIN	InParanoid|OrthoFinder|PANTHER|PhylomeDB|Roundup	
+MGI:97490	NCBITaxon:10090	FB:FBgn0005558	NCBITaxon:7227	moderate	Ensembl Compara|InParanoid|OMA|OrthoFinder|TreeFam|ZFIN	Hieranoid|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	
+MGI:97490	NCBITaxon:10090	WB:WBGene00006870	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	ZFIN	
+RGD:3258	NCBITaxon:10116	HGNC:8620	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam	OrthoFinder|Roundup|ZFIN	
+RGD:3258	NCBITaxon:10116	MGI:97490	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+RGD:3258	NCBITaxon:10116	ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid	OrthoFinder|TreeFam|ZFIN	
+RGD:3258	NCBITaxon:10116	ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|TreeFam|ZFIN	Ensembl Compara|PANTHER|SonicParanoid	
+RGD:3258	NCBITaxon:10116	FB:FBgn0005558	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	OrthoFinder|Roundup	
+RGD:3258	NCBITaxon:10116	WB:WBGene00006870	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoInspector|PANTHER	
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	HGNC:8620	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	ZFIN	
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	MGI:97490	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	SonicParanoid	
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	RGD:3258	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|OrthoInspector|PANTHER	
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	FB:FBgn0005558	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|SonicParanoid|TreeFam	PhylomeDB|Roundup|ZFIN	
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	WB:WBGene00006870	NCBITaxon:6239	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	OrthoInspector|PhylomeDB	
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	HGNC:8620	NCBITaxon:9606	stringent	Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER|PhylomeDB|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|OrthoInspector|Roundup	
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	MGI:97490	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	RGD:3258	NCBITaxon:10116	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	FB:FBgn0005558	NCBITaxon:7227	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|PhylomeDB|Roundup|SonicParanoid|ZFIN	OrthoInspector|PANTHER|TreeFam	
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	WB:WBGene00006870	NCBITaxon:6239	stringent	Ensembl Compara|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Hieranoid	
+FB:FBgn0005558	NCBITaxon:7227	HGNC:8620	NCBITaxon:9606	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|TreeFam	Ensembl Compara|PhylomeDB|SonicParanoid|ZFIN	
+FB:FBgn0005558	NCBITaxon:7227	MGI:97490	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|Roundup|SonicParanoid|TreeFam|ZFIN	PhylomeDB	
+FB:FBgn0005558	NCBITaxon:7227	RGD:3258	NCBITaxon:10116	moderate	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoInspector|Roundup|SonicParanoid|ZFIN	OrthoFinder|PANTHER|PhylomeDB|TreeFam	
+FB:FBgn0005558	NCBITaxon:7227	ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	moderate	Ensembl Compara|InParanoid|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam	Hieranoid|OMA|OrthoFinder|PANTHER|ZFIN	
+FB:FBgn0005558	NCBITaxon:7227	ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	moderate	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|ZFIN	Hieranoid|InParanoid|SonicParanoid|TreeFam	
+FB:FBgn0005558	NCBITaxon:7227	WB:WBGene00006870	NCBITaxon:6239	moderate	Hieranoid|InParanoid|OMA|OrthoFinder|PANTHER	Ensembl Compara|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	
+WB:WBGene00006870	NCBITaxon:6239	HGNC:8620	NCBITaxon:9606	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN		
+WB:WBGene00006870	NCBITaxon:6239	MGI:97490	NCBITaxon:10090	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	OMA|OrthoInspector|SonicParanoid	
+WB:WBGene00006870	NCBITaxon:6239	RGD:3258	NCBITaxon:10116	stringent	Ensembl Compara|Hieranoid|InParanoid|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam	ZFIN	
+WB:WBGene00006870	NCBITaxon:6239	ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	stringent	Ensembl Compara|Hieranoid|InParanoid|OrthoFinder|OrthoInspector|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	OMA|PANTHER	
+WB:WBGene00006870	NCBITaxon:6239	ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	stringent	Ensembl Compara|OMA|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|TreeFam|ZFIN	Hieranoid|InParanoid|SonicParanoid	
+WB:WBGene00006870	NCBITaxon:6239	FB:FBgn0005558	NCBITaxon:7227	stringent	Hieranoid|OrthoFinder|OrthoInspector|PANTHER|PhylomeDB|Roundup|SonicParanoid|TreeFam|ZFIN	Ensembl Compara|InParanoid|OMA	

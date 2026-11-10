@@ -1,6 +1,12 @@
 (ns bluegenes.templates-test
-  (:require [cljs.test :refer-macros [deftest is are testing]]
+  (:require [cljs.test :refer-macros [deftest is are testing use-fixtures]]
+            [bluegenes.test-utils :as utils]
+            [re-frame.core :as rf]
+            [day8.re-frame.test :refer-macros [run-test-sync]]
+            [bluegenes.pages.templates.events]
             [bluegenes.pages.templates.helpers :as helpers]))
+
+(use-fixtures :each utils/fixtures)
 
 (comment
   "Use this to get current template to add more tests."
@@ -64,3 +70,15 @@
                 :switched "OFF",
                 :value "100.0"}]}
       "https://beta.flymine.org/flymine/service/template/results?name=Tissue_Flyatlas&constraint1=FlyAtlasResult.tissue.name&op1=eq&value1=Ovary&constraint2=FlyAtlasResult.affyCall&op2=eq&value2=Up&format=tab&size=10")))
+
+(rf/reg-event-db ::seed (fn [_ [_ db]] db))
+(rf/reg-sub ::chooser #(get-in % [:components :template-chooser]))
+
+(deftest unsatisfied-constraint-forgets-previous-query
+  (run-test-sync
+   (rf/dispatch [::seed {:components {:template-chooser {:previously-ran {:from "Gene"}
+                                                         :results-preview {:results []}}}}])
+   (rf/dispatch [:template-chooser/update-preview 0 {:path "Gene.symbol" :op "=" :value ""}])
+   (let [chooser @(rf/subscribe [::chooser])]
+     (is (nil? (:results-preview chooser)))
+     (is (nil? (:previously-ran chooser))))))

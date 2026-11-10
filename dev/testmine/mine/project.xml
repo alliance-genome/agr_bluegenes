@@ -1,0 +1,90 @@
+<project type="bio">
+  <property name="target.model" value="genomic"/>
+  <property name="common.os.prefix" value="common"/>
+  <property name="intermine.properties.file" value="biotestmine.properties"/>
+  <property name="default.intermine.properties.file" location="../default.intermine.integrate.properties"/>
+
+  <!-- Source types are the AllianceMine bio-sources (copied under bio-sources/).
+       Input paths are the in-container location of this folder (data/). -->
+  <sources>
+    <source name="testmine-organisms" type="testmine-organisms" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="organisms.tsv"/>
+    </source>
+    <source name="do" type="do" dump="false">
+      <property name="src.data.file" location="/home/intermine/intermine/biotestmine/data/ONTOLOGY_DOID.obo"/>
+    </source>
+    <source name="mmo" type="mmo" dump="false">
+      <property name="src.data.file" location="/home/intermine/intermine/biotestmine/data/ONTOLOGY_MMO.obo"/>
+    </source>
+    <source name="emapa" type="emapa" dump="false">
+      <property name="src.data.file" location="/home/intermine/intermine/biotestmine/data/ONTOLOGY_EMAPA.obo"/>
+    </source>
+    <source name="zfa" type="zfa" dump="false">
+      <property name="src.data.file" location="/home/intermine/intermine/biotestmine/data/ONTOLOGY_ZFA.obo"/>
+    </source>
+    <source name="wbbt" type="wbbt" dump="false">
+      <property name="src.data.file" location="/home/intermine/intermine/biotestmine/data/ONTOLOGY_WBBT.obo"/>
+    </source>
+    <source name="fbbt" type="fbbt" dump="false">
+      <property name="src.data.file" location="/home/intermine/intermine/biotestmine/data/ONTOLOGY_FBBT.obo"/>
+    </source>
+    <source name="alliance-genes" type="alliance-genes" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="alliance-genes.tsv"/>
+    </source>
+    <source name="alliance-orthologs" type="alliance-orthologs" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="ORTHOLOGY-ALLIANCE_COMBINED.tsv"/>
+    </source>
+    <source name="alliance-ortholog-detail" type="alliance-ortholog-detail" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="orthologs.tsv"/>
+    </source>
+    <source name="alliance-disease" type="alliance-disease" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="disease-alliance.tsv"/>
+    </source>
+    <source name="alliance-disease-detail" type="alliance-disease-detail" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="disease-annotations-detail.tsv"/>
+    </source>
+    <source name="alliance-phenotypes" type="alliance-phenotypes" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="phenotypes.tsv"/>
+    </source>
+    <source name="alliance-alleles" type="alliance-alleles" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="alliance-alleles.tsv"/>
+    </source>
+    <source name="alliance-allele-phenotypes" type="alliance-allele-phenotypes" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="allele-phenotypes.tsv"/>
+    </source>
+    <source name="alliance-disease-alleles" type="alliance-disease-alleles" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="disease-alleles.tsv"/>
+    </source>
+    <source name="alliance-expression" type="alliance-expression" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="expression-alliance.tsv"/>
+    </source>
+    <source name="alliance-paralogs" type="alliance-paralogs" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="paralogs.tsv"/>
+    </source>
+    <source name="alliance-disease-models" type="alliance-disease-models" dump="false">
+      <property name="src.data.dir" location="/home/intermine/intermine/biotestmine/data"/>
+      <property name="src.data.dir.includes" value="disease-models.tsv"/>
+    </source>
+  </sources>
+
+  <post-processing>
+    <post-process name="create-references"/>
+    <post-process name="do-sources"/>
+    <post-process name="summarise-objectstore"/>
+    <post-process name="create-autocomplete-index"/>
+    <post-process name="create-search-index"/>
+  </post-processing>
+
+</project>

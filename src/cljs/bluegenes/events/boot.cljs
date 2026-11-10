@@ -224,6 +224,7 @@
               :suggestion-results ; Avoid showing old results belonging to previous mine.
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?       ; Clear flag for failing to auth with mine.
+              :failed-assets      ; Failed asset events per mine, shown in one message.
               :profile)           ; All profile page data should be cleared.
       ;; Clear chosen template category as it may not be present in new mine.
       (update :home dissoc :active-template-category)
@@ -239,10 +240,17 @@
       ;; Clear admin page manage templates panel.
       (assoc-in [:admin :manage-templates] nil)))
 
+(defn- remove-assets-failure-messages
+  "Drop the timeout-less asset failure warnings so a clean reboot does not keep a stale one."
+  [messages]
+  (into {} (remove (fn [[id _]] (= "assets-failure" (some-> id namespace)))) messages))
+
 (reg-event-fx
  :reboot
  (fn [{db :db}]
-   {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
+   {:db (-> (remove-stateful-keys-from-db db)
+            (assoc :fetching-assets? true)
+            (update :messages remove-assets-failure-messages))
     :dispatch [:authentication/init]
     :async-flow (boot-flow :wait-registry? false)}))
 
@@ -352,7 +360,7 @@
                  {:chan (auth/who-am-i? service token)
                   :on-success [:authentication/store-token token oauth2-identity]
                   :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
-                  :on-failure [:authentication/invalid-token (boolean auth-token)]}
+                  :on-failure [:assets/failure evt]}
                  {:chan (fetch/session service)
                   :on-success [:authentication/store-token]
                   :on-failure [:assets/failure evt]})})))
@@ -596,19 +604,38 @@
                     :type (:class data)
                     :organism (:extraValue data)}]})))))
 
+(defn- asset-label
+  "Short name for a failed asset event, e.g. :assets/fetch-lists -> \"lists\"."
+  [evt]
+  (str/replace (name evt) #"^fetch-" ""))
+
+(defn assets-failure-message
+  "One warning message for a mine, listing every asset that failed to load.
+  The fixed `:id` makes `:messages/add` replace the previous message."
+  [mine-kw mine-name failed-evts]
+  {:id (keyword "assets-failure" (if mine-kw (name mine-kw) "unknown"))
+   :markup [:span "Failed to load " (str/join ", " (map asset-label failed-evts))
+            " from " [:em mine-name] ". "
+            "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
+   :style "warning"
+   :timeout 0})
+
 (reg-event-fx
  :assets/failure
  (fn [{db :db} [_ evt]]
-   (let [mine-name (get-in db [:mines (:current-mine db) :name])]
-     {:db (case evt
-            (:authentication/init :authentication/invalid-token)
-            (assoc db :failed-auth? true)
-            db)
-      :dispatch (case evt
-                 (:authentication/init :authentication/invalid-token)
-                 [:messages/add
-                  {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
-                   :style "danger"
-                   :timeout 0}]
-                 nil)})))
-                ;;  TODO, fix backend and re-add the error handling that was removed
+   (let [mine-kw (:current-mine db)
+         mine-name (get-in db [:mines mine-kw :name])
+         auth? (contains? #{:authentication/init :authentication/invalid-token} evt)
+         failed (cond-> (get-in db [:failed-assets mine-kw] [])
+                  (and (not auth?) (not (some #{evt} (get-in db [:failed-assets mine-kw]))))
+                  (conj evt))]
+     {:db (cond-> db
+            auth? (assoc :failed-auth? true)
+            (= evt :assets/fetch-lists) (assoc-in (concat lists/root [:fetching-lists?]) false)
+            (not auth?) (assoc-in [:failed-assets mine-kw] failed))
+      :dispatch (if auth?
+                  [:messages/add
+                   {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                    :style "danger"
+                    :timeout 0}]
+                  [:messages/add (assets-failure-message mine-kw mine-name failed)])})))

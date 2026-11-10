@@ -1,0 +1,131 @@
+{
+ "results": [
+  {
+   "category": "allele_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "AGRKB:106000003219477",
+    "primaryExternalId": "MGI:7792368",
+    "alleleSymbol": {
+     "displayText": "Brca1<sup>em1Cya</sup>"
+    },
+    "alleleSynonyms": [
+     {
+      "displayText": "Brca1<sup>em1Cya</sup>"
+     }
+    ]
+   },
+   "alterationType": "allele",
+   "hasPhenotype": false,
+   "hasDisease": false
+  },
+  {
+   "category": "allele_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "AGRKB:106000000569338",
+    "primaryExternalId": "MGI:7295991",
+    "alleleSymbol": {
+     "displayText": "Brca1<sup>em1Gpt</sup>"
+    },
+    "alleleSynonyms": [
+     {
+      "displayText": "Brca1<sup>em1Cflox</sup>"
+     }
+    ]
+   },
+   "alterationType": "allele",
+   "hasPhenotype": false,
+   "hasDisease": false
+  },
+  {
+   "category": "variant_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "rs530941076"
+   },
+   "alterationType": "variant",
+   "alterationTypeSortOrder": 4,
+   "hasPhenotype": false,
+   "hasDisease": false,
+   "variantList": [
+    {
+     "type": "Variant",
+     "variantType": {
+      "name": "SNP",
+      "descendantCount": 0
+     },
+     "curatedVariantGenomicLocations": [
+      {
+       "start": 7674873,
+       "end": 7674873,
+       "hgvs": "NC_000017.11:g.7674873A>C",
+       "variantGenomicLocationAssociationObject": {
+        "type": "AssemblyComponent",
+        "name": "17"
+       },
+       "predictedVariantConsequences": [
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        }
+       ],
+       "mostSevereConsequence": {
+        "vepConsequences": [
+         {
+          "name": "missense_variant",
+          "descendantCount": 0
+         }
+        ],
+        "geneLevelConsequence": false
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "total": 2160,
+ "returnedRecords": 3,
+ "requestDuration": "0s",
+ "requestDate": "2026/11/10 19:40:23",
+ "supplementalData": {
+  "distinctFieldValues": {
+   "variantType": [
+    "deletion",
+    "insertion",
+    "MNV",
+    "point_mutation",
+    "SNP"
+   ],
+   "molecularConsequence": [
+    "3_prime_UTR_variant",
+    "5_prime_UTR_variant",
+    "frameshift_variant",
+    "inframe_deletion",
+    "intron_variant",
+    "missense_variant",
+    "non_coding_transcript_exon_variant",
+    "non_coding_transcript_variant",
+    "splice_donor_region_variant",
+    "splice_polypyrimidine_tract_variant",
+    "splice_region_variant",
+    "stop_gained",
+    "synonymous_variant"
+   ],
+   "alleleCategory": [
+    "allele",
+    "allele with one variant",
+    "variant"
+   ]
+  }
+ }
+}

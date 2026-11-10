@@ -1,0 +1,1065 @@
+format-version: 1.2
+data-version: test
+ontology: doid
+default-namespace: disease_ontology
+
+[Term]
+id: DOID:0050458
+name: juvenile myelomonocytic leukemia
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060581
+name: Noonan syndrome 3
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060688
+name: arteriovenous malformations of the brain
+namespace: disease_ontology
+
+[Term]
+id: DOID:10283
+name: prostate cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:1324
+name: lung cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050657
+name: Cowden syndrome 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060041
+name: autism spectrum disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060867
+name: macrocephaly-autism syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080072
+name: intestinal pseudo-obstruction
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050745
+name: diffuse large B-cell lymphoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050834
+name: CHARGE syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:1380
+name: endometrial cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:1612
+name: breast cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:2729
+name: dyskeratosis congenita
+namespace: disease_ontology
+
+[Term]
+id: DOID:10652
+name: Alzheimer's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050741
+name: alcohol dependence
+namespace: disease_ontology
+
+[Term]
+id: DOID:0051060
+name: frontotemporal dementia 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060892
+name: late onset Parkinson's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080855
+name: Parkinsonism
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060193
+name: amyotrophic lateral sclerosis type 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:10140
+name: dry eye syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:13544
+name: low tension glaucoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060224
+name: atrial fibrillation
+namespace: disease_ontology
+
+[Term]
+id: DOID:0070658
+name: alcohol-associated liver disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060201
+name: amyotrophic lateral sclerosis type 10
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060672
+name: frontotemporal dementia 2
+namespace: disease_ontology
+
+[Term]
+id: DOID:9255
+name: frontotemporal dementia
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050848
+name: obstructive sleep apnea
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050879
+name: fragile X-associated tremor/ataxia syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:14261
+name: fragile X syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060001
+name: withdrawal disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060475
+name: myoclonic-atonic epilepsy
+namespace: disease_ontology
+
+[Term]
+id: DOID:1485
+name: cystic fibrosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050127
+name: sinusitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060643
+name: primary sclerosing cholangitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080526
+name: bronchiectasis 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0110861
+name: autosomal recessive polycystic kidney disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050850
+name: diabetic encephalopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0070028
+name: APP-related cerebral amyloid angiopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080348
+name: Alzheimer's disease 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0111253
+name: neurofibromatosis 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0070482
+name: spinal neurofibromatosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:0070483
+name: Watson syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080199
+name: colorectal carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:12858
+name: Huntington's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:1289
+name: neurodegenerative disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:14330
+name: Parkinson's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:224
+name: transient cerebral ischemia
+namespace: disease_ontology
+
+[Term]
+id: DOID:12704
+name: ataxia telangiectasia
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050671
+name: female breast cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050866
+name: oral squamous cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060058
+name: lymphoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060071
+name: pre-malignant neoplasm
+namespace: disease_ontology
+
+[Term]
+id: DOID:1206
+name: Rett syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050696
+name: fetal alcohol spectrum disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060799
+name: syndromic X-linked intellectual disability Lubs type
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060827
+name: X-linked intellectual disability-psychosis-macroorchidism syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0111932
+name: severe congenital encephalopathy due to MECP2 mutation
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060370
+name: Parkinson's disease 7
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060894
+name: early-onset Parkinson's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:3525
+name: middle cerebral artery infarction
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060673
+name: Peters anomaly
+namespace: disease_ontology
+
+[Term]
+id: DOID:1068
+name: juvenile glaucoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:12271
+name: aniridia
+namespace: disease_ontology
+
+[Term]
+id: DOID:14515
+name: WAGR syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:83
+name: cataract
+namespace: disease_ontology
+
+[Term]
+id: DOID:0110957
+name: Gaucher's disease type I
+namespace: disease_ontology
+
+[Term]
+id: DOID:0110958
+name: Gaucher's disease type II
+namespace: disease_ontology
+
+[Term]
+id: DOID:1926
+name: Gaucher's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050474
+name: Netherton syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0111089
+name: Fanconi anemia complementation group D1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050902
+name: medulloblastoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060074
+name: ductal carcinoma in situ
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080599
+name: Coronavirus infectious disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:62
+name: aortic valve disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050700
+name: cardiomyopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050742
+name: nicotine dependence
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060367
+name: Parkinson's disease 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060895
+name: Parkinson's disease 4
+namespace: disease_ontology
+
+[Term]
+id: DOID:11870
+name: Pick's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:11949
+name: Creutzfeldt-Jakob disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:12376
+name: juvenile spinal muscular atrophy
+namespace: disease_ontology
+
+[Term]
+id: DOID:13137
+name: Werdnig-Hoffmann disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050529
+name: adult spinal muscular atrophy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050530
+name: intermediate spinal muscular atrophy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060160
+name: childhood spinal muscular atrophy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060979
+name: Fanconi anemia complementation group S
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060371
+name: Parkinson's disease 8
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050890
+name: synucleinopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060369
+name: Parkinson's disease 6
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080547
+name: metabolic dysfunction-associated steatohepatitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:10487
+name: Hirschsprung's disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050523
+name: adult T-cell leukemia/lymphoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060227
+name: Adams-Oliver syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080333
+name: aortic valve disease 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:10155
+name: intestinal cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080322
+name: polycystic kidney disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:10762
+name: portal hypertension
+namespace: disease_ontology
+
+[Term]
+id: DOID:7
+name: disease of anatomical entity
+namespace: disease_ontology
+
+[Term]
+id: DOID:0070530
+name: foveal hypoplasia 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0070532
+name: aniridia 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080610
+name: anterior segment dysgenesis 5
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080690
+name: RASopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:162
+name: cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050469
+name: Costello syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:12377
+name: spinal muscular atrophy
+namespace: disease_ontology
+
+[Term]
+id: DOID:0081111
+name: osteosclerotic metaphyseal dysplasia
+namespace: disease_ontology
+
+[Term]
+id: DOID:13533
+name: osteopetrosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:332
+name: amyotrophic lateral sclerosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:0014667
+name: disease of metabolism
+namespace: disease_ontology
+
+[Term]
+id: DOID:10534
+name: stomach cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050861
+name: colorectal adenocarcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050865
+name: tongue squamous cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0081292
+name: traumatic brain injury
+namespace: disease_ontology
+
+[Term]
+id: DOID:1115
+name: sarcoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:11650
+name: bronchopulmonary dysplasia
+namespace: disease_ontology
+
+[Term]
+id: DOID:10763
+name: hypertension
+namespace: disease_ontology
+
+[Term]
+id: DOID:12930
+name: dilated cardiomyopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:13976
+name: peptic esophagitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:11446
+name: sciatic neuropathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:1574
+name: alcohol use disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:10584
+name: retinitis pigmentosa
+namespace: disease_ontology
+
+[Term]
+id: DOID:2018
+name: hyperinsulinism
+namespace: disease_ontology
+
+[Term]
+id: DOID:0111862
+name: congenital bilateral absence of vas deferens
+namespace: disease_ontology
+
+[Term]
+id: DOID:10808
+name: gastric ulcer
+namespace: disease_ontology
+
+[Term]
+id: DOID:13580
+name: cholestasis
+namespace: disease_ontology
+
+[Term]
+id: DOID:1561
+name: cognitive disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:11994
+name: atrophy of testis
+namespace: disease_ontology
+
+[Term]
+id: DOID:3347
+name: osteosarcoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:9743
+name: diabetic neuropathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:13025
+name: retinopathy of prematurity
+namespace: disease_ontology
+
+[Term]
+id: DOID:3770
+name: pulmonary fibrosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:3910
+name: lung adenocarcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:4556
+name: lung large cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:12849
+name: autistic disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:14692
+name: Smith-Lemli-Opitz syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:9352
+name: type 2 diabetes mellitus
+namespace: disease_ontology
+
+[Term]
+id: DOID:1240
+name: leukemia
+namespace: disease_ontology
+
+[Term]
+id: DOID:14566
+name: disease of cellular proliferation
+namespace: disease_ontology
+
+[Term]
+id: DOID:684
+name: hepatocellular carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050855
+name: renal fibrosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050868
+name: hepatocellular adenoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:2870
+name: endometrial adenocarcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:4926
+name: bronchiolo-alveolar adenocarcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:1596
+name: depressive disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:3192
+name: neurilemmoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:670
+name: amphetamine abuse
+namespace: disease_ontology
+
+[Term]
+id: DOID:0002116
+name: pterygium
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050908
+name: myelodysplastic syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:13949
+name: interstitial cystitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:2797
+name: idiopathic interstitial pneumonia
+namespace: disease_ontology
+
+[Term]
+id: DOID:3070
+name: high grade glioma
+namespace: disease_ontology
+
+[Term]
+id: DOID:12217
+name: Lewy body dementia
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050933
+name: ovarian serous carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060669
+name: cerebral cavernous malformation
+namespace: disease_ontology
+
+[Term]
+id: DOID:219
+name: colon cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:3069
+name: malignant astrocytoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:1682
+name: congenital heart disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:264
+name: hemangiopericytoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:0110233
+name: cataract 27
+namespace: disease_ontology
+
+[Term]
+id: DOID:0111383
+name: autosomal dominant keratitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:10603
+name: glucose intolerance
+namespace: disease_ontology
+
+[Term]
+id: DOID:10629
+name: microphthalmia
+namespace: disease_ontology
+
+[Term]
+id: DOID:0060233
+name: cardiofaciocutaneous syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080365
+name: endometrial hyperplasia
+namespace: disease_ontology
+
+[Term]
+id: DOID:1059
+name: intellectual disability
+namespace: disease_ontology
+
+[Term]
+id: DOID:11054
+name: urinary bladder cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:1307
+name: dementia
+namespace: disease_ontology
+
+[Term]
+id: DOID:11166
+name: Human papillomavirus infectious disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:824
+name: periodontitis
+namespace: disease_ontology
+
+[Term]
+id: DOID:9970
+name: obesity
+namespace: disease_ontology
+
+[Term]
+id: DOID:10211
+name: cholelithiasis
+namespace: disease_ontology
+
+[Term]
+id: DOID:13636
+name: Fanconi anemia
+namespace: disease_ontology
+
+[Term]
+id: DOID:3526
+name: cerebral infarction
+namespace: disease_ontology
+
+[Term]
+id: DOID:0080857
+name: primary ovarian insufficiency 1
+namespace: disease_ontology
+
+[Term]
+id: DOID:77
+name: gastrointestinal system disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:9351
+name: diabetes mellitus
+namespace: disease_ontology
+
+[Term]
+id: DOID:0001816
+name: angiosarcoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:1035
+name: aggressive NK-cell leukemia
+namespace: disease_ontology
+
+[Term]
+id: DOID:3012
+name: Li-Fraumeni syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:5940
+name: malignant peripheral nerve sheath tumor
+namespace: disease_ontology
+
+[Term]
+id: DOID:0112250
+name: Gaucher's disease type IIIC
+namespace: disease_ontology
+
+[Term]
+id: DOID:8466
+name: retinal degeneration
+namespace: disease_ontology
+
+[Term]
+id: DOID:0061191
+name: neonatal nephrocutaneous inflammatory syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:0110117
+name: autoimmune lymphoproliferative syndrome type 4
+namespace: disease_ontology
+
+[Term]
+id: DOID:114
+name: heart disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:305
+name: carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:4194
+name: glucose metabolism disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:7474
+name: malignant pleural mesothelioma
+namespace: disease_ontology
+
+[Term]
+id: DOID:10914
+name: amnestic disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:680
+name: tauopathy
+namespace: disease_ontology
+
+[Term]
+id: DOID:1094
+name: attention deficit hyperactivity disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:535
+name: sleep disorder
+namespace: disease_ontology
+
+[Term]
+id: DOID:8712
+name: neurofibromatosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:1319
+name: brain cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:2998
+name: testicular cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:0111107
+name: maturity-onset diabetes of the young type 9
+namespace: disease_ontology
+
+[Term]
+id: DOID:1837
+name: diabetic ketoacidosis
+namespace: disease_ontology
+
+[Term]
+id: DOID:9744
+name: type 1 diabetes mellitus
+namespace: disease_ontology
+
+[Term]
+id: DOID:0050601
+name: ADULT syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:5426
+name: primary ovarian insufficiency
+namespace: disease_ontology
+
+[Term]
+id: DOID:13619
+name: extrahepatic cholestasis
+namespace: disease_ontology
+
+[Term]
+id: DOID:14450
+name: 46 XX gonadal dysgenesis
+namespace: disease_ontology
+
+[Term]
+id: DOID:13042
+name: persistent fetal circulation syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:2394
+name: ovarian cancer
+namespace: disease_ontology
+
+[Term]
+id: DOID:3962
+name: follicular thyroid carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:5409
+name: lung small cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:5520
+name: head and neck squamous cell carcinoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:6457
+name: Cowden syndrome
+namespace: disease_ontology
+
+[Term]
+id: DOID:8923
+name: skin melanoma
+namespace: disease_ontology
+
+[Term]
+id: DOID:9452
+name: steatotic liver disease
+namespace: disease_ontology
+
+[Term]
+id: DOID:9952
+name: acute lymphoblastic leukemia
+namespace: disease_ontology
+

@@ -55,12 +55,21 @@
                  [cljsjs/react-select "2.4.4-0"]
 
                  ; HTTP
-                 [clj-http "3.10.0"]
+                 [clj-http "3.13.1"]
                  [cljs-http "0.1.46"]
-                 [compojure "1.6.2"]
-                 [ring "1.8.2"]
-                 [ring/ring-defaults "0.3.2"]
-                 [cheshire "5.10.0"]
+                 [compojure "1.7.2"]
+                 [ring "1.15.6"]
+                 ; compojure pulls an older ring-core, so pin it to match ring.
+                 [ring/ring-core "1.15.6"]
+                 ; clj-http pulls commons-io 2.16.1; ring-core's fileupload2 needs 2.21.0.
+                 [commons-io "2.21.0"]
+                 [ring/ring-defaults "0.7.1"]
+                 [cheshire "6.2.1"]
+                 ; reitit and muuntaja pull Jackson 2.12, which breaks cheshire 6
+                 ; and has databind CVEs. Pin Jackson to cheshire's version.
+                 [com.fasterxml.jackson.core/jackson-core "2.21.8"]
+                 [com.fasterxml.jackson.core/jackson-databind "2.21.8"]
+                 [com.fasterxml.jackson.datatype/jackson-datatype-jsr310 "2.21.8"]
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/muuntaja "0.6.7"]
 
@@ -72,7 +81,6 @@
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [inflections "0.13.2"]
                  [binaryage/oops "0.7.0"]
-                 [inflections "0.13.2"]
                  [cljsjs/google-analytics "2017.09.21-0"]
                  [day8.re-frame/test "0.1.5"]
                  [cljs-bean "1.5.0"]
@@ -123,6 +131,8 @@
                        ["with-profile" "prod" "run"]]
                "biotestmine" ["do" "build,"
                               ["with-profile" "biotestmine" "run"]]
+               "testmine" ["do" "build,"
+                           ["with-profile" "testmine" "run"]]
                "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
                "format" ["cljfmt" "fix"]
                "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
@@ -159,17 +169,23 @@
                    :env {:development true}}
              :kaocha {:dependencies [[lambdaisland/kaocha "1.0.700"]
                                      [lambdaisland/kaocha-cljs "0.0-71"]]}
+             ;; Clojure unit tests: lein with-profile cljtest test
+             :cljtest {:test-paths ^:replace ["test/clj"]}
              :repl {:source-paths ["dev"]}
              :prod {:resource-paths ^:replace ["config/prod" "config/defaults" "resources"]}
              :uberjar {:resource-paths ^:replace ["config/defaults" "resources"]
                        :prep-tasks ["build" "compile"]
                        :aot :all}
-             :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}
              :biotestmine {;; We'd prefer to have resource path config/defaults here, but for some reason that makes the envvars below not apply.
                            :env {:bluegenes-default-service-root "http://localhost:9999/biotestmine"
                                  :bluegenes-default-mine-name "Biotestmine"
                                  :bluegenes-default-namespace "biotestmine"
-                                 :bluegenes-additional-mines [{:root "https://www.flymine.org/flymine" :name "FlyMine" :namespace "flymine"}]}}}
+                                 :bluegenes-additional-mines [{:root "https://www.flymine.org/flymine" :name "FlyMine" :namespace "flymine"}]}}
+             ;; Local AllianceMine data model test mine, see dev/testmine/README.md.
+             :testmine {:env {:bluegenes-default-service-root "http://localhost:9999/alliancetestmine"
+                              :bluegenes-default-mine-name "AllianceMine Test Mine"
+                              :bluegenes-default-namespace "alliancetestmine"
+                              :bluegenes-additional-mines []}}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}

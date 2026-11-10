@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-live-evidence",
+  "version": "0.1.1",
+  "description": "Disease models, alleles and phenotypes of a gene, read live from the Alliance of Genome Resources API, for mines that do not load AllianceMine data.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}

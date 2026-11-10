@@ -1,0 +1,20 @@
+{
+  "accepts": ["id"],
+  "apiBase": "https://api.geneontology.org/api",
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js",
+    "css": "dist/style.css"
+  },
+  "toolName": {
+    "human": "GO ribbon (Alliance)",
+    "cljs": "bluegenesAllianceGoRibbon"
+  },
+  "version": 2,
+  "depends": ["Gene.id", "Gene.primaryIdentifier", "Gene.symbol", "Gene.organism.shortName", "Gene.organism.taxonId"]
+}
