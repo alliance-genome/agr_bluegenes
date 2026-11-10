@@ -1,6 +1,16 @@
 {
   "accepts": ["id", "ids"],
   "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.expressionAnnotations.id",
+    "Gene.expressionAnnotations.anatomy.name",
+    "Gene.expressionAnnotations.anatomy.identifier",
+    "Gene.expressionAnnotations.stageTerm",
+    "Gene.expressionAnnotations.assay.name",
+    "Gene.expressionAnnotations.source",
+    "Gene.expressionAnnotations.publications.pubMedId"
+  ],
   "columnMapping": {
     "Gene": {
       "id": "primaryIdentifier"
