@@ -11,6 +11,7 @@
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
             [bluegenes.pages.reportpage.other-mines :as other-mines]
+            [bluegenes.components.cart :as cart]
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
@@ -347,7 +348,8 @@
         title @(subscribe [::subs/report-title])]
     [:h1.report-page-heading
      title
-     [:code.start {:class (str "start-" rootClass)} rootClass]]))
+     [:code.start {:class (str "start-" rootClass)} rootClass]
+     [cart/add-button]]))
 
 (defn invalid-object []
   (let [{error-type :type ?message :message} @(subscribe [::subs/report-error])]
