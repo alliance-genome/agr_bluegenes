@@ -5,6 +5,7 @@
             [bluegenes.pages.results.events]
             [bluegenes.pages.results.subs]
             [bluegenes.pages.results.orthologs :as orthologs]
+            [bluegenes.pages.results.send-to-mine :as send-to-mine]
             [bluegenes.pages.results.enrichment.views :as enrichment]
             [bluegenes.pages.results.widgets.views :as widgets]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
@@ -162,7 +163,9 @@
      (when-not (empty? description)
        [:p.list-description description])
      (when list
-       [orthologs/convert-button (:name list)])]))
+       [:<>
+        [orthologs/convert-button (:name list)]
+        [send-to-mine/send-button (:name list)]])]))
 
 (defn scroll-into-view! [id]
   (when-let [elem (or (nil? id) (gdom/getElement id))]
