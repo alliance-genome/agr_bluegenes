@@ -1,0 +1,21 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "config": {
+    "apiBase": "https://www.alliancegenome.org/api",
+    "hideInAllianceMine": true
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Alliance models, alleles and phenotypes",
+    "cljs": "bluegenesAllianceLiveEvidence"
+  },
+  "version": 2
+}

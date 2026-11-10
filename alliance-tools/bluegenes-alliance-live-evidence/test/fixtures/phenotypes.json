@@ -1,0 +1,521 @@
+{
+ "results": [
+  {
+   "subject": {
+    "type": "Gene",
+    "id": 4542130,
+    "createdBy": {
+     "id": 8073732,
+     "dateCreated": "2022-06-15T14:25:26.196412Z",
+     "dateUpdated": "2022-06-15T14:25:26.196412Z",
+     "uniqueId": "RGD"
+    },
+    "dateCreated": "2002-05-02T15:17:02Z",
+    "dateUpdated": "2026-09-22T18:25:34Z",
+    "curie": "AGRKB:105000000331364",
+    "primaryExternalId": "HGNC:11998",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "id": 20308681,
+     "abbreviation": "RGD",
+     "fullName": "Rat Genome Database",
+     "homepageResourceDescriptorPage": {
+      "id": 41750700,
+      "name": "homepage",
+      "urlTemplate": "https://rgd.mcw.edu/"
+     },
+     "hasInferredGenePhenotypeAnnotations": false,
+     "hasAssertedGenePhenotypeAnnotations": false,
+     "hasInferredAllelePhenotypeAnnotations": false,
+     "hasAssertedAllelePhenotypeAnnotations": false
+    },
+    "dataProviderCrossReference": {
+     "id": 85481747,
+     "referencedCurie": "RGD:70502",
+     "displayName": "RGD:70502",
+     "resourceDescriptorPage": {
+      "id": 41750699,
+      "name": "gene",
+      "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+     }
+    },
+    "taxon": {
+     "id": 242036,
+     "curie": "NCBITaxon:9606",
+     "name": "Homo sapiens",
+     "descendantCount": 0
+    },
+    "geneType": {
+     "id": 392916,
+     "curie": "SO:0001217",
+     "name": "protein_coding_gene",
+     "namespace": "sequence",
+     "definition": "A gene that codes for an RNA that can be translated into a protein.",
+     "descendantCount": 9
+    },
+    "geneSymbol": {
+     "id": 66966442,
+     "nameType": {
+      "id": 20308690,
+      "name": "nomenclature_symbol",
+      "definition": "A symbol for an object: e.g., pax6<sup>Leca2</sup>."
+     },
+     "formatText": "TP53",
+     "displayText": "TP53"
+    },
+    "geneFullName": {
+     "id": 66966443,
+     "nameType": {
+      "id": 20308691,
+      "name": "full_name",
+      "definition": "The full length name of an entity: e.g., broad angular dumpy."
+     },
+     "formatText": "tumor protein p53",
+     "displayText": "tumor protein p53"
+    },
+    "gcrpCrossReference": {
+     "id": 242181874,
+     "referencedCurie": "UniProtKB:P04637",
+     "displayName": "UniProtKB:P04637",
+     "resourceDescriptorPage": {
+      "id": 200000061,
+      "name": "default",
+      "urlTemplate": "http://www.uniprot.org/uniprot/[%s]"
+     }
+    }
+   },
+   "relation": {
+    "id": 200000000,
+    "name": "has_phenotype"
+   },
+   "primaryAnnotations": [
+    {
+     "type": "GenePhenotypeAnnotation",
+     "id": 209136503,
+     "dateCreated": "2023-08-21T19:45:18Z",
+     "evidenceItem": {
+      "type": "ExternalDatabaseReference",
+      "id": 456469,
+      "curie": "ORPHA:96253",
+      "resourceDescriptorPage": {
+       "id": 200000046,
+       "name": "default",
+       "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+      }
+     },
+     "uniqueId": "HGNC:11998|has_phenotype|Abdominal obesity|HP:0012743|ORPHA:96253",
+     "curie": "AGRKB:116000000911606",
+     "dataProvider": {
+      "type": "AllianceMember",
+      "id": 20308681,
+      "abbreviation": "RGD",
+      "fullName": "Rat Genome Database",
+      "homepageResourceDescriptorPage": {
+       "id": 41750700,
+       "name": "homepage",
+       "urlTemplate": "https://rgd.mcw.edu/"
+      },
+      "hasInferredGenePhenotypeAnnotations": false,
+      "hasAssertedGenePhenotypeAnnotations": false,
+      "hasInferredAllelePhenotypeAnnotations": false,
+      "hasAssertedAllelePhenotypeAnnotations": false
+     },
+     "phenotypeAnnotationObject": "Abdominal obesity",
+     "phenotypeTerms": [
+      {
+       "id": 283665,
+       "curie": "HP:0012743",
+       "name": "Abdominal obesity",
+       "definition": "Excessive fat around the stomach and abdomen.",
+       "descendantCount": 0
+      }
+     ],
+     "relation": {
+      "id": 200000000,
+      "name": "has_phenotype"
+     },
+     "phenotypeAnnotationSubject": {
+      "type": "Gene",
+      "id": 4542130,
+      "createdBy": {
+       "id": 8073732,
+       "dateCreated": "2022-06-15T14:25:26.196412Z",
+       "dateUpdated": "2022-06-15T14:25:26.196412Z",
+       "uniqueId": "RGD"
+      },
+      "dateCreated": "2002-05-02T15:17:02Z",
+      "dateUpdated": "2026-09-22T18:25:34Z",
+      "curie": "AGRKB:105000000331364",
+      "primaryExternalId": "HGNC:11998",
+      "dataProvider": {
+       "type": "AllianceMember",
+       "id": 20308681,
+       "abbreviation": "RGD",
+       "fullName": "Rat Genome Database",
+       "homepageResourceDescriptorPage": {
+        "id": 41750700,
+        "name": "homepage",
+        "urlTemplate": "https://rgd.mcw.edu/"
+       },
+       "hasInferredGenePhenotypeAnnotations": false,
+       "hasAssertedGenePhenotypeAnnotations": false,
+       "hasInferredAllelePhenotypeAnnotations": false,
+       "hasAssertedAllelePhenotypeAnnotations": false
+      },
+      "dataProviderCrossReference": {
+       "id": 85481747,
+       "referencedCurie": "RGD:70502",
+       "displayName": "RGD:70502",
+       "resourceDescriptorPage": {
+        "id": 41750699,
+        "name": "gene",
+        "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+       }
+      },
+      "taxon": {
+       "id": 242036,
+       "curie": "NCBITaxon:9606",
+       "name": "Homo sapiens",
+       "descendantCount": 0
+      },
+      "geneType": {
+       "id": 392916,
+       "curie": "SO:0001217",
+       "name": "protein_coding_gene",
+       "namespace": "sequence",
+       "definition": "A gene that codes for an RNA that can be translated into a protein.",
+       "descendantCount": 9
+      },
+      "geneSymbol": {
+       "id": 66966442,
+       "nameType": {
+        "id": 20308690,
+        "name": "nomenclature_symbol",
+        "definition": "A symbol for an object: e.g., pax6<sup>Leca2</sup>."
+       },
+       "formatText": "TP53",
+       "displayText": "TP53"
+      },
+      "geneFullName": {
+       "id": 66966443,
+       "nameType": {
+        "id": 20308691,
+        "name": "full_name",
+        "definition": "The full length name of an entity: e.g., broad angular dumpy."
+       },
+       "formatText": "tumor protein p53",
+       "displayText": "tumor protein p53"
+      },
+      "gcrpCrossReference": {
+       "id": 242181874,
+       "referencedCurie": "UniProtKB:P04637",
+       "displayName": "UniProtKB:P04637",
+       "resourceDescriptorPage": {
+        "id": 200000061,
+        "name": "default",
+        "urlTemplate": "http://www.uniprot.org/uniprot/[%s]"
+       }
+      }
+     }
+    }
+   ],
+   "category": "gene_phenotype_annotation",
+   "searchable": false,
+   "uniqueId": "vcAggaEBqU01CWvCrejU",
+   "phenotypeStatement": "Abdominal obesity",
+   "references": [
+    {
+     "type": "ExternalDatabaseReference",
+     "id": 456469,
+     "curie": "ORPHA:96253",
+     "resourceDescriptorPage": {
+      "id": 200000046,
+      "name": "default",
+      "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+     }
+    }
+   ],
+   "pubmedPublications": [
+    {
+     "referencedCurie": "ORPHA:96253",
+     "displayName": "ORPHA:96253",
+     "resourceDescriptorPage": {
+      "id": 200000046,
+      "name": "default",
+      "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+     }
+    }
+   ]
+  },
+  {
+   "subject": {
+    "type": "Gene",
+    "id": 4542130,
+    "createdBy": {
+     "id": 8073732,
+     "dateCreated": "2022-06-15T14:25:26.196412Z",
+     "dateUpdated": "2022-06-15T14:25:26.196412Z",
+     "uniqueId": "RGD"
+    },
+    "dateCreated": "2002-05-02T15:17:02Z",
+    "dateUpdated": "2026-09-22T18:25:34Z",
+    "curie": "AGRKB:105000000331364",
+    "primaryExternalId": "HGNC:11998",
+    "dataProvider": {
+     "type": "AllianceMember",
+     "id": 20308681,
+     "abbreviation": "RGD",
+     "fullName": "Rat Genome Database",
+     "homepageResourceDescriptorPage": {
+      "id": 41750700,
+      "name": "homepage",
+      "urlTemplate": "https://rgd.mcw.edu/"
+     },
+     "hasInferredGenePhenotypeAnnotations": false,
+     "hasAssertedGenePhenotypeAnnotations": false,
+     "hasInferredAllelePhenotypeAnnotations": false,
+     "hasAssertedAllelePhenotypeAnnotations": false
+    },
+    "dataProviderCrossReference": {
+     "id": 85481747,
+     "referencedCurie": "RGD:70502",
+     "displayName": "RGD:70502",
+     "resourceDescriptorPage": {
+      "id": 41750699,
+      "name": "gene",
+      "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+     }
+    },
+    "taxon": {
+     "id": 242036,
+     "curie": "NCBITaxon:9606",
+     "name": "Homo sapiens",
+     "descendantCount": 0
+    },
+    "geneType": {
+     "id": 392916,
+     "curie": "SO:0001217",
+     "name": "protein_coding_gene",
+     "namespace": "sequence",
+     "definition": "A gene that codes for an RNA that can be translated into a protein.",
+     "descendantCount": 9
+    },
+    "geneSymbol": {
+     "id": 66966442,
+     "nameType": {
+      "id": 20308690,
+      "name": "nomenclature_symbol",
+      "definition": "A symbol for an object: e.g., pax6<sup>Leca2</sup>."
+     },
+     "formatText": "TP53",
+     "displayText": "TP53"
+    },
+    "geneFullName": {
+     "id": 66966443,
+     "nameType": {
+      "id": 20308691,
+      "name": "full_name",
+      "definition": "The full length name of an entity: e.g., broad angular dumpy."
+     },
+     "formatText": "tumor protein p53",
+     "displayText": "tumor protein p53"
+    },
+    "gcrpCrossReference": {
+     "id": 242181874,
+     "referencedCurie": "UniProtKB:P04637",
+     "displayName": "UniProtKB:P04637",
+     "resourceDescriptorPage": {
+      "id": 200000061,
+      "name": "default",
+      "urlTemplate": "http://www.uniprot.org/uniprot/[%s]"
+     }
+    }
+   },
+   "relation": {
+    "id": 200000000,
+    "name": "has_phenotype"
+   },
+   "primaryAnnotations": [
+    {
+     "type": "GenePhenotypeAnnotation",
+     "id": 209136412,
+     "dateCreated": "2025-04-16T17:18:53Z",
+     "evidenceItem": {
+      "type": "ExternalDatabaseReference",
+      "id": 456470,
+      "curie": "ORPHA:1501",
+      "resourceDescriptorPage": {
+       "id": 200000046,
+       "name": "default",
+       "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+      }
+     },
+     "uniqueId": "HGNC:11998|has_phenotype|Abdominal pain|HP:0002027|ORPHA:1501",
+     "curie": "AGRKB:116000000911515",
+     "dataProvider": {
+      "type": "AllianceMember",
+      "id": 20308681,
+      "abbreviation": "RGD",
+      "fullName": "Rat Genome Database",
+      "homepageResourceDescriptorPage": {
+       "id": 41750700,
+       "name": "homepage",
+       "urlTemplate": "https://rgd.mcw.edu/"
+      },
+      "hasInferredGenePhenotypeAnnotations": false,
+      "hasAssertedGenePhenotypeAnnotations": false,
+      "hasInferredAllelePhenotypeAnnotations": false,
+      "hasAssertedAllelePhenotypeAnnotations": false
+     },
+     "phenotypeAnnotationObject": "Abdominal pain",
+     "phenotypeTerms": [
+      {
+       "id": 346294,
+       "curie": "HP:0002027",
+       "name": "Abdominal pain",
+       "definition": "An unpleasant sensation characterized by physical discomfort (such as pricking, throbbing, or aching) and perceived to originate in the abdomen.",
+       "descendantCount": 7
+      }
+     ],
+     "relation": {
+      "id": 200000000,
+      "name": "has_phenotype"
+     },
+     "phenotypeAnnotationSubject": {
+      "type": "Gene",
+      "id": 4542130,
+      "createdBy": {
+       "id": 8073732,
+       "dateCreated": "2022-06-15T14:25:26.196412Z",
+       "dateUpdated": "2022-06-15T14:25:26.196412Z",
+       "uniqueId": "RGD"
+      },
+      "dateCreated": "2002-05-02T15:17:02Z",
+      "dateUpdated": "2026-09-22T18:25:34Z",
+      "curie": "AGRKB:105000000331364",
+      "primaryExternalId": "HGNC:11998",
+      "dataProvider": {
+       "type": "AllianceMember",
+       "id": 20308681,
+       "abbreviation": "RGD",
+       "fullName": "Rat Genome Database",
+       "homepageResourceDescriptorPage": {
+        "id": 41750700,
+        "name": "homepage",
+        "urlTemplate": "https://rgd.mcw.edu/"
+       },
+       "hasInferredGenePhenotypeAnnotations": false,
+       "hasAssertedGenePhenotypeAnnotations": false,
+       "hasInferredAllelePhenotypeAnnotations": false,
+       "hasAssertedAllelePhenotypeAnnotations": false
+      },
+      "dataProviderCrossReference": {
+       "id": 85481747,
+       "referencedCurie": "RGD:70502",
+       "displayName": "RGD:70502",
+       "resourceDescriptorPage": {
+        "id": 41750699,
+        "name": "gene",
+        "urlTemplate": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=RGD:[%s]"
+       }
+      },
+      "taxon": {
+       "id": 242036,
+       "curie": "NCBITaxon:9606",
+       "name": "Homo sapiens",
+       "descendantCount": 0
+      },
+      "geneType": {
+       "id": 392916,
+       "curie": "SO:0001217",
+       "name": "protein_coding_gene",
+       "namespace": "sequence",
+       "definition": "A gene that codes for an RNA that can be translated into a protein.",
+       "descendantCount": 9
+      },
+      "geneSymbol": {
+       "id": 66966442,
+       "nameType": {
+        "id": 20308690,
+        "name": "nomenclature_symbol",
+        "definition": "A symbol for an object: e.g., pax6<sup>Leca2</sup>."
+       },
+       "formatText": "TP53",
+       "displayText": "TP53"
+      },
+      "geneFullName": {
+       "id": 66966443,
+       "nameType": {
+        "id": 20308691,
+        "name": "full_name",
+        "definition": "The full length name of an entity: e.g., broad angular dumpy."
+       },
+       "formatText": "tumor protein p53",
+       "displayText": "tumor protein p53"
+      },
+      "gcrpCrossReference": {
+       "id": 242181874,
+       "referencedCurie": "UniProtKB:P04637",
+       "displayName": "UniProtKB:P04637",
+       "resourceDescriptorPage": {
+        "id": 200000061,
+        "name": "default",
+        "urlTemplate": "http://www.uniprot.org/uniprot/[%s]"
+       }
+      }
+     }
+    }
+   ],
+   "category": "gene_phenotype_annotation",
+   "searchable": false,
+   "uniqueId": "QsAggaEBqU01CWvCren4",
+   "phenotypeStatement": "Abdominal pain",
+   "references": [
+    {
+     "type": "ExternalDatabaseReference",
+     "id": 456364,
+     "curie": "ORPHA:1333",
+     "resourceDescriptorPage": {
+      "id": 200000046,
+      "name": "default",
+      "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+     }
+    },
+    {
+     "type": "ExternalDatabaseReference",
+     "id": 456470,
+     "curie": "ORPHA:1501",
+     "resourceDescriptorPage": {
+      "id": 200000046,
+      "name": "default",
+      "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+     }
+    }
+   ],
+   "pubmedPublications": [
+    {
+     "referencedCurie": "ORPHA:1501",
+     "displayName": "ORPHA:1501",
+     "resourceDescriptorPage": {
+      "id": 200000046,
+      "name": "default",
+      "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+     }
+    },
+    {
+     "referencedCurie": "ORPHA:1333",
+     "displayName": "ORPHA:1333",
+     "resourceDescriptorPage": {
+      "id": 200000046,
+      "name": "default",
+      "urlTemplate": "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=EN&Expert=[%s]"
+     }
+    }
+   ]
+  }
+ ],
+ "total": 225,
+ "returnedRecords": 2,
+ "requestDuration": "0s",
+ "requestDate": "2026/11/10 19:40:05"
+}
