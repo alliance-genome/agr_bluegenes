@@ -1,6 +1,12 @@
 {
   "accepts": ["id", "ids"],
   "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.alleles.id",
+    "Gene.alleles.primaryIdentifier",
+    "Gene.alleles.symbol"
+  ],
   "columnMapping": {
     "Gene": {
       "id": "primaryIdentifier"

@@ -1,6 +1,16 @@
 {
   "accepts": ["id", "ids"],
   "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.diseaseAnnotation.id",
+    "Gene.diseaseAnnotation.ontologyTerm.identifier",
+    "Gene.diseaseAnnotation.ontologyTerm.name",
+    "Gene.diseaseAnnotation.qualifier",
+    "Gene.diseaseAnnotation.evidence.code.code",
+    "Gene.diseaseAnnotation.dataSets.name"
+  ],
   "columnMapping": {
     "Gene": {
       "id": "primaryIdentifier"
