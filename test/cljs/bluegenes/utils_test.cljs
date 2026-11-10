@@ -132,6 +132,89 @@
             :joins ["Gene.homologues"],
             :where [{:path "Gene.symbol", :op "CONTAINS", :value "ab"}]}))))
 
+(def paths-model
+  "Mock model with fields. `Homologue.homologue` refers back to Gene, ORF is a
+  Gene subclass, and PhenotypeAnnotation exists without a Gene collection to it
+  (the FlyMine case)."
+  {:BioEntity {:attributes {:primaryIdentifier {:type "java.lang.String"}}}
+   :Organism {:attributes {:shortName {:type "java.lang.String"}}}
+   :Gene {:extends ["BioEntity"]
+          :attributes {:symbol {:type "java.lang.String"}}
+          :references {:organism {:referencedType "Organism"}}
+          :collections {:homologues {:referencedType "Homologue"}
+                        :diseaseAnnotation {:referencedType "DiseaseAnnotation"}}}
+   :ProteinCodingGene {:extends ["Gene"]
+                       :attributes {:length {:type "java.lang.Integer"}}}
+   :ORF {:extends ["ProteinCodingGene"]}
+   :Homologue {:attributes {:isBestScore {:type "java.lang.Boolean"}}
+               :references {:gene {:referencedType "Gene"}
+                            :homologue {:referencedType "Gene"}}}
+   :DiseaseAnnotation {:attributes {:qualifier {:type "java.lang.String"}}}
+   :PhenotypeAnnotation {:attributes {:phenotypeStatement {:type "java.lang.String"}}}})
+
+(deftest path-in-model
+  (testing "class names"
+    (is (utils/path-in-model? paths-model "Gene"))
+    (is (not (utils/path-in-model? paths-model "NotInModel"))))
+  (testing "valid paths"
+    (are [path] (utils/path-in-model? paths-model path)
+      "Gene.symbol"
+      "Gene.organism"
+      "Gene.organism.shortName"
+      "Gene.homologues.homologue"
+      "Gene.homologues.homologue.organism.shortName"
+      "Gene.diseaseAnnotation.qualifier"))
+  (testing "inherited fields resolve"
+    (are [path] (utils/path-in-model? paths-model path)
+      "Gene.primaryIdentifier"
+      "ORF.homologues.homologue.symbol"
+      "ORF.length"
+      "Gene.homologues.homologue.primaryIdentifier"))
+  (testing "a field of a subclass does not resolve from its superclass"
+    (is (not (utils/path-in-model? paths-model "Gene.length")))
+    (is (not (utils/path-in-model? paths-model "Gene.homologues.homologue.length"))))
+  (testing "missing paths"
+    (are [path] (not (utils/path-in-model? paths-model path))
+      "Gene.alleles"
+      "Gene.homologues.stringencyFilter"
+      "Gene.symbol.length"
+      "Gene.organism.shortName.x"
+      "Gene.homologues.homologue.notThere"
+      "NotInModel.symbol"
+      ""))
+  (testing "a class present with the collection absent (FlyMine phenotypes)"
+    (is (utils/path-in-model? paths-model "PhenotypeAnnotation"))
+    (is (not (utils/path-in-model? paths-model "Gene.phenotypeAnnotations")))
+    (is (not (utils/path-in-model? paths-model "Gene.phenotypeAnnotations.phenotypeStatement"))))
+  (testing "unmet-depends lists the failing entries in order"
+    (is (= ["Gene.alleles" "Nope"]
+           (utils/unmet-depends paths-model ["Gene.symbol" "Gene.alleles" "Gene" "Nope"])))
+    (is (= [] (utils/unmet-depends paths-model nil)))
+    (is (utils/depends-met? paths-model ["Gene" "Gene.homologues.homologue"]))))
+
+(deftest suitable-entities-depends-paths
+  (let [hier (extends-hierarchy paths-model)
+        entities {:Gene {:class "Gene" :format "id" :value 1}}
+        config (fn [depends] {:accepts ["id"] :classes ["Gene"] :depends depends})]
+    (with-redefs [version/tool-api 2]
+      (is (= entities
+             (utils/suitable-entities paths-model hier entities
+                                      (assoc (config ["Gene" "Gene.homologues.homologue" "Gene.diseaseAnnotation.qualifier"])
+                                             :version 2)))
+          "Class names and valid paths together")
+      (is (nil? (utils/suitable-entities paths-model hier entities
+                                         (assoc (config ["Gene.homologues.homologue" "Gene.alleles"])
+                                                :version 2)))
+          "One missing path hides the tool")
+      (is (nil? (utils/suitable-entities paths-model hier entities
+                                         (assoc (config ["Gene.phenotypeAnnotations"])
+                                                :version 2)))
+          "FlyMine case: class present, collection absent")
+      (is (= entities
+             (utils/suitable-entities paths-model hier entities
+                                      (assoc (config []) :version 2)))
+          "Empty depends"))))
+
 (deftest suitable-entities
   ;; Mock for model classes. We only check that the key is present.
   (let [model {:BioEntity {} :Gene {:extends ["BioEntity"]} :Protein {:extends ["BioEntity"]}

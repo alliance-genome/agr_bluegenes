@@ -1,6 +1,13 @@
 {
   "accepts": ["id", "ids"],
   "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.homologues.homologue.id",
+    "Gene.homologues.homologue.primaryIdentifier",
+    "Gene.homologues.homologue.symbol",
+    "Gene.homologues.homologue.organism.shortName"
+  ],
   "columnMapping": {
     "Gene": {
       "id": "primaryIdentifier"
