@@ -10,6 +10,7 @@
             [bluegenes.components.tools.views :as tools]
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
+            [bluegenes.pages.reportpage.other-mines :as other-mines]
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
@@ -156,6 +157,42 @@
                                      "tool"     tool-report)]]
              ^{:key id}
              [report-comp child]))]]))]))
+
+(defn other-mines-status [{:keys [status message]}]
+  (case status
+    :found nil
+    :not-found [:span.text-muted "not found"]
+    :error [poppable {:data message :children [:span.text-danger "error"]}]
+    [mini-loader "tiny"]))
+
+(defn other-mines-panel []
+  (let [{:keys [loading? rows unavailable]} @(subscribe [::other-mines/panel])]
+    (when (or loading? (seq rows) (seq unavailable))
+      [section
+       {:title "In other Alliance mines"
+        :id "other-alliance-mines"}
+       (cond
+         loading? [mini-loader "tiny"]
+         :else
+         [:table.table.table-condensed.other-alliance-mines
+          [:thead
+           [:tr [:th "Species"] [:th "Symbol"] [:th "Mine"]]]
+          [:tbody
+           (for [{:keys [gene mine-kw mine-name self? id] :as row} rows
+                 :let [nom (some gene [:symbol :primaryIdentifier])]]
+             ^{:key (str mine-kw "/" (:primaryIdentifier gene))}
+             [:tr
+              [:td (:shortName gene)]
+              [:td nom (when self? [:span.text-muted " (this gene)"])]
+              [:td (if (= :found (:status row))
+                     [:a {:href (route/href ::route/report {:mine mine-kw
+                                                            :type "Gene"
+                                                            :id id})}
+                      (str (or (:symbol row) nom) " in " mine-name)]
+                     [:span mine-name " " [other-mines-status row]])]])]])
+       (when (seq unavailable)
+         [:p.text-muted.other-alliance-mines-unavailable
+          "Unavailable: " (str/join ", " unavailable)])])))
 
 (defn summary-location [[label value]]
   [:<>
@@ -342,6 +379,7 @@
                 [toc/main]]
                [:div.col-xs-10.col-lg-8
                 [summary]
-                [report]]
+                [report]
+                [other-mines-panel]]
                [:div.col-lg-2.visible-lg-block.sidebar-container
                 [sidebar/main]]]])]))
