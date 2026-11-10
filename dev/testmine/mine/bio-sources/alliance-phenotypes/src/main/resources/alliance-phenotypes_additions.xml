@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- PhenotypeAnnotation class lives in alliancemine-global_additions.xml;
+     this file is intentionally empty so the dbmodel plugin still has an
+     additions file to merge. -->
+
+<classes>
+</classes>

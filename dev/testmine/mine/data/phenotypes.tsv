@@ -1,0 +1,267 @@
+subjectGeneId	subjectGeneTaxon	category	phenotypeStatement	relation	uniqueId	pubmedIds	referenceIds
+HGNC:11998	NCBITaxon:9606	gene_phenotype_annotation	increased tumor incidence	has_phenotype	HGNC:11998|increased_tumor_incidence|PMID:16393253	PMID:16393253	PMID:16393253
+HGNC:11998	NCBITaxon:9606	gene_phenotype_annotation	abnormal apoptosis	has_phenotype	HGNC:11998|abnormal_apoptosis|PMID:17354237	PMID:17354237	PMID:17354237
+MGI:98834	NCBITaxon:10090	gene_phenotype_annotation	increased tumor incidence	has_phenotype	MGI:98834|increased_tumor_incidence|PMID:9519874	PMID:9519874	PMID:9519874
+MGI:98834	NCBITaxon:10090	gene_phenotype_annotation	abnormal apoptosis	has_phenotype	MGI:98834|abnormal_apoptosis|PMID:16166291	PMID:16166291	PMID:16166291
+RGD:3889	NCBITaxon:10116	gene_phenotype_annotation	increased tumor incidence	has_phenotype	RGD:3889|increased_tumor_incidence|PMID:26431790	PMID:26431790	PMID:26431790
+RGD:3889	NCBITaxon:10116	gene_phenotype_annotation	abnormal apoptosis	has_phenotype	RGD:3889|abnormal_apoptosis|PMID:20385474	PMID:20385474	PMID:20385474
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	gene_phenotype_annotation	increased tumor incidence	has_phenotype	ZFIN:ZDB-GENE-990415-270|increased_tumor_incidence|PMID:30192230	PMID:30192230	PMID:30192230
+ZFIN:ZDB-GENE-990415-270	NCBITaxon:7955	gene_phenotype_annotation	abnormal apoptosis	has_phenotype	ZFIN:ZDB-GENE-990415-270|abnormal_apoptosis|PMID:20075382	PMID:20075382	PMID:20075382
+FB:FBgn0039044	NCBITaxon:7227	gene_phenotype_annotation	increased tumor incidence	has_phenotype	FB:FBgn0039044|increased_tumor_incidence|PMID:24561262	PMID:24561262	PMID:24561262
+FB:FBgn0039044	NCBITaxon:7227	gene_phenotype_annotation	abnormal apoptosis	has_phenotype	FB:FBgn0039044|abnormal_apoptosis|PMID:12174585	PMID:12174585	PMID:12174585
+WB:WBGene00000467	NCBITaxon:6239	gene_phenotype_annotation	increased tumor incidence	has_phenotype	WB:WBGene00000467|increased_tumor_incidence|PMID:11696333	PMID:11696333	PMID:11696333
+WB:WBGene00000467	NCBITaxon:6239	gene_phenotype_annotation	abnormal apoptosis	has_phenotype	WB:WBGene00000467|abnormal_apoptosis|		
+HGNC:1101	NCBITaxon:9606	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	HGNC:1101|abnormal_DNA_repair|PMID:11497291	PMID:11497291	PMID:11497291
+HGNC:1101	NCBITaxon:9606	gene_phenotype_annotation	embryonic lethality	has_phenotype	HGNC:1101|embryonic_lethality|PMID:16533773	PMID:16533773	PMID:16533773
+MGI:109337	NCBITaxon:10090	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	MGI:109337|abnormal_DNA_repair|PMID:11215675	PMID:11215675	PMID:11215675
+MGI:109337	NCBITaxon:10090	gene_phenotype_annotation	embryonic lethality	has_phenotype	MGI:109337|embryonic_lethality|PMID:11494122	PMID:11494122	PMID:11494122
+RGD:2219	NCBITaxon:10116	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	RGD:2219|abnormal_DNA_repair|PMID:25861310	PMID:25861310	PMID:25861310
+RGD:2219	NCBITaxon:10116	gene_phenotype_annotation	embryonic lethality	has_phenotype	RGD:2219|embryonic_lethality|PMID:16273225	PMID:16273225	PMID:16273225
+ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	ZFIN:ZDB-GENE-060510-3|abnormal_DNA_repair|		
+ZFIN:ZDB-GENE-060510-3	NCBITaxon:7955	gene_phenotype_annotation	embryonic lethality	has_phenotype	ZFIN:ZDB-GENE-060510-3|embryonic_lethality|		
+FB:FBgn0050169	NCBITaxon:7227	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	FB:FBgn0050169|abnormal_DNA_repair|PMID:30207912	PMID:30207912	PMID:30207912
+FB:FBgn0050169	NCBITaxon:7227	gene_phenotype_annotation	embryonic lethality	has_phenotype	FB:FBgn0050169|embryonic_lethality|		
+HGNC:9588	NCBITaxon:9606	gene_phenotype_annotation	increased cell size	has_phenotype	HGNC:9588|increased_cell_size|PMID:17681738	PMID:17681738	PMID:17681738
+HGNC:9588	NCBITaxon:9606	gene_phenotype_annotation	abnormal growth	has_phenotype	HGNC:9588|abnormal_growth|PMID:15821467	PMID:15821467	PMID:15821467
+MGI:109583	NCBITaxon:10090	gene_phenotype_annotation	increased cell size	has_phenotype	MGI:109583|increased_cell_size|PMID:17567478	PMID:17567478	PMID:17567478
+MGI:109583	NCBITaxon:10090	gene_phenotype_annotation	abnormal growth	has_phenotype	MGI:109583|abnormal_growth|PMID:20837017	PMID:20837017	PMID:20837017
+RGD:61995	NCBITaxon:10116	gene_phenotype_annotation	increased cell size	has_phenotype	RGD:61995|increased_cell_size|PMID:22432009	PMID:22432009	PMID:22432009
+RGD:61995	NCBITaxon:10116	gene_phenotype_annotation	abnormal growth	has_phenotype	RGD:61995|abnormal_growth|PMID:22737271	PMID:22737271	PMID:22737271
+FB:FBgn0026379	NCBITaxon:7227	gene_phenotype_annotation	increased cell size	has_phenotype	FB:FBgn0026379|increased_cell_size|PMID:34492006	PMID:34492006	PMID:34492006
+FB:FBgn0026379	NCBITaxon:7227	gene_phenotype_annotation	abnormal growth	has_phenotype	FB:FBgn0026379|abnormal_growth|PMID:33761355	PMID:33761355	PMID:33761355
+WB:WBGene00000913	NCBITaxon:6239	gene_phenotype_annotation	increased cell size	has_phenotype	WB:WBGene00000913|increased_cell_size|PMID:34288923	PMID:34288923	PMID:34288923
+WB:WBGene00000913	NCBITaxon:6239	gene_phenotype_annotation	abnormal growth	has_phenotype	WB:WBGene00000913|abnormal_growth|PMID:19853560	PMID:19853560	PMID:19853560
+HGNC:620	NCBITaxon:9606	gene_phenotype_annotation	abnormal synaptic transmission	has_phenotype	HGNC:620|abnormal_synaptic_transmission|PMID:28285126	PMID:28285126	PMID:28285126
+HGNC:620	NCBITaxon:9606	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	HGNC:620|abnormal_locomotor_behavior|PMID:11526104	PMID:11526104	PMID:11526104
+MGI:88059	NCBITaxon:10090	gene_phenotype_annotation	abnormal synaptic transmission	has_phenotype	MGI:88059|abnormal_synaptic_transmission|PMID:10188929	PMID:10188929	PMID:10188929
+MGI:88059	NCBITaxon:10090	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	MGI:88059|abnormal_locomotor_behavior|PMID:27109181	PMID:27109181	PMID:27109181
+RGD:2139	NCBITaxon:10116	gene_phenotype_annotation	abnormal synaptic transmission	has_phenotype	RGD:2139|abnormal_synaptic_transmission|PMID:24595328	PMID:24595328	PMID:24595328
+RGD:2139	NCBITaxon:10116	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	RGD:2139|abnormal_locomotor_behavior|PMID:38078339	PMID:38078339	PMID:38078339
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	gene_phenotype_annotation	abnormal synaptic transmission	has_phenotype	ZFIN:ZDB-GENE-000616-13|abnormal_synaptic_transmission|		
+ZFIN:ZDB-GENE-000616-13	NCBITaxon:7955	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	ZFIN:ZDB-GENE-000616-13|abnormal_locomotor_behavior|		
+FB:FBgn0000108	NCBITaxon:7227	gene_phenotype_annotation	abnormal synaptic transmission	has_phenotype	FB:FBgn0000108|abnormal_synaptic_transmission|PMID:31354437	PMID:31354437	PMID:31354437
+FB:FBgn0000108	NCBITaxon:7227	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	FB:FBgn0000108|abnormal_locomotor_behavior|PMID:25766673	PMID:25766673	PMID:25766673
+WB:WBGene00000149	NCBITaxon:6239	gene_phenotype_annotation	abnormal synaptic transmission	has_phenotype	WB:WBGene00000149|abnormal_synaptic_transmission|PMID:22466039	PMID:22466039	PMID:22466039
+WB:WBGene00000149	NCBITaxon:6239	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	WB:WBGene00000149|abnormal_locomotor_behavior|PMID:20862215	PMID:20862215	PMID:20862215
+HGNC:11179	NCBITaxon:9606	gene_phenotype_annotation	decreased lifespan	has_phenotype	HGNC:11179|decreased_lifespan|PMID:17198913	PMID:17198913	PMID:17198913
+HGNC:11179	NCBITaxon:9606	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	HGNC:11179|motor_neuron_degeneration|PMID:22072713	PMID:22072713	PMID:22072713
+MGI:98351	NCBITaxon:10090	gene_phenotype_annotation	decreased lifespan	has_phenotype	MGI:98351|decreased_lifespan|PMID:7846037	PMID:7846037	PMID:7846037
+MGI:98351	NCBITaxon:10090	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	MGI:98351|motor_neuron_degeneration|PMID:15263088	PMID:15263088	PMID:15263088
+RGD:3731	NCBITaxon:10116	gene_phenotype_annotation	decreased lifespan	has_phenotype	RGD:3731|decreased_lifespan|PMID:17959751	PMID:17959751	PMID:17959751
+RGD:3731	NCBITaxon:10116	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	RGD:3731|motor_neuron_degeneration|PMID:23006058	PMID:23006058	PMID:23006058
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	gene_phenotype_annotation	decreased lifespan	has_phenotype	ZFIN:ZDB-GENE-990415-258|decreased_lifespan|PMID:24092880	PMID:24092880	PMID:24092880
+ZFIN:ZDB-GENE-990415-258	NCBITaxon:7955	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	ZFIN:ZDB-GENE-990415-258|motor_neuron_degeneration|		
+FB:FBgn0003462	NCBITaxon:7227	gene_phenotype_annotation	decreased lifespan	has_phenotype	FB:FBgn0003462|decreased_lifespan|PMID:32994185	PMID:32994185	PMID:32994185
+FB:FBgn0003462	NCBITaxon:7227	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	FB:FBgn0003462|motor_neuron_degeneration|PMID:36868541	PMID:36868541	PMID:36868541
+WB:WBGene00004930	NCBITaxon:6239	gene_phenotype_annotation	decreased lifespan	has_phenotype	WB:WBGene00004930|decreased_lifespan|PMID:35252815	PMID:35252815	PMID:35252815
+WB:WBGene00004930	NCBITaxon:6239	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	WB:WBGene00004930|motor_neuron_degeneration|PMID:23503474	PMID:23503474	PMID:23503474
+SGD:S000003865	NCBITaxon:559292	gene_phenotype_annotation	decreased lifespan	has_phenotype	SGD:S000003865|decreased_lifespan|PMID:38788983	PMID:38788983	PMID:38788983
+SGD:S000003865	NCBITaxon:559292	gene_phenotype_annotation	motor neuron degeneration	has_phenotype	SGD:S000003865|motor_neuron_degeneration|PMID:15069187	PMID:15069187	PMID:15069187
+HGNC:4851	NCBITaxon:9606	gene_phenotype_annotation	abnormal motor coordination	has_phenotype	HGNC:4851|abnormal_motor_coordination|PMID:25062733	PMID:25062733	PMID:25062733
+HGNC:4851	NCBITaxon:9606	gene_phenotype_annotation	neuron degeneration	has_phenotype	HGNC:4851|neuron_degeneration|PMID:17940007	PMID:17940007	PMID:17940007
+MGI:96067	NCBITaxon:10090	gene_phenotype_annotation	abnormal motor coordination	has_phenotype	MGI:96067|abnormal_motor_coordination|PMID:7774020	PMID:7774020	PMID:7774020
+MGI:96067	NCBITaxon:10090	gene_phenotype_annotation	neuron degeneration	has_phenotype	MGI:96067|neuron_degeneration|PMID:7550343	PMID:7550343	PMID:7550343
+RGD:68337	NCBITaxon:10116	gene_phenotype_annotation	abnormal motor coordination	has_phenotype	RGD:68337|abnormal_motor_coordination|PMID:12957494	PMID:12957494	PMID:12957494
+RGD:68337	NCBITaxon:10116	gene_phenotype_annotation	neuron degeneration	has_phenotype	RGD:68337|neuron_degeneration|PMID:12620967	PMID:12620967	PMID:12620967
+ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	gene_phenotype_annotation	abnormal motor coordination	has_phenotype	ZFIN:ZDB-GENE-990415-131|abnormal_motor_coordination|PMID:23800350	PMID:23800350	PMID:23800350
+ZFIN:ZDB-GENE-990415-131	NCBITaxon:7955	gene_phenotype_annotation	neuron degeneration	has_phenotype	ZFIN:ZDB-GENE-990415-131|neuron_degeneration|		
+FB:FBgn0027655	NCBITaxon:7227	gene_phenotype_annotation	abnormal motor coordination	has_phenotype	FB:FBgn0027655|abnormal_motor_coordination|PMID:32611447	PMID:32611447	PMID:32611447
+FB:FBgn0027655	NCBITaxon:7227	gene_phenotype_annotation	neuron degeneration	has_phenotype	FB:FBgn0027655|neuron_degeneration|PMID:20890443	PMID:20890443	PMID:20890443
+HGNC:1884	NCBITaxon:9606	gene_phenotype_annotation	abnormal ion transport	has_phenotype	HGNC:1884|abnormal_ion_transport|PMID:12184527	PMID:12184527	PMID:12184527
+HGNC:1884	NCBITaxon:9606	gene_phenotype_annotation	abnormal intestine morphology	has_phenotype	HGNC:1884|abnormal_intestine_morphology|PMID:25546515	PMID:25546515	PMID:25546515
+MGI:88388	NCBITaxon:10090	gene_phenotype_annotation	abnormal ion transport	has_phenotype	MGI:88388|abnormal_ion_transport|PMID:7540910	PMID:7540910	PMID:7540910
+MGI:88388	NCBITaxon:10090	gene_phenotype_annotation	abnormal intestine morphology	has_phenotype	MGI:88388|abnormal_intestine_morphology|PMID:29924856	PMID:29924856	PMID:29924856
+RGD:2332	NCBITaxon:10116	gene_phenotype_annotation	abnormal ion transport	has_phenotype	RGD:2332|abnormal_ion_transport|PMID:18988797	PMID:18988797	PMID:18988797
+RGD:2332	NCBITaxon:10116	gene_phenotype_annotation	abnormal intestine morphology	has_phenotype	RGD:2332|abnormal_intestine_morphology|PMID:19012687	PMID:19012687	PMID:19012687
+ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	gene_phenotype_annotation	abnormal ion transport	has_phenotype	ZFIN:ZDB-GENE-050517-20|abnormal_ion_transport|PMID:30728389	PMID:30728389	PMID:30728389
+ZFIN:ZDB-GENE-050517-20	NCBITaxon:7955	gene_phenotype_annotation	abnormal intestine morphology	has_phenotype	ZFIN:ZDB-GENE-050517-20|abnormal_intestine_morphology|PMID:32849617	PMID:32849617	PMID:32849617
+FB:FBgn0039207	NCBITaxon:7227	gene_phenotype_annotation	abnormal ion transport	has_phenotype	FB:FBgn0039207|abnormal_ion_transport|PMID:32345720	PMID:32345720	PMID:32345720
+FB:FBgn0039207	NCBITaxon:7227	gene_phenotype_annotation	abnormal intestine morphology	has_phenotype	FB:FBgn0039207|abnormal_intestine_morphology|PMID:39633407	PMID:39633407	PMID:39633407
+HGNC:14581	NCBITaxon:9606	gene_phenotype_annotation	abnormal mitochondrion morphology	has_phenotype	HGNC:14581|abnormal_mitochondrion_morphology|PMID:26223426	PMID:26223426	PMID:26223426
+HGNC:14581	NCBITaxon:9606	gene_phenotype_annotation	dopaminergic neuron degeneration	has_phenotype	HGNC:14581|dopaminergic_neuron_degeneration|PMID:25639775	PMID:25639775	PMID:25639775
+MGI:1916193	NCBITaxon:10090	gene_phenotype_annotation	abnormal mitochondrion morphology	has_phenotype	MGI:1916193|abnormal_mitochondrion_morphology|PMID:22265660	PMID:22265660	PMID:22265660
+MGI:1916193	NCBITaxon:10090	gene_phenotype_annotation	dopaminergic neuron degeneration	has_phenotype	MGI:1916193|dopaminergic_neuron_degeneration|PMID:21249202	PMID:21249202	PMID:21249202
+RGD:1305769	NCBITaxon:10116	gene_phenotype_annotation	abnormal mitochondrion morphology	has_phenotype	RGD:1305769|abnormal_mitochondrion_morphology|PMID:34052187	PMID:34052187	PMID:34052187
+RGD:1305769	NCBITaxon:10116	gene_phenotype_annotation	dopaminergic neuron degeneration	has_phenotype	RGD:1305769|dopaminergic_neuron_degeneration|PMID:25421206	PMID:25421206	PMID:25421206
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	gene_phenotype_annotation	abnormal mitochondrion morphology	has_phenotype	ZFIN:ZDB-GENE-041212-53|abnormal_mitochondrion_morphology|PMID:31548178	PMID:31548178	PMID:31548178
+ZFIN:ZDB-GENE-041212-53	NCBITaxon:7955	gene_phenotype_annotation	dopaminergic neuron degeneration	has_phenotype	ZFIN:ZDB-GENE-041212-53|dopaminergic_neuron_degeneration|PMID:18701682	PMID:18701682	PMID:18701682
+FB:FBgn0029891	NCBITaxon:7227	gene_phenotype_annotation	abnormal mitochondrion morphology	has_phenotype	FB:FBgn0029891|abnormal_mitochondrion_morphology|PMID:21504582	PMID:21504582	PMID:21504582
+FB:FBgn0029891	NCBITaxon:7227	gene_phenotype_annotation	dopaminergic neuron degeneration	has_phenotype	FB:FBgn0029891|dopaminergic_neuron_degeneration|PMID:24896179	PMID:24896179	PMID:24896179
+WB:WBGene00017137	NCBITaxon:6239	gene_phenotype_annotation	abnormal mitochondrion morphology	has_phenotype	WB:WBGene00017137|abnormal_mitochondrion_morphology|PMID:19251702	PMID:19251702	PMID:19251702
+WB:WBGene00017137	NCBITaxon:6239	gene_phenotype_annotation	dopaminergic neuron degeneration	has_phenotype	WB:WBGene00017137|dopaminergic_neuron_degeneration|		
+HGNC:16369	NCBITaxon:9606	gene_phenotype_annotation	increased sensitivity to oxidative stress	has_phenotype	HGNC:16369|increased_sensitivity_to_oxidative_stress|PMID:17882163	PMID:17882163	PMID:17882163
+HGNC:16369	NCBITaxon:9606	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	HGNC:16369|abnormal_locomotor_behavior|PMID:16860563	PMID:16860563	PMID:16860563
+MGI:2135637	NCBITaxon:10090	gene_phenotype_annotation	increased sensitivity to oxidative stress	has_phenotype	MGI:2135637|increased_sensitivity_to_oxidative_stress|PMID:15799973	PMID:15799973	PMID:15799973
+MGI:2135637	NCBITaxon:10090	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	MGI:2135637|abnormal_locomotor_behavior|PMID:23019375	PMID:23019375	PMID:23019375
+RGD:621808	NCBITaxon:10116	gene_phenotype_annotation	increased sensitivity to oxidative stress	has_phenotype	RGD:621808|increased_sensitivity_to_oxidative_stress|PMID:22710069	PMID:22710069	PMID:22710069
+RGD:621808	NCBITaxon:10116	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	RGD:621808|abnormal_locomotor_behavior|PMID:22041943	PMID:22041943	PMID:22041943
+ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	gene_phenotype_annotation	increased sensitivity to oxidative stress	has_phenotype	ZFIN:ZDB-GENE-041010-5|increased_sensitivity_to_oxidative_stress|PMID:34942966	PMID:34942966	PMID:34942966
+ZFIN:ZDB-GENE-041010-5	NCBITaxon:7955	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	ZFIN:ZDB-GENE-041010-5|abnormal_locomotor_behavior|PMID:31218647	PMID:31218647	PMID:31218647
+WB:WBGene00015184	NCBITaxon:6239	gene_phenotype_annotation	increased sensitivity to oxidative stress	has_phenotype	WB:WBGene00015184|increased_sensitivity_to_oxidative_stress|PMID:22523093	PMID:22523093	PMID:22523093
+WB:WBGene00015184	NCBITaxon:6239	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	WB:WBGene00015184|abnormal_locomotor_behavior|		
+HGNC:18618	NCBITaxon:9606	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	HGNC:18618|abnormal_dopamine_level|PMID:17639429	PMID:17639429	PMID:17639429
+HGNC:18618	NCBITaxon:9606	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	HGNC:18618|abnormal_locomotor_behavior|PMID:21375368	PMID:21375368	PMID:21375368
+MGI:1913975	NCBITaxon:10090	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	MGI:1913975|abnormal_dopamine_level|PMID:20130188	PMID:20130188	PMID:20130188
+MGI:1913975	NCBITaxon:10090	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	MGI:1913975|abnormal_locomotor_behavior|		
+RGD:1561168	NCBITaxon:10116	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	RGD:1561168|abnormal_dopamine_level|PMID:24810053	PMID:24810053	PMID:24810053
+RGD:1561168	NCBITaxon:10116	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	RGD:1561168|abnormal_locomotor_behavior|PMID:24927544	PMID:24927544	PMID:24927544
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	ZFIN:ZDB-GENE-071218-6|abnormal_dopamine_level|PMID:34516550	PMID:34516550	PMID:34516550
+ZFIN:ZDB-GENE-071218-6	NCBITaxon:7955	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	ZFIN:ZDB-GENE-071218-6|abnormal_locomotor_behavior|		
+FB:FBgn0038816	NCBITaxon:7227	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	FB:FBgn0038816|abnormal_dopamine_level|PMID:31748267	PMID:31748267	PMID:31748267
+FB:FBgn0038816	NCBITaxon:7227	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	FB:FBgn0038816|abnormal_locomotor_behavior|PMID:36959085	PMID:36959085	PMID:36959085
+WB:WBGene00003068	NCBITaxon:6239	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	WB:WBGene00003068|abnormal_dopamine_level|PMID:20067578	PMID:20067578	PMID:20067578
+WB:WBGene00003068	NCBITaxon:6239	gene_phenotype_annotation	abnormal locomotor behavior	has_phenotype	WB:WBGene00003068|abnormal_locomotor_behavior|		
+HGNC:3236	NCBITaxon:9606	gene_phenotype_annotation	abnormal epithelium development	has_phenotype	HGNC:3236|abnormal_epithelium_development|PMID:10385363	PMID:10385363	PMID:10385363
+HGNC:3236	NCBITaxon:9606	gene_phenotype_annotation	decreased viability	has_phenotype	HGNC:3236|decreased_viability|PMID:16685269	PMID:16685269	PMID:16685269
+MGI:95294	NCBITaxon:10090	gene_phenotype_annotation	abnormal epithelium development	has_phenotype	MGI:95294|abnormal_epithelium_development|PMID:10700187	PMID:10700187	PMID:10700187
+MGI:95294	NCBITaxon:10090	gene_phenotype_annotation	decreased viability	has_phenotype	MGI:95294|decreased_viability|PMID:25997932	PMID:25997932	PMID:25997932
+RGD:2543	NCBITaxon:10116	gene_phenotype_annotation	abnormal epithelium development	has_phenotype	RGD:2543|abnormal_epithelium_development|PMID:15857400	PMID:15857400	PMID:15857400
+RGD:2543	NCBITaxon:10116	gene_phenotype_annotation	decreased viability	has_phenotype	RGD:2543|decreased_viability|PMID:15827348	PMID:15827348	PMID:15827348
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	gene_phenotype_annotation	abnormal epithelium development	has_phenotype	ZFIN:ZDB-GENE-030918-1|abnormal_epithelium_development|		
+ZFIN:ZDB-GENE-030918-1	NCBITaxon:7955	gene_phenotype_annotation	decreased viability	has_phenotype	ZFIN:ZDB-GENE-030918-1|decreased_viability|		
+FB:FBgn0003731	NCBITaxon:7227	gene_phenotype_annotation	abnormal epithelium development	has_phenotype	FB:FBgn0003731|abnormal_epithelium_development|PMID:32737065	PMID:32737065	PMID:32737065
+FB:FBgn0003731	NCBITaxon:7227	gene_phenotype_annotation	decreased viability	has_phenotype	FB:FBgn0003731|decreased_viability|PMID:23580199	PMID:23580199	PMID:23580199
+WB:WBGene00002299	NCBITaxon:6239	gene_phenotype_annotation	abnormal epithelium development	has_phenotype	WB:WBGene00002299|abnormal_epithelium_development|		
+WB:WBGene00002299	NCBITaxon:6239	gene_phenotype_annotation	decreased viability	has_phenotype	WB:WBGene00002299|decreased_viability|		
+HGNC:6407	NCBITaxon:9606	gene_phenotype_annotation	abnormal cell proliferation	has_phenotype	HGNC:6407|abnormal_cell_proliferation|PMID:19179066	PMID:19179066	PMID:19179066
+HGNC:6407	NCBITaxon:9606	gene_phenotype_annotation	embryonic lethality	has_phenotype	HGNC:6407|embryonic_lethality|PMID:19303097	PMID:19303097	PMID:19303097
+MGI:96680	NCBITaxon:10090	gene_phenotype_annotation	abnormal cell proliferation	has_phenotype	MGI:96680|abnormal_cell_proliferation|PMID:11323676	PMID:11323676	PMID:11323676
+MGI:96680	NCBITaxon:10090	gene_phenotype_annotation	embryonic lethality	has_phenotype	MGI:96680|embryonic_lethality|PMID:21514245	PMID:21514245	PMID:21514245
+RGD:2981	NCBITaxon:10116	gene_phenotype_annotation	abnormal cell proliferation	has_phenotype	RGD:2981|abnormal_cell_proliferation|PMID:14638460	PMID:14638460	PMID:14638460
+RGD:2981	NCBITaxon:10116	gene_phenotype_annotation	embryonic lethality	has_phenotype	RGD:2981|embryonic_lethality|PMID:22074740	PMID:22074740	PMID:22074740
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	gene_phenotype_annotation	abnormal cell proliferation	has_phenotype	ZFIN:ZDB-GENE-040808-67|abnormal_cell_proliferation|		
+ZFIN:ZDB-GENE-040808-67	NCBITaxon:7955	gene_phenotype_annotation	embryonic lethality	has_phenotype	ZFIN:ZDB-GENE-040808-67|embryonic_lethality|		
+FB:FBgn0003205	NCBITaxon:7227	gene_phenotype_annotation	abnormal cell proliferation	has_phenotype	FB:FBgn0003205|abnormal_cell_proliferation|PMID:32559233	PMID:32559233	PMID:32559233
+FB:FBgn0003205	NCBITaxon:7227	gene_phenotype_annotation	embryonic lethality	has_phenotype	FB:FBgn0003205|embryonic_lethality|PMID:33558728	PMID:33558728	PMID:33558728
+WB:WBGene00002335	NCBITaxon:6239	gene_phenotype_annotation	abnormal cell proliferation	has_phenotype	WB:WBGene00002335|abnormal_cell_proliferation|PMID:33221682	PMID:33221682	PMID:33221682
+WB:WBGene00002335	NCBITaxon:6239	gene_phenotype_annotation	embryonic lethality	has_phenotype	WB:WBGene00002335|embryonic_lethality|PMID:29956725	PMID:29956725	PMID:29956725
+HGNC:3942	NCBITaxon:9606	gene_phenotype_annotation	decreased body size	has_phenotype	HGNC:3942|decreased_body_size|PMID:20861467	PMID:20861467	PMID:20861467
+HGNC:3942	NCBITaxon:9606	gene_phenotype_annotation	abnormal autophagy	has_phenotype	HGNC:3942|abnormal_autophagy|PMID:20878445	PMID:20878445	PMID:20878445
+MGI:1928394	NCBITaxon:10090	gene_phenotype_annotation	decreased body size	has_phenotype	MGI:1928394|decreased_body_size|		
+MGI:1928394	NCBITaxon:10090	gene_phenotype_annotation	abnormal autophagy	has_phenotype	MGI:1928394|abnormal_autophagy|		
+RGD:68371	NCBITaxon:10116	gene_phenotype_annotation	decreased body size	has_phenotype	RGD:68371|decreased_body_size|PMID:24583056	PMID:24583056	PMID:24583056
+RGD:68371	NCBITaxon:10116	gene_phenotype_annotation	abnormal autophagy	has_phenotype	RGD:68371|abnormal_autophagy|PMID:23777415	PMID:23777415	PMID:23777415
+ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	gene_phenotype_annotation	decreased body size	has_phenotype	ZFIN:ZDB-GENE-030131-2974|decreased_body_size|		
+ZFIN:ZDB-GENE-030131-2974	NCBITaxon:7955	gene_phenotype_annotation	abnormal autophagy	has_phenotype	ZFIN:ZDB-GENE-030131-2974|abnormal_autophagy|		
+WB:WBGene00002583	NCBITaxon:6239	gene_phenotype_annotation	decreased body size	has_phenotype	WB:WBGene00002583|decreased_body_size|		
+WB:WBGene00002583	NCBITaxon:6239	gene_phenotype_annotation	abnormal autophagy	has_phenotype	WB:WBGene00002583|abnormal_autophagy|		
+HGNC:3775	NCBITaxon:9606	gene_phenotype_annotation	abnormal learning	has_phenotype	HGNC:3775|abnormal_learning|PMID:15876460	PMID:15876460	PMID:15876460
+HGNC:3775	NCBITaxon:9606	gene_phenotype_annotation	abnormal neuron morphology	has_phenotype	HGNC:3775|abnormal_neuron_morphology|PMID:1675488	PMID:1675488	PMID:1675488
+MGI:95564	NCBITaxon:10090	gene_phenotype_annotation	abnormal learning	has_phenotype	MGI:95564|abnormal_learning|PMID:21220020	PMID:21220020	PMID:21220020
+MGI:95564	NCBITaxon:10090	gene_phenotype_annotation	abnormal neuron morphology	has_phenotype	MGI:95564|abnormal_neuron_morphology|PMID:16055059	PMID:16055059	PMID:16055059
+RGD:2623	NCBITaxon:10116	gene_phenotype_annotation	abnormal learning	has_phenotype	RGD:2623|abnormal_learning|PMID:24810662	PMID:24810662	PMID:24810662
+RGD:2623	NCBITaxon:10116	gene_phenotype_annotation	abnormal neuron morphology	has_phenotype	RGD:2623|abnormal_neuron_morphology|PMID:22817682	PMID:22817682	PMID:22817682
+ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	gene_phenotype_annotation	abnormal learning	has_phenotype	ZFIN:ZDB-GENE-020731-6|abnormal_learning|PMID:24681195	PMID:24681195	PMID:24681195
+ZFIN:ZDB-GENE-020731-6	NCBITaxon:7955	gene_phenotype_annotation	abnormal neuron morphology	has_phenotype	ZFIN:ZDB-GENE-020731-6|abnormal_neuron_morphology|PMID:32048109	PMID:32048109	PMID:32048109
+FB:FBgn0028734	NCBITaxon:7227	gene_phenotype_annotation	abnormal learning	has_phenotype	FB:FBgn0028734|abnormal_learning|PMID:25693964	PMID:25693964	PMID:25693964
+FB:FBgn0028734	NCBITaxon:7227	gene_phenotype_annotation	abnormal neuron morphology	has_phenotype	FB:FBgn0028734|abnormal_neuron_morphology|PMID:21669931	PMID:21669931	PMID:21669931
+HGNC:11117	NCBITaxon:9606	gene_phenotype_annotation	abnormal neuromuscular junction	has_phenotype	HGNC:11117|abnormal_neuromuscular_junction|PMID:7813012	PMID:7813012	PMID:7813012
+HGNC:11117	NCBITaxon:9606	gene_phenotype_annotation	decreased lifespan	has_phenotype	HGNC:11117|decreased_lifespan|		
+MGI:109257	NCBITaxon:10090	gene_phenotype_annotation	abnormal neuromuscular junction	has_phenotype	MGI:109257|abnormal_neuromuscular_junction|PMID:20705738	PMID:20705738	PMID:20705738
+MGI:109257	NCBITaxon:10090	gene_phenotype_annotation	decreased lifespan	has_phenotype	MGI:109257|decreased_lifespan|PMID:19497369	PMID:19497369	PMID:19497369
+RGD:620755	NCBITaxon:10116	gene_phenotype_annotation	abnormal neuromuscular junction	has_phenotype	RGD:620755|abnormal_neuromuscular_junction|		
+RGD:620755	NCBITaxon:10116	gene_phenotype_annotation	decreased lifespan	has_phenotype	RGD:620755|decreased_lifespan|		
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	gene_phenotype_annotation	abnormal neuromuscular junction	has_phenotype	ZFIN:ZDB-GENE-990715-16|abnormal_neuromuscular_junction|PMID:24271012	PMID:24271012	PMID:24271012
+ZFIN:ZDB-GENE-990715-16	NCBITaxon:7955	gene_phenotype_annotation	decreased lifespan	has_phenotype	ZFIN:ZDB-GENE-990715-16|decreased_lifespan|PMID:28426667	PMID:28426667	PMID:28426667
+FB:FBgn0036641	NCBITaxon:7227	gene_phenotype_annotation	abnormal neuromuscular junction	has_phenotype	FB:FBgn0036641|abnormal_neuromuscular_junction|PMID:37759179	PMID:37759179	PMID:37759179
+FB:FBgn0036641	NCBITaxon:7227	gene_phenotype_annotation	decreased lifespan	has_phenotype	FB:FBgn0036641|decreased_lifespan|PMID:23063130	PMID:23063130	PMID:23063130
+WB:WBGene00004887	NCBITaxon:6239	gene_phenotype_annotation	abnormal neuromuscular junction	has_phenotype	WB:WBGene00004887|abnormal_neuromuscular_junction|PMID:32938453	PMID:32938453	PMID:32938453
+WB:WBGene00004887	NCBITaxon:6239	gene_phenotype_annotation	decreased lifespan	has_phenotype	WB:WBGene00004887|decreased_lifespan|PMID:38188422	PMID:38188422	PMID:38188422
+HGNC:11571	NCBITaxon:9606	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	HGNC:11571|abnormal_motor_behavior|PMID:38104368	PMID:38104368	PMID:38104368
+HGNC:11571	NCBITaxon:9606	gene_phenotype_annotation	protein aggregation	has_phenotype	HGNC:11571|protein_aggregation|PMID:20512649	PMID:20512649	PMID:20512649
+MGI:2387629	NCBITaxon:10090	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	MGI:2387629|abnormal_motor_behavior|PMID:31964415	PMID:31964415	PMID:31964415
+MGI:2387629	NCBITaxon:10090	gene_phenotype_annotation	protein aggregation	has_phenotype	MGI:2387629|protein_aggregation|PMID:24616503	PMID:24616503	PMID:24616503
+RGD:1310906	NCBITaxon:10116	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	RGD:1310906|abnormal_motor_behavior|		
+RGD:1310906	NCBITaxon:10116	gene_phenotype_annotation	protein aggregation	has_phenotype	RGD:1310906|protein_aggregation|		
+FB:FBgn0025790	NCBITaxon:7227	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	FB:FBgn0025790|abnormal_motor_behavior|PMID:24799714	PMID:24799714	PMID:24799714
+FB:FBgn0025790	NCBITaxon:7227	gene_phenotype_annotation	protein aggregation	has_phenotype	FB:FBgn0025790|protein_aggregation|PMID:25088712	PMID:25088712	PMID:25088712
+WB:WBGene00006514	NCBITaxon:6239	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	WB:WBGene00006514|abnormal_motor_behavior|PMID:37351305	PMID:37351305	PMID:37351305
+WB:WBGene00006514	NCBITaxon:6239	gene_phenotype_annotation	protein aggregation	has_phenotype	WB:WBGene00006514|protein_aggregation|PMID:20530643	PMID:20530643	PMID:20530643
+HGNC:7881	NCBITaxon:9606	gene_phenotype_annotation	abnormal cell fate specification	has_phenotype	HGNC:7881|abnormal_cell_fate_specification|PMID:11078798	PMID:11078798	PMID:11078798
+HGNC:7881	NCBITaxon:9606	gene_phenotype_annotation	abnormal vasculature development	has_phenotype	HGNC:7881|abnormal_vasculature_development|PMID:26951238	PMID:26951238	PMID:26951238
+MGI:97363	NCBITaxon:10090	gene_phenotype_annotation	abnormal cell fate specification	has_phenotype	MGI:97363|abnormal_cell_fate_specification|		
+MGI:97363	NCBITaxon:10090	gene_phenotype_annotation	abnormal vasculature development	has_phenotype	MGI:97363|abnormal_vasculature_development|		
+RGD:3187	NCBITaxon:10116	gene_phenotype_annotation	abnormal cell fate specification	has_phenotype	RGD:3187|abnormal_cell_fate_specification|PMID:33628824	PMID:33628824	PMID:33628824
+RGD:3187	NCBITaxon:10116	gene_phenotype_annotation	abnormal vasculature development	has_phenotype	RGD:3187|abnormal_vasculature_development|PMID:27982686	PMID:27982686	PMID:27982686
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	gene_phenotype_annotation	abnormal cell fate specification	has_phenotype	ZFIN:ZDB-GENE-990415-173|abnormal_cell_fate_specification|		
+ZFIN:ZDB-GENE-990415-173	NCBITaxon:7955	gene_phenotype_annotation	abnormal vasculature development	has_phenotype	ZFIN:ZDB-GENE-990415-173|abnormal_vasculature_development|		
+FB:FBgn0004647	NCBITaxon:7227	gene_phenotype_annotation	abnormal cell fate specification	has_phenotype	FB:FBgn0004647|abnormal_cell_fate_specification|PMID:26005834	PMID:26005834	PMID:26005834
+FB:FBgn0004647	NCBITaxon:7227	gene_phenotype_annotation	abnormal vasculature development	has_phenotype	FB:FBgn0004647|abnormal_vasculature_development|PMID:27680705	PMID:27680705	PMID:27680705
+WB:WBGene00003001	NCBITaxon:6239	gene_phenotype_annotation	abnormal cell fate specification	has_phenotype	WB:WBGene00003001|abnormal_cell_fate_specification|PMID:7566091	PMID:7566091	PMID:7566091
+WB:WBGene00003001	NCBITaxon:6239	gene_phenotype_annotation	abnormal vasculature development	has_phenotype	WB:WBGene00003001|abnormal_vasculature_development|		
+HGNC:7765	NCBITaxon:9606	gene_phenotype_annotation	abnormal growth	has_phenotype	HGNC:7765|abnormal_growth|PMID:30280776	PMID:30280776	PMID:30280776
+HGNC:7765	NCBITaxon:9606	gene_phenotype_annotation	increased tumor incidence	has_phenotype	HGNC:7765|increased_tumor_incidence|PMID:10931370	PMID:10931370	PMID:10931370
+MGI:97306	NCBITaxon:10090	gene_phenotype_annotation	abnormal growth	has_phenotype	MGI:97306|abnormal_growth|PMID:22868293	PMID:22868293	PMID:22868293
+MGI:97306	NCBITaxon:10090	gene_phenotype_annotation	increased tumor incidence	has_phenotype	MGI:97306|increased_tumor_incidence|PMID:27482814	PMID:27482814	PMID:27482814
+RGD:3168	NCBITaxon:10116	gene_phenotype_annotation	abnormal growth	has_phenotype	RGD:3168|abnormal_growth|PMID:8847098	PMID:8847098	PMID:8847098
+RGD:3168	NCBITaxon:10116	gene_phenotype_annotation	increased tumor incidence	has_phenotype	RGD:3168|increased_tumor_incidence|PMID:8820972	PMID:8820972	PMID:8820972
+ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	gene_phenotype_annotation	abnormal growth	has_phenotype	ZFIN:ZDB-GENE-030131-4907|abnormal_growth|		
+ZFIN:ZDB-GENE-030131-4907	NCBITaxon:7955	gene_phenotype_annotation	increased tumor incidence	has_phenotype	ZFIN:ZDB-GENE-030131-4907|increased_tumor_incidence|		
+FB:FBgn0015269	NCBITaxon:7227	gene_phenotype_annotation	abnormal growth	has_phenotype	FB:FBgn0015269|abnormal_growth|PMID:29590612	PMID:29590612	PMID:29590612
+FB:FBgn0015269	NCBITaxon:7227	gene_phenotype_annotation	increased tumor incidence	has_phenotype	FB:FBgn0015269|increased_tumor_incidence|PMID:26896440	PMID:26896440	PMID:26896440
+HGNC:4177	NCBITaxon:9606	gene_phenotype_annotation	abnormal lipid level	has_phenotype	HGNC:4177|abnormal_lipid_level|PMID:16601670	PMID:16601670	PMID:16601670
+HGNC:4177	NCBITaxon:9606	gene_phenotype_annotation	neuron degeneration	has_phenotype	HGNC:4177|neuron_degeneration|PMID:15610510	PMID:15610510	PMID:15610510
+MGI:95665	NCBITaxon:10090	gene_phenotype_annotation	abnormal lipid level	has_phenotype	MGI:95665|abnormal_lipid_level|PMID:14578207	PMID:14578207	PMID:14578207
+MGI:95665	NCBITaxon:10090	gene_phenotype_annotation	neuron degeneration	has_phenotype	MGI:95665|neuron_degeneration|PMID:11994410	PMID:11994410	PMID:11994410
+RGD:1589149	NCBITaxon:10116	gene_phenotype_annotation	abnormal lipid level	has_phenotype	RGD:1589149|abnormal_lipid_level|		
+RGD:1589149	NCBITaxon:10116	gene_phenotype_annotation	neuron degeneration	has_phenotype	RGD:1589149|neuron_degeneration|		
+ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	gene_phenotype_annotation	abnormal lipid level	has_phenotype	ZFIN:ZDB-GENE-100922-270|abnormal_lipid_level|PMID:31816052	PMID:31816052	PMID:31816052
+ZFIN:ZDB-GENE-100922-270	NCBITaxon:7955	gene_phenotype_annotation	neuron degeneration	has_phenotype	ZFIN:ZDB-GENE-100922-270|neuron_degeneration|PMID:30981829	PMID:30981829	PMID:30981829
+FB:FBgn0051414	NCBITaxon:7227	gene_phenotype_annotation	abnormal lipid level	has_phenotype	FB:FBgn0051414|abnormal_lipid_level|PMID:39404383	PMID:39404383	PMID:39404383
+FB:FBgn0051414	NCBITaxon:7227	gene_phenotype_annotation	neuron degeneration	has_phenotype	FB:FBgn0051414|neuron_degeneration|PMID:37076591	PMID:37076591	PMID:37076591
+HGNC:795	NCBITaxon:9606	gene_phenotype_annotation	abnormal DNA damage response	has_phenotype	HGNC:795|abnormal_DNA_damage_response|PMID:16533773	PMID:16533773	PMID:16533773
+HGNC:795	NCBITaxon:9606	gene_phenotype_annotation	abnormal cerebellum morphology	has_phenotype	HGNC:795|abnormal_cerebellum_morphology|PMID:23437304	PMID:23437304	PMID:23437304
+MGI:107202	NCBITaxon:10090	gene_phenotype_annotation	abnormal DNA damage response	has_phenotype	MGI:107202|abnormal_DNA_damage_response|PMID:11389091	PMID:11389091	PMID:11389091
+MGI:107202	NCBITaxon:10090	gene_phenotype_annotation	abnormal cerebellum morphology	has_phenotype	MGI:107202|abnormal_cerebellum_morphology|PMID:9356511	PMID:9356511	PMID:9356511
+RGD:1593265	NCBITaxon:10116	gene_phenotype_annotation	abnormal DNA damage response	has_phenotype	RGD:1593265|abnormal_DNA_damage_response|PMID:11852039	PMID:11852039	PMID:11852039
+RGD:1593265	NCBITaxon:10116	gene_phenotype_annotation	abnormal cerebellum morphology	has_phenotype	RGD:1593265|abnormal_cerebellum_morphology|PMID:11751435	PMID:11751435	PMID:11751435
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	gene_phenotype_annotation	abnormal DNA damage response	has_phenotype	ZFIN:ZDB-GENE-040809-1|abnormal_DNA_damage_response|PMID:35203601	PMID:35203601	PMID:35203601
+ZFIN:ZDB-GENE-040809-1	NCBITaxon:7955	gene_phenotype_annotation	abnormal cerebellum morphology	has_phenotype	ZFIN:ZDB-GENE-040809-1|abnormal_cerebellum_morphology|		
+FB:FBgn0045035	NCBITaxon:7227	gene_phenotype_annotation	abnormal DNA damage response	has_phenotype	FB:FBgn0045035|abnormal_DNA_damage_response|PMID:15256487	PMID:15256487	PMID:15256487
+FB:FBgn0045035	NCBITaxon:7227	gene_phenotype_annotation	abnormal cerebellum morphology	has_phenotype	FB:FBgn0045035|abnormal_cerebellum_morphology|PMID:18408079	PMID:18408079	PMID:18408079
+WB:WBGene00000227	NCBITaxon:6239	gene_phenotype_annotation	abnormal DNA damage response	has_phenotype	WB:WBGene00000227|abnormal_DNA_damage_response|PMID:22350747	PMID:22350747	PMID:22350747
+WB:WBGene00000227	NCBITaxon:6239	gene_phenotype_annotation	abnormal cerebellum morphology	has_phenotype	WB:WBGene00000227|abnormal_cerebellum_morphology|PMID:16319925	PMID:16319925	PMID:16319925
+HGNC:6990	NCBITaxon:9606	gene_phenotype_annotation	abnormal social behavior	has_phenotype	HGNC:6990|abnormal_social_behavior|PMID:11214906	PMID:11214906	PMID:11214906
+HGNC:6990	NCBITaxon:9606	gene_phenotype_annotation	abnormal breathing pattern	has_phenotype	HGNC:6990|abnormal_breathing_pattern|PMID:16183801	PMID:16183801	PMID:16183801
+MGI:99918	NCBITaxon:10090	gene_phenotype_annotation	abnormal social behavior	has_phenotype	MGI:99918|abnormal_social_behavior|PMID:18321864	PMID:18321864	PMID:18321864
+MGI:99918	NCBITaxon:10090	gene_phenotype_annotation	abnormal breathing pattern	has_phenotype	MGI:99918|abnormal_breathing_pattern|PMID:11242117	PMID:11242117	PMID:11242117
+RGD:3075	NCBITaxon:10116	gene_phenotype_annotation	abnormal social behavior	has_phenotype	RGD:3075|abnormal_social_behavior|PMID:11844796	PMID:11844796	PMID:11844796
+RGD:3075	NCBITaxon:10116	gene_phenotype_annotation	abnormal breathing pattern	has_phenotype	RGD:3075|abnormal_breathing_pattern|PMID:23763370	PMID:23763370	PMID:23763370
+ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	gene_phenotype_annotation	abnormal social behavior	has_phenotype	ZFIN:ZDB-GENE-030131-7190|abnormal_social_behavior|PMID:23874272	PMID:23874272	PMID:23874272
+ZFIN:ZDB-GENE-030131-7190	NCBITaxon:7955	gene_phenotype_annotation	abnormal breathing pattern	has_phenotype	ZFIN:ZDB-GENE-030131-7190|abnormal_breathing_pattern|PMID:25948585	PMID:25948585	PMID:25948585
+HGNC:11138	NCBITaxon:9606	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	HGNC:11138|abnormal_dopamine_level|PMID:18577885	PMID:18577885	PMID:18577885
+HGNC:11138	NCBITaxon:9606	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	HGNC:11138|abnormal_motor_behavior|PMID:10557341	PMID:10557341	PMID:10557341
+MGI:1277151	NCBITaxon:10090	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	MGI:1277151|abnormal_dopamine_level|PMID:18622040	PMID:18622040	PMID:18622040
+MGI:1277151	NCBITaxon:10090	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	MGI:1277151|abnormal_motor_behavior|PMID:10707987	PMID:10707987	PMID:10707987
+RGD:3729	NCBITaxon:10116	gene_phenotype_annotation	abnormal dopamine level	has_phenotype	RGD:3729|abnormal_dopamine_level|PMID:18800064	PMID:18800064	PMID:18800064
+RGD:3729	NCBITaxon:10116	gene_phenotype_annotation	abnormal motor behavior	has_phenotype	RGD:3729|abnormal_motor_behavior|PMID:11810180	PMID:11810180	PMID:11810180
+HGNC:6893	NCBITaxon:9606	gene_phenotype_annotation	abnormal axon morphology	has_phenotype	HGNC:6893|abnormal_axon_morphology|PMID:18668363	PMID:18668363	PMID:18668363
+HGNC:6893	NCBITaxon:9606	gene_phenotype_annotation	abnormal learning	has_phenotype	HGNC:6893|abnormal_learning|PMID:8226987	PMID:8226987	PMID:8226987
+MGI:97180	NCBITaxon:10090	gene_phenotype_annotation	abnormal axon morphology	has_phenotype	MGI:97180|abnormal_axon_morphology|PMID:8202139	PMID:8202139	PMID:8202139
+MGI:97180	NCBITaxon:10090	gene_phenotype_annotation	abnormal learning	has_phenotype	MGI:97180|abnormal_learning|		
+RGD:69329	NCBITaxon:10116	gene_phenotype_annotation	abnormal axon morphology	has_phenotype	RGD:69329|abnormal_axon_morphology|PMID:24595328	PMID:24595328	PMID:24595328
+RGD:69329	NCBITaxon:10116	gene_phenotype_annotation	abnormal learning	has_phenotype	RGD:69329|abnormal_learning|PMID:26484783	PMID:26484783	PMID:26484783
+FB:FBgn0266579	NCBITaxon:7227	gene_phenotype_annotation	abnormal axon morphology	has_phenotype	FB:FBgn0266579|abnormal_axon_morphology|PMID:39130515	PMID:39130515	PMID:39130515
+FB:FBgn0266579	NCBITaxon:7227	gene_phenotype_annotation	abnormal learning	has_phenotype	FB:FBgn0266579|abnormal_learning|PMID:36768490	PMID:36768490	PMID:36768490
+HGNC:1100	NCBITaxon:9606	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	HGNC:1100|abnormal_DNA_repair|PMID:23633032	PMID:23633032	PMID:23633032
+HGNC:1100	NCBITaxon:9606	gene_phenotype_annotation	embryonic lethality	has_phenotype	HGNC:1100|embryonic_lethality|PMID:11497291	PMID:11497291	PMID:11497291
+MGI:104537	NCBITaxon:10090	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	MGI:104537|abnormal_DNA_repair|PMID:17212342	PMID:17212342	PMID:17212342
+MGI:104537	NCBITaxon:10090	gene_phenotype_annotation	embryonic lethality	has_phenotype	MGI:104537|embryonic_lethality|PMID:18443292	PMID:18443292	PMID:18443292
+RGD:2218	NCBITaxon:10116	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	RGD:2218|abnormal_DNA_repair|PMID:25861310	PMID:25861310	PMID:25861310
+RGD:2218	NCBITaxon:10116	gene_phenotype_annotation	embryonic lethality	has_phenotype	RGD:2218|embryonic_lethality|		
+WB:WBGene00000264	NCBITaxon:6239	gene_phenotype_annotation	abnormal DNA repair	has_phenotype	WB:WBGene00000264|abnormal_DNA_repair|		
+WB:WBGene00000264	NCBITaxon:6239	gene_phenotype_annotation	embryonic lethality	has_phenotype	WB:WBGene00000264|embryonic_lethality|		
+HGNC:8620	NCBITaxon:9606	gene_phenotype_annotation	abnormal eye development	has_phenotype	HGNC:8620|abnormal_eye_development|PMID:17849422	PMID:17849422	PMID:17849422
+HGNC:8620	NCBITaxon:9606	gene_phenotype_annotation	abnormal brain development	has_phenotype	HGNC:8620|abnormal_brain_development|PMID:18507827	PMID:18507827	PMID:18507827
+MGI:97490	NCBITaxon:10090	gene_phenotype_annotation	abnormal eye development	has_phenotype	MGI:97490|abnormal_eye_development|PMID:2173141	PMID:2173141	PMID:2173141
+MGI:97490	NCBITaxon:10090	gene_phenotype_annotation	abnormal brain development	has_phenotype	MGI:97490|abnormal_brain_development|PMID:12714618	PMID:12714618	PMID:12714618
+RGD:3258	NCBITaxon:10116	gene_phenotype_annotation	abnormal eye development	has_phenotype	RGD:3258|abnormal_eye_development|PMID:10564872	PMID:10564872	PMID:10564872
+RGD:3258	NCBITaxon:10116	gene_phenotype_annotation	abnormal brain development	has_phenotype	RGD:3258|abnormal_brain_development|PMID:24114637	PMID:24114637	PMID:24114637
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	gene_phenotype_annotation	abnormal eye development	has_phenotype	ZFIN:ZDB-GENE-990415-200|abnormal_eye_development|		
+ZFIN:ZDB-GENE-990415-200	NCBITaxon:7955	gene_phenotype_annotation	abnormal brain development	has_phenotype	ZFIN:ZDB-GENE-990415-200|abnormal_brain_development|		
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	gene_phenotype_annotation	abnormal eye development	has_phenotype	ZFIN:ZDB-GENE-001031-1|abnormal_eye_development|		
+ZFIN:ZDB-GENE-001031-1	NCBITaxon:7955	gene_phenotype_annotation	abnormal brain development	has_phenotype	ZFIN:ZDB-GENE-001031-1|abnormal_brain_development|		
+FB:FBgn0005558	NCBITaxon:7227	gene_phenotype_annotation	abnormal eye development	has_phenotype	FB:FBgn0005558|abnormal_eye_development|		
+FB:FBgn0005558	NCBITaxon:7227	gene_phenotype_annotation	abnormal brain development	has_phenotype	FB:FBgn0005558|abnormal_brain_development|		
+WB:WBGene00006870	NCBITaxon:6239	gene_phenotype_annotation	abnormal eye development	has_phenotype	WB:WBGene00006870|abnormal_eye_development|PMID:15579687	PMID:15579687	PMID:15579687
+WB:WBGene00006870	NCBITaxon:6239	gene_phenotype_annotation	abnormal brain development	has_phenotype	WB:WBGene00006870|abnormal_brain_development|		
