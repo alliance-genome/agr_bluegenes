@@ -4,6 +4,7 @@
             [bluegenes.components.table :as table]
             [bluegenes.pages.results.events]
             [bluegenes.pages.results.subs]
+            [bluegenes.pages.results.orthologs :as orthologs]
             [bluegenes.pages.results.enrichment.views :as enrichment]
             [bluegenes.pages.results.widgets.views :as widgets]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
@@ -159,7 +160,9 @@
                (for [tag (remove internal-tag? tags)]
                  [:code.tag tag]))])]
      (when-not (empty? description)
-       [:p.list-description description])]))
+       [:p.list-description description])
+     (when list
+       [orthologs/convert-button (:name list)])]))
 
 (defn scroll-into-view! [id]
   (when-let [elem (or (nil? id) (gdom/getElement id))]
