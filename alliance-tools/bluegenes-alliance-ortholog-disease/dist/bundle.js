@@ -30,6 +30,11 @@
 		ORTHOLOG + '.diseaseAnnotation.evidence.code.code'
 	];
 	var OWN_VIEW = ['Gene.id', 'Gene.diseaseAnnotation.ontologyTerm.identifier'];
+	// Orthology-inferred annotations are copies of other orthologs' evidence and would double-count species.
+	var ORTHOLOG_QUALIFIER = ORTHOLOG + '.diseaseAnnotation.qualifier';
+	var OWN_QUALIFIER = 'Gene.diseaseAnnotation.qualifier';
+	var EXCLUDED_QUALIFIERS = ['implicated_via_orthology', 'biomarker_via_orthology', 'is_not_implicated_in'];
+	var OWN_EXCLUDED_QUALIFIERS = ['is_not_implicated_in'];
 
 	function escapeXml(s) {
 		return String(s)
@@ -40,7 +45,7 @@
 	}
 
 	// ids is one internal Gene.id or an array of them.
-	function buildQuery(ids, view, sortOrder) {
+	function buildQuery(ids, view, sortOrder, qualifierPath, excluded) {
 		var list = (Array.isArray(ids) ? ids : [ids]).map(String);
 		var constraint =
 			list.length === 1
@@ -52,6 +57,9 @@
 			'<query model="genomic" view="' + view.join(' ') + '"' +
 			(sortOrder ? ' sortOrder="' + sortOrder + '"' : '') + '>' +
 			constraint +
+			'<constraint path="' + qualifierPath + '" op="NONE OF">' +
+			excluded.map(function (v) { return '<value>' + escapeXml(v) + '</value>'; }).join('') +
+			'</constraint>' +
 			'</query>'
 		);
 	}
@@ -246,12 +254,12 @@
 
 	function fetchRows(serviceRootUrl, ids) {
 		var sort = ORTHOLOG + '.diseaseAnnotation.ontologyTerm.name asc';
-		return post(serviceRootUrl, buildQuery(ids, VIEW, sort)).then(function (r) { return r.map(toRow); });
+		return post(serviceRootUrl, buildQuery(ids, VIEW, sort, ORTHOLOG_QUALIFIER, EXCLUDED_QUALIFIERS)).then(function (r) { return r.map(toRow); });
 	}
 
 	// Terms the query genes carry themselves. A failure only drops the badges.
 	function fetchOwn(serviceRootUrl, ids) {
-		return post(serviceRootUrl, buildQuery(ids, OWN_VIEW))
+		return post(serviceRootUrl, buildQuery(ids, OWN_VIEW, null, OWN_QUALIFIER, OWN_EXCLUDED_QUALIFIERS))
 			.then(function (rs) {
 				var set = {};
 				rs.forEach(function (r) { if (r[1]) set[r[1]] = true; });

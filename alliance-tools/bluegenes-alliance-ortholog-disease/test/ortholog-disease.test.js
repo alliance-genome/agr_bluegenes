@@ -12,7 +12,7 @@ const ROWS = [
 	[1, 'MGI:1', 'Nf1', 'FB:FBgn1', 'D. melanogaster', 'DOID:1', 'alpha disease', 'is_implicated_in', 'ECO:7'],
 	[1, 'MGI:1', 'nf1', 'ZFIN:Z1', 'D. rerio', 'DOID:1', 'alpha disease', 'is_implicated_in', 'ECO:7'],
 	[1, 'MGI:1', 'Nf1', 'FB:FBgn1', 'D. melanogaster', 'DOID:1', 'alpha disease', 'is_implicated_in', 'ECO:9'],
-	[1, 'MGI:1', 'Nf1', 'FB:FBgn1', 'D. melanogaster', 'DOID:2', 'beta disease', 'biomarker_via_orthology', 'ECO:1'],
+	[1, 'MGI:1', 'Nf1', 'FB:FBgn1', 'D. melanogaster', 'DOID:2', 'beta disease', 'is_marker_for', 'ECO:1'],
 	[1, 'MGI:1', 'Nf1', 'FB:FBgn1', 'D. melanogaster', 'DOID:3', 'aaa disease', 'is_implicated_in', 'ECO:7'],
 	[1, 'MGI:1', 'Nf1', 'FB:FBgn1', 'D. melanogaster', 'DOID:4', 'zzz disease', 'is_implicated_in', 'ECO:7'],
 	[1, 'MGI:1', 'nf1', 'ZFIN:Z1', 'D. rerio', 'DOID:4', 'zzz disease', 'is_implicated_in', 'ECO:7'],
@@ -145,6 +145,29 @@ test('list input uses ONE OF and shows the source gene', async () => {
 	await tick();
 	assert.match(decodeURIComponent(calls[0].opts.body), /op="ONE OF"/);
 	assert.match(text(el), /ortholog of MGI:1/);
+});
+
+test('main query excludes inferred and NOT qualifiers, own query excludes NOT', async () => {
+	const calls = [];
+	stubFetch({ main: { results: ROWS }, own: { results: [] } }, calls);
+	const el = document.createElement('div');
+	tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
+	await tick();
+	const bodies = calls.map((c) => decodeURIComponent(c.opts.body));
+	const main = bodies.find((b) => b.indexOf('homologues') !== -1);
+	const own = bodies.find((b) => b.indexOf('homologues') === -1);
+	const nonePart = /path="Gene\.homologues\.homologue\.diseaseAnnotation\.qualifier" op="NONE OF">(.*?)<\/constraint>/.exec(main);
+	assert.ok(nonePart, 'main query has a NONE OF qualifier constraint');
+	['implicated_via_orthology', 'biomarker_via_orthology', 'is_not_implicated_in'].forEach((q) =>
+		assert.ok(nonePart[1].indexOf('<value>' + q + '</value>') !== -1, q)
+	);
+	const ownPart = /path="Gene\.diseaseAnnotation\.qualifier" op="NONE OF">(.*?)<\/constraint>/.exec(own);
+	assert.ok(ownPart && ownPart[1] === '<value>is_not_implicated_in</value>');
+});
+
+test('buildQuery escapes qualifier values into a NONE OF constraint', () => {
+	const q = tool.buildQuery(1, ['Gene.id'], null, 'Gene.diseaseAnnotation.qualifier', ['a<b']);
+	assert.match(q, /op="NONE OF"><value>a&lt;b<\/value><\/constraint>/);
 });
 
 test('serviceRoot appends /service once', () => {
