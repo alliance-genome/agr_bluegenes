@@ -95,7 +95,13 @@
            (stm/target-service db {:mouse {:token "t"}} :mouse)))
     (is (= {:root "http://mouse.example"}
            (stm/target-service db {:other {:token "t"}} :mouse))
-        "login for another mine is not used")))
+        "login for another mine is not used")
+    (is (= {:root "http://mouse.example" :model {:name "genomic"}}
+           (stm/target-service
+            (assoc-in (assoc db :current-mine :main)
+                      [:mines :main :service :model :name] "genomic")
+            nil :mouse))
+        "model name comes from the current mine when the target is not loaded")))
 
 (rf/reg-event-db ::seed (fn [_ [_ db]] db))
 (rf/reg-sub ::state #(get-in % [:results :send-to-mine]))

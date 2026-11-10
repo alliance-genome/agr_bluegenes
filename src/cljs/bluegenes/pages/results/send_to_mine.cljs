@@ -101,12 +101,18 @@
 
 (defn target-service
   "Service map for a target mine: its configured root plus the token of the
-  user's persisted login for that mine, if any."
+  user's persisted login for that mine, if any. Queries need the model name
+  (imcljs writes it into the query XML), and the mines of an Alliance share
+  the model, so the current mine's model name is used when the target mine
+  has not been loaded."
   [db login mine-kw]
   (let [root (or (get-in db [:env :mines mine-kw :service :root])
                  (get-in db [:mines mine-kw :service :root]))
+        model-name (or (get-in db [:mines mine-kw :service :model :name])
+                       (get-in db [:mines (:current-mine db) :service :model :name]))
         token (get-in login [mine-kw :token])]
     (cond-> {:root root}
+      model-name (assoc :model {:name model-name})
       token (assoc :token token))))
 
 ;;; Events ;;;
