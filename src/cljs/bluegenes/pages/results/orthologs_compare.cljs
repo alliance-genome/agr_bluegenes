@@ -12,6 +12,53 @@
             [bluegenes.pages.lists.utils :refer [copy-list-name]]
             [bluegenes.pages.results.orthologs :as orthologs]))
 
+;;; Model gating
+
+(defn- class-field
+  "Field map (with :referencedType for references and collections) of `field`
+  on the class or any class it extends, or nil."
+  [model-classes class-kw field]
+  (let [k (get model-classes class-kw)]
+    (or (some #(get (get k %) field) [:attributes :references :collections])
+        (some #(class-field model-classes (keyword %) field) (:extends k)))))
+
+(defn path-resolves?
+  "True when the dotted path (Gene.homologues.homologue.id) resolves in the
+  model. Each segment must be a field of the class reached so far, including
+  inherited ones. All segments but the last must be references or collections."
+  [model-classes path]
+  (let [[root & fields] (str/split path #"\.")]
+    (and (contains? model-classes (keyword root))
+         (loop [cls (keyword root) [f & more] fields]
+           (let [field (class-field model-classes cls (keyword f))]
+             (cond (nil? field) false
+                   (empty? more) true
+                   (:referencedType field) (recur (keyword (:referencedType field)) more)
+                   :else false))))))
+
+(def required-paths
+  "Paths the comparison cannot work without."
+  ["Gene.id" "Gene.primaryIdentifier" "Gene.symbol" "Gene.organism.shortName"
+   "Gene.homologues.homologue.id" "Gene.homologues.homologue.organism.shortName"])
+
+(def stringency-path "Gene.homologues.stringencyFilter")
+(def best-score-path "Gene.homologues.isBestScore")
+
+(defn compare-available?
+  "True for a Gene list in a mine whose model has every required path."
+  [model-classes {:keys [type] :as list}]
+  (boolean
+   (and list
+        (= type "Gene")
+        (every? #(path-resolves? model-classes %) required-paths))))
+
+(defn pair-features
+  "Optional pair columns the model has: {:stringency? .. :best-score? ..}.
+  WormMine has neither, FlyMine and YeastMine have only the best score."
+  [model-classes]
+  {:stringency? (path-resolves? model-classes stringency-path)
+   :best-score? (path-resolves? model-classes best-score-path)})
+
 ;;; Pure logic
 
 (def max-intersections 15)
@@ -36,16 +83,21 @@
    :orderBy [{:path "Gene.symbol" :direction "ASC"}]
    :where [(orthologs/list-constraint list-name)]})
 
+(def all-features {:stringency? true :best-score? true})
+
 (defn pairs-query
-  "One row per list gene and homologue. Genes without homologues are absent."
-  [list-name]
-  {:from "Gene"
-   :select ["Gene.id"
-            "Gene.homologues.homologue.id"
-            "Gene.homologues.homologue.organism.shortName"
-            "Gene.homologues.stringencyFilter"
-            "Gene.homologues.isBestScore"]
-   :where [(orthologs/list-constraint list-name)]})
+  "One row per list gene and homologue. Genes without homologues are absent.
+  Stringency and best score columns are selected only when `features` says
+  the mine has them, in that order after the organism."
+  ([list-name] (pairs-query list-name all-features))
+  ([list-name {:keys [stringency? best-score?]}]
+   {:from "Gene"
+    :select (cond-> ["Gene.id"
+                     "Gene.homologues.homologue.id"
+                     "Gene.homologues.homologue.organism.shortName"]
+              stringency? (conj stringency-path)
+              best-score? (conj best-score-path))
+    :where [(orthologs/list-constraint list-name)]}))
 
 (defn genes-by-id-query
   "Query saved as a list for the genes of one intersection."
@@ -61,15 +113,24 @@
           {:id id :identifier identifier :symbol symbol :organism organism})
         rows))
 
+(defn- true-value?
+  "isBestScore is a Boolean in AllianceMine and FlyMine, a String in YeastMine."
+  [v]
+  (or (true? v) (and (string? v) (= "true" (str/lower-case v)))))
+
 (defn parse-pairs
-  "Rows of `pairs-query` as maps. Rows without an organism are dropped."
-  [rows]
-  (into []
-        (comp (filter (fn [[_ _ organism]] (not (str/blank? organism))))
-              (map (fn [[gene ortholog organism stringency best?]]
-                     {:gene gene :ortholog ortholog :organism organism
-                      :stringency stringency :best? (true? best?)})))
-        rows))
+  "Rows of `pairs-query` run with the same `features` as maps. Rows without an
+  organism are dropped. Missing columns give a nil stringency and false best?."
+  ([rows] (parse-pairs rows all-features))
+  ([rows {:keys [stringency? best-score?]}]
+   (into []
+         (comp (filter (fn [[_ _ organism]] (not (str/blank? organism))))
+               (map (fn [[gene ortholog organism & more]]
+                      (let [stringency (when stringency? (first more))
+                            best (when best-score? (nth more (if stringency? 1 0) nil))]
+                        {:gene gene :ortholog ortholog :organism organism
+                         :stringency stringency :best? (true-value? best)}))))
+         rows)))
 
 (defn stringency-values
   "Distinct stringency values present in the pairs, strictest first."
@@ -158,6 +219,9 @@
 (defn- service [db]
   (get-in db [:mines (:current-mine db) :service]))
 
+(defn- model-classes [db]
+  (get-in db [:mines (:current-mine db) :service :model :classes]))
+
 (defn- current? [db list-source]
   (= list-source (get-in db (conj state-path :list-source))))
 
@@ -168,6 +232,7 @@
      {:db (assoc-in db state-path nil)}
      {:db (assoc-in db state-path {:open? true
                                    :list-source list-name
+                                   :features (pair-features (model-classes db))
                                    :loading? true})
       :im-chan {:chan (fetch/rows (service db) (genes-query list-name)
                                   {:format "json" :size 100000})
@@ -180,7 +245,8 @@
  (fn [{db :db} [_ list-name res]]
    (when (current? db list-name)
      {:db (assoc-in db (conj state-path :genes) (parse-genes (:results res)))
-      :im-chan {:chan (fetch/rows (service db) (pairs-query list-name)
+      :im-chan {:chan (fetch/rows (service db)
+                                  (pairs-query list-name (get-in db (conj state-path :features)))
                                   {:format "json" :size 1000000})
                 :abort ::pairs
                 :on-success [::pairs-success list-name]
@@ -192,7 +258,8 @@
    (if (current? db list-name)
      (update-in db state-path assoc
                 :loading? false
-                :pairs (parse-pairs (:results res)))
+                :pairs (parse-pairs (:results res)
+                                    (get-in db (conj state-path :features))))
      db)))
 
 (reg-event-fx
@@ -261,13 +328,21 @@
 (reg-sub ::state (fn [db] (get-in db state-path)))
 
 (reg-sub
+ ::available?
+ :<- [:results/current-list]
+ :<- [:model]
+ (fn [[list model]]
+   (compare-available? model list)))
+
+(reg-sub
  ::view-data
  :<- [::state]
- (fn [{:keys [genes pairs stringency best-only?]}]
+ (fn [{:keys [genes pairs stringency best-only? features]}]
    (let [orgs (organisms genes pairs)
          kept (filter-pairs {:stringency stringency :best-only? best-only?} pairs)]
      {:organisms orgs
       :stringencies (stringency-values pairs)
+      :features features
       :counts (counts-by-organism genes kept orgs)
       :intersections (intersections (organism-sets genes kept))
       :gene-count (count genes)})))
@@ -364,7 +439,7 @@
 (defn compare-panel []
   (let [{:keys [loading? stringency best-only? selected list-source pairs] :as state}
         @(subscribe [::state])
-        {:keys [organisms stringencies counts intersections gene-count]}
+        {:keys [organisms stringencies counts intersections gene-count features]}
         @(subscribe [::view-data])]
     [:div.orthologs-compare-panel
      (cond
@@ -373,7 +448,7 @@
        :else
        [:<>
         [:div.form-inline
-         (when (seq stringencies)
+         (when (and (:stringency? features) (seq stringencies))
            [:div.form-group
             [:label "Stringency "]
             [:select.form-control
@@ -382,11 +457,12 @@
              [:option {:value ""} "Any"]
              (for [s stringencies]
                ^{:key s} [:option {:value s} s])]])
-         [:label.checkbox-inline
-          [:input {:type "checkbox"
-                   :checked (boolean best-only?)
-                   :on-change #(dispatch [::set-best-only (oget % :target :checked)])}]
-          " Best score only"]]
+         (when (:best-score? features)
+           [:label.checkbox-inline
+            [:input {:type "checkbox"
+                     :checked (boolean best-only?)
+                     :on-change #(dispatch [::set-best-only (oget % :target :checked)])}]
+            " Best score only"])]
         [counts-table counts gene-count]
         (if (empty? intersections)
           [:p "No list gene has an ortholog with these settings."]
@@ -399,9 +475,9 @@
 
 (defn compare-button
   "Toggle button and panel. Renders nothing unless the current list is a Gene
-  list in a mine whose model has Gene.homologues."
+  list in a mine whose model has every path in `required-paths`."
   [list-name]
-  (when @(subscribe [::orthologs/available?])
+  (when @(subscribe [::available?])
     [:div.compare-orthologs
      [:button.btn.btn-slim
       {:type "button"

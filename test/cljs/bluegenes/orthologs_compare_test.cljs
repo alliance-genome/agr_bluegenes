@@ -23,6 +23,72 @@
    {:gene 2 :ortholog 11 :organism "D. rerio" :stringency "stringent" :best? true}
    {:gene 3 :ortholog 14 :organism "M. musculus" :stringency "stringent" :best? true}])
 
+;; Shapes follow the production models. SequenceFeature stands in for the
+;; parent that carries Gene.symbol in the MOD mines.
+(def organism-class
+  {:attributes {:shortName {}}})
+
+(defn homologue-class [attrs]
+  {:attributes (into {:id {}} (map (fn [a] [a {}])) attrs)
+   :references {:homologue {:referencedType "Gene"}}})
+
+(defn model-with [homologue-attrs gene-extra]
+  {:Organism organism-class
+   :Homologue (homologue-class homologue-attrs)
+   :SequenceFeature {:attributes {:primaryIdentifier {} :symbol {}}
+                     :references {:organism {:referencedType "Organism"}}}
+   :Gene (merge-with merge
+                     {:extends ["SequenceFeature"]
+                      :attributes {:id {}}
+                      :collections {:homologues {:referencedType "Homologue"}}}
+                     gene-extra)})
+
+(def full-model (model-with [:stringencyFilter :isBestScore] nil))
+(def worm-model (model-with [] nil))
+(def fly-model (model-with [:isBestScore] nil))
+
+(deftest path-resolution
+  (testing "inherited fields and collections resolve"
+    (is (true? (compare/path-resolves? full-model "Gene.symbol")))
+    (is (true? (compare/path-resolves? full-model "Gene.homologues.homologue.organism.shortName"))))
+  (testing "missing leaf, missing class, attribute in the middle"
+    (is (false? (compare/path-resolves? worm-model "Gene.homologues.stringencyFilter")))
+    (is (false? (compare/path-resolves? full-model "Nope.id")))
+    (is (false? (compare/path-resolves? full-model "Gene.symbol.id")))
+    (is (false? (compare/path-resolves? {} "Gene.id")))))
+
+(deftest model-gating
+  (testing "features per mine"
+    (is (= {:stringency? true :best-score? true} (compare/pair-features full-model)))
+    (is (= {:stringency? false :best-score? false} (compare/pair-features worm-model)))
+    (is (= {:stringency? false :best-score? true} (compare/pair-features fly-model))))
+  (testing "compare shows for every mine with Gene.homologues.homologue"
+    (doseq [m [full-model worm-model fly-model]]
+      (is (true? (compare/compare-available? m {:type "Gene"})))))
+  (testing "hidden for non-Gene lists and when homologue paths are missing"
+    (is (false? (compare/compare-available? full-model {:type "Protein"})))
+    (is (false? (compare/compare-available? full-model nil)))
+    (is (false? (compare/compare-available? (update full-model :Gene dissoc :collections)
+                                            {:type "Gene"})))))
+
+(deftest feature-dependent-query
+  (is (= ["Gene.id" "Gene.homologues.homologue.id"
+          "Gene.homologues.homologue.organism.shortName"]
+         (:select (compare/pairs-query "L" (compare/pair-features worm-model)))))
+  (is (= ["Gene.id" "Gene.homologues.homologue.id"
+          "Gene.homologues.homologue.organism.shortName"
+          "Gene.homologues.isBestScore"]
+         (:select (compare/pairs-query "L" (compare/pair-features fly-model)))))
+  (is (= [{:gene 1 :ortholog 10 :organism "M. musculus" :stringency nil :best? true}]
+         (compare/parse-pairs [[1 10 "M. musculus" true]] {:best-score? true})))
+  (is (= [{:gene 1 :ortholog 10 :organism "M. musculus" :stringency nil :best? false}]
+         (compare/parse-pairs [[1 10 "M. musculus"]] {})))
+  (testing "YeastMine isBestScore is a String"
+    (is (= [true false]
+           (map :best? (compare/parse-pairs [[1 10 "S. cerevisiae" "true"]
+                                             [1 11 "S. cerevisiae" "false"]]
+                                            {:best-score? true}))))))
+
 (deftest queries
   (is (= ["Gene.id" "Gene.homologues.homologue.id"
           "Gene.homologues.homologue.organism.shortName"
@@ -121,7 +187,8 @@
 
 (def seeded-db
   {:current-mine :test
-   :mines {:test {:service {:root "http://example.org"}}}
+   :mines {:test {:service {:root "http://example.org"
+                            :model {:classes full-model}}}}
    :assets {:lists {:test [{:name "L orthologs in M. musculus"}]}}})
 
 (deftest stale-results-are-ignored
@@ -203,3 +270,17 @@
    (rf/dispatch [::seed (assoc seeded-db :results {:orthologs-compare {:open? true}})])
    (rf/dispatch [:results/clear])
    (is (nil? @(rf/subscribe [::compare])))))
+
+(deftest wormmine-state-has-no-optional-controls
+  (run-test-sync
+   (rf/dispatch [::seed (assoc seeded-db :results
+                               {:orthologs-compare
+                                {:open? true :list-source "L"
+                                 :features (compare/pair-features worm-model)
+                                 :genes [{:id 1 :symbol "A" :organism "C. elegans"}]
+                                 :pairs [{:gene 1 :ortholog 2 :organism "H. sapiens"
+                                          :stringency nil :best? false}]}})])
+   (let [{:keys [features stringencies intersections]} @(rf/subscribe [::compare/view-data])]
+     (is (= {:stringency? false :best-score? false} features))
+     (is (empty? stringencies))
+     (is (= 1 (count intersections)) "comparison still works"))))
