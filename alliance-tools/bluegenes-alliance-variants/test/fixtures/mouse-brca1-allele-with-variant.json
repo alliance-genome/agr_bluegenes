@@ -1,0 +1,198 @@
+{
+ "results": [
+  {
+   "category": "allele_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "AGRKB:106000000555979",
+    "primaryExternalId": "MGI:4418211",
+    "alleleSymbol": {
+     "displayText": "Brca1<sup>tm5.1Cxd</sup>"
+    },
+    "alleleSynonyms": [
+     {
+      "displayText": "Brca1<sup>S1152A</sup>"
+     }
+    ]
+   },
+   "alterationType": "allele with one variant",
+   "hasPhenotype": true,
+   "hasDisease": false,
+   "variantList": [
+    {
+     "type": "Variant",
+     "variantType": {
+      "name": "MNV",
+      "descendantCount": 0
+     },
+     "curatedVariantGenomicLocations": [
+      {
+       "start": 101414678,
+       "end": 101414679,
+       "hgvs": "NC_000077.7:g.101414678_101414679delinsGC",
+       "variantGenomicLocationAssociationObject": {
+        "type": "AssemblyComponent",
+        "name": "11"
+       },
+       "predictedVariantConsequences": [
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        }
+       ],
+       "mostSevereConsequence": {
+        "vepConsequences": [
+         {
+          "name": "missense_variant",
+          "descendantCount": 0
+         }
+        ],
+        "geneLevelConsequence": false
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "category": "allele_summary",
+   "searchable": false,
+   "allele": {
+    "type": "Allele",
+    "curie": "AGRKB:106000000566143",
+    "primaryExternalId": "MGI:5494434",
+    "alleleSymbol": {
+     "displayText": "Brca1<sup>tm2Rjbr</sup>"
+    },
+    "alleleSynonyms": [
+     {
+      "displayText": "Brca1<sup>S1598F</sup>"
+     },
+     {
+      "displayText": "Brca1<sup>tm2.1Thl</sup>"
+     }
+    ]
+   },
+   "alterationType": "allele with one variant",
+   "hasPhenotype": true,
+   "hasDisease": false,
+   "variantList": [
+    {
+     "type": "Variant",
+     "variantType": {
+      "name": "MNV",
+      "descendantCount": 0
+     },
+     "curatedVariantGenomicLocations": [
+      {
+       "start": 101398797,
+       "end": 101398798,
+       "hgvs": "NC_000077.7:g.101398797_101398798delinsAA",
+       "variantGenomicLocationAssociationObject": {
+        "type": "AssemblyComponent",
+        "name": "11"
+       },
+       "predictedVariantConsequences": [
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        },
+        {
+         "vepConsequences": [
+          {
+           "name": "missense_variant",
+           "descendantCount": 0
+          }
+         ],
+         "geneLevelConsequence": false
+        }
+       ],
+       "mostSevereConsequence": {
+        "vepConsequences": [
+         {
+          "name": "missense_variant",
+          "descendantCount": 0
+         }
+        ],
+        "geneLevelConsequence": false
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "total": 7,
+ "returnedRecords": 2,
+ "requestDuration": "1s",
+ "requestDate": "2026/11/10 19:40:52",
+ "supplementalData": {
+  "distinctFieldValues": {
+   "variantType": [
+    "deletion",
+    "insertion",
+    "MNV",
+    "point_mutation",
+    "SNP"
+   ],
+   "molecularConsequence": [
+    "3_prime_UTR_variant",
+    "5_prime_UTR_variant",
+    "frameshift_variant",
+    "inframe_deletion",
+    "intron_variant",
+    "missense_variant",
+    "non_coding_transcript_exon_variant",
+    "non_coding_transcript_variant",
+    "splice_donor_region_variant",
+    "splice_polypyrimidine_tract_variant",
+    "splice_region_variant",
+    "stop_gained",
+    "synonymous_variant"
+   ],
+   "alleleCategory": [
+    "allele",
+    "allele with one variant",
+    "variant"
+   ]
+  }
+ }
+}

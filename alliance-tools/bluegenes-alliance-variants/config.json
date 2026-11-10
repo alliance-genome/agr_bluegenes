@@ -1,0 +1,18 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Variants (Alliance)",
+    "cljs": "bluegenesAllianceVariants"
+  },
+  "apiBase": "https://www.alliancegenome.org/api",
+  "version": 2
+}
