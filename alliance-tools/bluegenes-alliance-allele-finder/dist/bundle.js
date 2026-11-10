@@ -15,7 +15,8 @@
 	}
 
 	var PUBMED_URL = 'https://pubmed.ncbi.nlm.nih.gov/';
-	var MAX_ROWS = 5000;
+	var PAGE_SIZE = 2000;
+	var MAX_PAGES = 25;
 	var KINDS = ['disease', 'phenotype'];
 	var KIND_LABEL = { disease: 'Disease', phenotype: 'Phenotype' };
 
@@ -51,6 +52,7 @@
 		} else {
 			view.push(ann + '.phenotypeStatement', ann + '.publications.pubMedId');
 		}
+		view.push(ann + '.id');
 		return { view: view, ann: ann };
 	}
 
@@ -63,8 +65,12 @@
 				? [v.ann + '.evidence', v.ann + '.evidence.publications']
 				: [v.ann + '.ontologyTerm', v.ann + '.publications']
 		);
+		// A fixed order keeps start/size pages from overlapping or skipping rows.
+		// InterMine only accepts sort paths outside the outer joins, so the annotation id is the last key.
+		var order = [v.view[2], v.view[0], v.view[1], v.view[5], v.view[3], v.ann + '.id'];
 		return (
-			'<query model="genomic" view="' + v.view.join(' ') + '">' +
+			'<query model="genomic" view="' + v.view.join(' ') + '" sortOrder="' +
+			order.map(function (p) { return p + ' asc'; }).join(' ') + '">' +
 			joins.map(function (p) { return '<join path="' + p + '" style="OUTER"/>'; }).join('') +
 			'<constraint path="Gene.id" op="=" value="' + escapeXml(geneId) + '"/>' +
 			'</query>'
@@ -75,8 +81,8 @@
 		return serviceRoot.replace(/\/+$/, '') + '/query/results';
 	}
 
-	function requestBody(source, kind, geneId) {
-		return 'format=json&size=' + MAX_ROWS + '&query=' + encodeURIComponent(buildQuery(source, kind, geneId));
+	function requestBody(source, kind, geneId, start) {
+		return 'format=json&start=' + (start || 0) + '&size=' + PAGE_SIZE + '&query=' + encodeURIComponent(buildQuery(source, kind, geneId));
 	}
 
 	// Annotation x publication rows from the service become flat records.
@@ -269,7 +275,7 @@
 			wrap.appendChild(node('span', 'No alleles with disease or phenotype annotations for this gene or its orthologs'));
 			return;
 		}
-		if (truncated) wrap.appendChild(node('p', 'Showing a truncated result: a query reached ' + MAX_ROWS + ' rows.'));
+		if (truncated) wrap.appendChild(node('p', 'Partial result: a query stopped after ' + (PAGE_SIZE * MAX_PAGES) + ' rows, so allele and term counts are incomplete.'));
 
 		var state = { kind: byKind.disease.length ? 'disease' : 'phenotype', term: '', filter: '' };
 		var controls = node('div', null, 'alliance-allele-finder-controls');
@@ -353,20 +359,33 @@
 		refreshTable();
 	}
 
-	function fetchRows(serviceRoot, source, kind, geneId) {
+	function fetchPage(serviceRoot, source, kind, geneId, start) {
 		return fetch(resultsUrl(serviceRoot), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-			body: requestBody(source, kind, geneId)
+			body: requestBody(source, kind, geneId, start)
 		})
 			.then(function (res) {
 				if (!res.ok) throw new Error('HTTP ' + res.status);
 				return res.json();
 			})
 			.then(function (json) {
-				var results = (json && json.results) || [];
-				return { rows: results.map(function (r) { return toRow(source, kind, r); }), full: results.length >= MAX_ROWS };
+				return (json && json.results) || [];
 			});
+	}
+
+	// Pages through the sorted result until a short page arrives; gives up after MAX_PAGES pages.
+	function fetchRows(serviceRoot, source, kind, geneId) {
+		var rows = [];
+		function next(page) {
+			return fetchPage(serviceRoot, source, kind, geneId, page * PAGE_SIZE).then(function (results) {
+				results.forEach(function (r) { rows.push(toRow(source, kind, r)); });
+				if (results.length < PAGE_SIZE) return { rows: rows, full: false };
+				if (page + 1 >= MAX_PAGES) return { rows: rows, full: true };
+				return next(page + 1);
+			});
+		}
+		return next(0);
 	}
 
 	function fetchAll(serviceRoot, geneId) {

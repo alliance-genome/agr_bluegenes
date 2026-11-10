@@ -176,3 +176,46 @@ test('a stale response does not overwrite a newer one', async () => {
 	assert.ok(!el.textContent.includes('OLD'));
 	assert.ok(el.textContent.includes('No alleles with disease'));
 });
+
+test('buildQuery sorts the result and requestBody pages with start and size', () => {
+	const q = tool.buildQuery(SELF, 'disease', '1');
+	assert.ok(/sortOrder="[^"]*Gene\.alleles\.symbol asc/.test(q));
+	const b = decodeURIComponent(tool.requestBody(SELF, 'disease', '1', 2000));
+	assert.ok(b.includes('start=2000') && b.includes('size=2000'));
+});
+
+test('main pages until a short page and keeps every row', async () => {
+	const starts = [];
+	const big = (n, off) => Array.from({ length: n }, (_, i) => row('g', 'M. musculus', off + i, 'A' + (off + i), 'a' + (off + i), 'DOID:1', 'x', null, null));
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (!body.includes('homologues') && body.includes('diseaseAnnotations')) {
+			const start = Number(/start=(\d+)/.exec(body)[1]);
+			starts.push(start);
+			return ok(start === 0 ? big(2000, 0) : big(5, 2000));
+		}
+		return ok([]);
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: '1' } }, {}, {}, () => {});
+	await tick();
+	await tick();
+	assert.deepStrictEqual(starts, [0, 2000]);
+	assert.ok(el.textContent.includes('2005 alleles with disease annotations'));
+	assert.ok(!el.textContent.includes('Partial result'));
+});
+
+test('main reports a partial result when the page cap is reached', async () => {
+	let n = 0;
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (body.includes('homologues') || !body.includes('diseaseAnnotations')) return ok([]);
+		n++;
+		return ok(Array.from({ length: 2000 }, (_, i) => row('g', 'M. musculus', i, 'A', 'a', 'DOID:1', 'x', null, null)));
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: '1' } }, {}, {}, () => {});
+	for (let i = 0; i < 10; i++) await tick();
+	assert.strictEqual(n, 25);
+	assert.ok(el.textContent.includes('Partial result'));
+});
