@@ -189,3 +189,23 @@
            (is (= [] (:versions-missing texts)))
            (is (str/includes? (:methods texts) "release test and InterMine 5.1.0"))
            (is (str/includes? (:bibtex texts) "version = {test}"))))))))
+
+(deftest every-shared-deployment-mine-gets-its-own-text
+  ;; The export reads the service root and the version endpoints only, so it
+  ;; needs no model path and behaves the same on all four mines.
+  (let [roots {:alliancemine ["AllianceMine" "https://www.alliancegenome.org/alliancemine"]
+               :wormmine ["WormMine" "https://wormmine.alliancegenome.org/wormmine"]
+               :flymine ["FlyMine" "https://flymine.alliancegenome.org/flymine"]
+               :yeastmine ["YeastMine" "https://yeastmine.alliancegenome.org/yeastmine"]}
+        db {:mines (into {} (map (fn [[kw [nom root]]] [kw {:name nom :service {:root root}}])) roots)
+            :assets {:release-version {:wormmine "\"WS294\"\n"}
+                     :intermine-version {:wormmine "\"5.1.0\"\n"}}}]
+    (doseq [[kw [nom root]] roots]
+      (let [info (page/mine-info db kw)
+            txt (page/texts info "2026-11-10" {:kind :list :name "L" :size 2 :type "Gene"})]
+        (is (= nom (:mine-name info)))
+        (is (= root (:url info)))
+        (is (str/includes? (:methods txt) (str "retrieved from " nom " (" root ")")))
+        (is (str/includes? (:bibtex txt) (str "@misc{" nom "2026,")))))
+    (is (= "WS294" (:release (page/mine-info db :wormmine))))
+    (is (nil? (:release (page/mine-info db :flymine))) "no cached version, none named")))
