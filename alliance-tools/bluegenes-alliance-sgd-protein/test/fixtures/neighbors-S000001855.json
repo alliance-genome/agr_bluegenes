@@ -1,0 +1,419 @@
+{
+ "S288C": {
+  "start": 49000,
+  "end": 59000,
+  "neighbors": [
+   {
+    "start": 49139,
+    "end": 51007,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 1869,
+      "relative_start": 1,
+      "display_name": "CDS",
+      "chromosomal_start": 49139,
+      "chromosomal_end": 51007,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2001-05-29",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 74326
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1268336,
+     "display_name": "FET5",
+     "format_name": "YFL041W",
+     "headline": "Multicopper oxidase",
+     "link": "/locus/S000001853",
+     "locus_type": "ORF"
+    },
+    "strand": "+",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   },
+   {
+    "start": 51350,
+    "end": 52972,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 1623,
+      "relative_start": 1,
+      "display_name": "CDS",
+      "chromosomal_start": 51350,
+      "chromosomal_end": 52972,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2001-05-29",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 73433
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1268335,
+     "display_name": "YFL040W",
+     "format_name": "YFL040W",
+     "headline": "Putative transporter",
+     "link": "/locus/S000001854",
+     "locus_type": "ORF"
+    },
+    "strand": "+",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   },
+   {
+    "start": 53260,
+    "end": 54696,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 10,
+      "relative_start": 1,
+      "display_name": "CDS",
+      "chromosomal_start": 54696,
+      "chromosomal_end": 54687,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2011-02-03",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 74631
+     },
+     {
+      "relative_end": 319,
+      "relative_start": 11,
+      "display_name": "intron",
+      "chromosomal_start": 54686,
+      "chromosomal_end": 54378,
+      "seq_version": "2011-02-03",
+      "class_type": "INTRON",
+      "coord_version": "2011-02-03",
+      "date_created": "2011-02-03",
+      "format_name": "intron",
+      "id": 76795
+     },
+     {
+      "relative_end": 1437,
+      "relative_start": 320,
+      "display_name": "CDS",
+      "chromosomal_start": 54377,
+      "chromosomal_end": 53260,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2001-05-29",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 74537
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1268334,
+     "display_name": "ACT1",
+     "format_name": "YFL039C",
+     "headline": "Actin, structural protein in cytoskeleton",
+     "link": "/locus/S000001855",
+     "locus_type": "ORF"
+    },
+    "strand": "-",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   },
+   {
+    "start": 55366,
+    "end": 55986,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 621,
+      "relative_start": 1,
+      "display_name": "CDS",
+      "chromosomal_start": 55986,
+      "chromosomal_end": 55366,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2011-02-03",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 73839
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1268333,
+     "display_name": "YPT1",
+     "format_name": "YFL038C",
+     "headline": "Rab family GTPase",
+     "link": "/locus/S000001856",
+     "locus_type": "ORF"
+    },
+    "strand": "-",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   },
+   {
+    "start": 56336,
+    "end": 57709,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 1374,
+      "relative_start": 1,
+      "display_name": "CDS",
+      "chromosomal_start": 56336,
+      "chromosomal_end": 57709,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2011-02-03",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 73225
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1268332,
+     "display_name": "TUB2",
+     "format_name": "YFL037W",
+     "headline": "Beta-tubulin",
+     "link": "/locus/S000001857",
+     "locus_type": "ORF"
+    },
+    "strand": "+",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   },
+   {
+    "start": 58782,
+    "end": 62837,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 4056,
+      "relative_start": 1,
+      "display_name": "CDS",
+      "chromosomal_start": 58782,
+      "chromosomal_end": 62837,
+      "seq_version": "1996-07-31",
+      "class_type": "CDS",
+      "coord_version": "2011-02-03",
+      "date_created": "2004-08-31",
+      "format_name": "CDS",
+      "id": 73683
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1268331,
+     "display_name": "RPO41",
+     "format_name": "YFL036W",
+     "headline": "Mitochondrial RNA polymerase",
+     "link": "/locus/S000001858",
+     "locus_type": "ORF"
+    },
+    "strand": "+",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   },
+   {
+    "start": 57815,
+    "end": 58521,
+    "residues": "",
+    "contig": {
+     "display_name": "Chromosome VI",
+     "format_name": "Chromosome_VI",
+     "is_chromosome": true,
+     "centromere_start": 148510,
+     "centromere_end": 148627,
+     "link": "/contig/Chromosome_VI",
+     "id": 1381934,
+     "length": 270161,
+     "strain": {
+      "display_name": "S288C",
+      "link": "/strain/S288C/overview",
+      "id": 1,
+      "format_name": "S288C"
+     }
+    },
+    "tags": [
+     {
+      "relative_end": 707,
+      "relative_start": 1,
+      "display_name": "noncoding_exon",
+      "chromosomal_start": 58521,
+      "chromosomal_end": 57815,
+      "seq_version": "2011-02-03",
+      "class_type": "NONCODING_EXON",
+      "coord_version": "2011-02-03",
+      "date_created": "2011-02-03",
+      "format_name": "noncoding_exon",
+      "id": 76846
+     }
+    ],
+    "strain": {
+     "display_name": "S288C",
+     "status": "Reference",
+     "format_name": "S288C",
+     "id": 1364643,
+     "link": "/strain/S000203483",
+     "description": "Reference Genome"
+    },
+    "locus": {
+     "id": 1313466,
+     "display_name": "RUF21",
+     "format_name": "YNCF0001C",
+     "headline": "RNA of Unknown Function",
+     "link": "/locus/S000130129",
+     "locus_type": "ncRNA gene"
+    },
+    "strand": "-",
+    "dna_type": "GENOMIC",
+    "feature_status": "Active"
+   }
+  ]
+ }
+}
