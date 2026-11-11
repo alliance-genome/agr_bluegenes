@@ -72,8 +72,21 @@
 		{ code: 'C', label: 'GO cellular component' }
 	];
 
-	// RGD speciesTypeKey names. No RGD endpoint found that lists them (checked /v3/api-docs, swagger-ui), so other keys are labelled generically.
-	var SPECIES = { 1: 'Human', 2: 'Mouse', 3: 'Rat' };
+	// RGD speciesTypeKey names, from GET https://rest.rgd.mcw.edu/rgdws/lookup/speciesTypeKeys (fetched 2026-11-11).
+	// Keys not listed are labelled generically.
+	var SPECIES = {
+		1: 'Human',
+		2: 'Mouse',
+		3: 'Rat',
+		4: 'Chinchilla',
+		5: 'Bonobo',
+		6: 'Dog',
+		7: 'Squirrel',
+		9: 'Pig',
+		13: 'Green Monkey',
+		14: 'Naked Mole-Rat',
+		17: 'Black Rat'
+	};
 
 	function apiBaseOf(config) {
 		var b = config && typeof config.apiBase === 'string' && config.apiBase.trim() ? config.apiBase.trim() : DEFAULT_API_BASE;

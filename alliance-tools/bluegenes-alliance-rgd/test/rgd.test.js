@@ -226,20 +226,25 @@ test('requests carry an abort signal', async () => {
 	assert.ok(signal && typeof signal.aborted === 'boolean');
 });
 
-test('speciesName maps keys 1 to 3 and labels the rest generically', () => {
-	assert.strictEqual(tool.speciesName(1), 'Human');
-	assert.strictEqual(tool.speciesName(2), 'Mouse');
-	assert.strictEqual(tool.speciesName(3), 'Rat');
-	assert.strictEqual(tool.speciesName(13), 'Other species (RGD key 13)');
+test('speciesName matches every entry of the recorded lookup/speciesTypeKeys response', () => {
+	const keys = fixture('species-type-keys.json');
+	assert.strictEqual(Object.keys(keys).length, 11);
+	Object.keys(keys).forEach((name) => assert.strictEqual(tool.speciesName(keys[name]), name));
 });
 
-test('orthologs of other species render the generic label', async () => {
+test('speciesName labels keys outside the lookup generically', () => {
+	assert.strictEqual(tool.speciesName(99), 'Other species (RGD key 99)');
+});
+
+test('ortholog list shows species names from the lookup', async () => {
 	fakes({});
 	const el = fakeEl();
 	run(el, '7');
 	await tick();
-	assert.ok(el.textContent.includes('Other species (RGD key'));
+	assert.ok(el.textContent.includes('Chinchilla'));
+	assert.ok(el.textContent.includes('Human'));
 	assert.ok(!el.textContent.includes('species key'));
+	assert.ok(!el.textContent.includes('Other species'));
 });
 
 test('no gene selected and bad signature', () => {
