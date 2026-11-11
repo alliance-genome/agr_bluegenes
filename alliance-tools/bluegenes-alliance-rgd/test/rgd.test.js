@@ -226,6 +226,22 @@ test('requests carry an abort signal', async () => {
 	assert.ok(signal && typeof signal.aborted === 'boolean');
 });
 
+test('speciesName maps keys 1 to 3 and labels the rest generically', () => {
+	assert.strictEqual(tool.speciesName(1), 'Human');
+	assert.strictEqual(tool.speciesName(2), 'Mouse');
+	assert.strictEqual(tool.speciesName(3), 'Rat');
+	assert.strictEqual(tool.speciesName(13), 'Other species (RGD key 13)');
+});
+
+test('orthologs of other species render the generic label', async () => {
+	fakes({});
+	const el = fakeEl();
+	run(el, '7');
+	await tick();
+	assert.ok(el.textContent.includes('Other species (RGD key'));
+	assert.ok(!el.textContent.includes('species key'));
+});
+
 test('no gene selected and bad signature', () => {
 	const el = fakeEl();
 	tool.main(el, { root: ROOT }, { Gene: { value: '' } }, {}, {}, () => {});

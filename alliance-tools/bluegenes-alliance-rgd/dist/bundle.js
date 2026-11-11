@@ -72,7 +72,7 @@
 		{ code: 'C', label: 'GO cellular component' }
 	];
 
-	// RGD speciesTypeKey values confirmed against ortholog symbols (BRCA1 upper case = human).
+	// RGD speciesTypeKey names. No RGD endpoint found that lists them (checked /v3/api-docs, swagger-ui), so other keys are labelled generically.
 	var SPECIES = { 1: 'Human', 2: 'Mouse', 3: 'Rat' };
 
 	function apiBaseOf(config) {
@@ -188,7 +188,7 @@
 	}
 
 	function speciesName(key) {
-		return SPECIES[key] || 'species key ' + key;
+		return SPECIES[key] || 'Other species (RGD key ' + key + ')';
 	}
 
 	function node(tag, text, className) {
@@ -415,6 +415,7 @@
 		annotationsUrl: annotationsUrl,
 		rgdGeneLink: rgdGeneLink,
 		aspectLabel: aspectLabel,
+		speciesName: speciesName,
 		groupAnnotations: groupAnnotations,
 		buildQuery: buildQuery,
 		requestBody: requestBody,
