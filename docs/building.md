@@ -25,6 +25,7 @@ These commands are explained in more depth below, but if you know what you want,
     lein format      # run cljfmt to fix code indentation
     lein kaocha      # run unit tests
     npx cypress run  # run cypress ui tests
+    npm run test:e2e # run playwright ui tests
 
 ## Running a dev environment
 
@@ -92,6 +93,18 @@ Cypress also has a really useful interface for debugging failing tests:
     DEBUG=cypress:* npx cypress open
 
 *Tip:* You can also run the Cypress tests with BlueGenes deployed to a custom deploy path by editing *cypress.json* `baseUrl` key to include the path (e.g. `"http://localhost:5000/foo/bar"`) and passing the same path as an envvar, `BLUEGENES_DEPLOY_PATH=/foo/bar lein biotestmine`
+
+### Playwright integration tests
+
+The Cypress specs are being ported to [Playwright](https://playwright.dev) under *e2e/*, one spec at a time (ported so far: main page, search, templates, report page, model browser, login/logout). They need the same BlueGenes + Biotestmine setup as the Cypress tests above.
+
+    npm install
+    npx playwright install chromium   # one-off browser download
+    npm run test:e2e
+
+Point the tests elsewhere with `BLUEGENES_URL` (default `http://localhost:5000`, may include a deploy path) and `BLUEGENES_MINE` (default `biotestmine`). `npx playwright test --ui` is the equivalent of `cypress open`.
+
+This fork serves BlueGenes under `/bluegenes`, but the `biotestmine` lein profile does not read `config/defaults`, so start it with `BLUEGENES_DEPLOY_PATH=/bluegenes lein biotestmine` and run the tests with `BLUEGENES_URL=http://localhost:5000/bluegenes`. Without the envvar the client reads `bluegenes` as a mine name and every test fails on the redirect. Biotestmine's keyword search needs Solr up during the build, otherwise the search index is empty and search and report page tests time out.
 
 # Production Builds
 

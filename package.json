@@ -6,7 +6,8 @@
   },
   "description": "Clojure-based GUI for InterMine",
   "scripts": {
-    "test": "cypress run --headless --quiet --reporter list"
+    "test": "cypress run --headless --quiet --reporter list",
+    "test:e2e": "playwright test"
   },
   "author": "Joshua Heimbach <joshkh@gmail.com>",
   "license": "SEE LICENSE IN LICENCE",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^1.8.0",
+    "@playwright/test": "^1.63.0",
     "clipboardy": "^2.3.0",
     "cypress": "^6.0.0",
     "cypress-file-upload": "^5.0.8"
