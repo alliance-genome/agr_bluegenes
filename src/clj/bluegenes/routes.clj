@@ -8,6 +8,7 @@
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.bundle :as bundle]
+            [bluegenes.ws.modproxy :as modproxy]
             [bluegenes.ws.rss :as rss]
             [bluegenes.ws.lookup :as lookup]
             [bluegenes.index :refer [index]]
@@ -91,6 +92,7 @@
         (context "/auth" [] auth/routes)
         (context "/ids" [] ids/routes)
         (context "/export" [] bundle/routes)
+        (context "/mod-proxy" [] modproxy/routes)
         (context "/rss" [] rss/routes))
 
       ;; Linking in.

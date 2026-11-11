@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-sgd-protein",
+  "version": "0.1.0",
+  "description": "Protein half-life and gene neighbourhood from SGD for budding yeast Gene report pages, through the BlueGenes backend proxy.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}

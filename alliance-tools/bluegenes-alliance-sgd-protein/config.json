@@ -1,0 +1,18 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "SGD protein half-life and neighbourhood",
+    "cljs": "bluegenesAllianceSgdProtein"
+  },
+  "version": 2,
+  "depends": ["Gene.primaryIdentifier", "Gene.organism.shortName"]
+}
