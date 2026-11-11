@@ -9,6 +9,7 @@
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.bundle :as bundle]
             [bluegenes.ws.rss :as rss]
+            [bluegenes.ws.tool-depends :as tool-depends]
             [bluegenes.ws.lookup :as lookup]
             [bluegenes.index :refer [index]]
             [config.core :refer [env]]
@@ -83,6 +84,9 @@
             (favicon-fallback)))
 
       (GET "/version" [] (response {:version "0.1.0"}))
+
+      ;; Serves the tool list with depends overrides; must precede tool/routes.
+      (GET "/api/tools/all" [] (tool-depends/get-all-tools))
 
       tool/routes
 
