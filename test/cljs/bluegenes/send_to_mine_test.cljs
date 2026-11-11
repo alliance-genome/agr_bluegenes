@@ -1,11 +1,13 @@
 (ns bluegenes.send-to-mine-test
   (:require [cljs.test :refer-macros [deftest is testing use-fixtures]]
+            [clojure.core.async :as async]
             [bluegenes.test-utils :as utils :refer [stub-fetch-fn]]
             [re-frame.core :as rf]
             [day8.re-frame.test :refer-macros [run-test-sync run-test-async wait-for]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [bluegenes.subs]
+            [bluegenes.events]
             [bluegenes.pages.results.events]
             [bluegenes.pages.results.subs]
             [bluegenes.pages.results.send-to-mine :as stm]))
@@ -190,12 +192,14 @@
 (deftest select-mine-without-login
   (run-test-sync
    (utils/stub-local-storage)
+   ;; Channels that never deliver: a stubbed response would arrive after this
+   ;; sync test ends and reach the wait-for of the next async test.
    (let [orig-model fetch/model]
-     (set! fetch/model (stub-fetch-fn {:classes {}}))
+     (set! fetch/model (fn [& _] (async/chan)))
      (swap! utils/stubbed-variables conj #(set! fetch/model orig-model)))
    (rf/dispatch [::seed (assoc seeded-db :results
                                {:send-to-mine {:open? true :list-source "L" :run 0}})])
-   (with-redefs [fetch/rows (stub-fetch-fn {:results []})]
+   (with-redefs [fetch/rows (fn [& _] (async/chan))]
      (rf/dispatch [::stm/select-mine "mouse"]))
    (let [state @(rf/subscribe [::state])]
      (is (false? (:logged-in? state)))
@@ -253,7 +257,8 @@
      (swap! utils/stubbed-variables conj #(set! fetch/lists orig-lists))
      (swap! utils/stubbed-variables conj #(set! save/im-list-from-query orig-save))
      (rf/dispatch [::stm/save])
-     (wait-for [::stm/save-success]
+     ;; ::save-success dispatches the message, so wait for that last event.
+     (wait-for [:messages/add]
        (testing "list is saved in the target mine with its token"
          (is (= {:root "http://mouse.example" :token "t"} @saved-service)))
        (testing "name clash in the target mine gets a suffix"
@@ -376,7 +381,7 @@
      (rf/dispatch [::seed (-> seeded-db
                               (assoc-in [:mine-models :mouse :classes] {:Gene {:attributes {}}})
                               (assoc :results {:send-to-mine (assoc open-state :mode :same)}))])
-     (with-redefs [fetch/rows (fn [& _] (swap! fetched inc) ((stub-fetch-fn {:results []})))]
+     (with-redefs [fetch/rows (fn [& _] (swap! fetched inc) (async/chan))]
        (rf/dispatch [::stm/resolve]))
      (is (zero? @fetched))
      (is (nil? (:resolving? @(rf/subscribe [::state])))))))

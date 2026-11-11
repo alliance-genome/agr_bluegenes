@@ -7,6 +7,7 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [bluegenes.subs]
+            [bluegenes.events]
             [bluegenes.components.cart :as cart]))
 
 (use-fixtures :each utils/fixtures)
@@ -208,7 +209,7 @@
      (wait-for [::cart/saved]
        (let [[service opts] @resolve-args]
          (is (= "http://main.example" (:root service)) "resolved in the current mine")
-         (is (= ["HGNC:11998" "11998"] (:identifiers opts)) "uses the send-to-mine candidates")
+         (is (= ["HGNC:11998"] (:identifiers opts)) "uses the send-to-mine candidates, numeric ids are not stripped")
          (is (= "Gene" (:type opts))))
        (let [[_ name query] @saved]
          (is (= "Gene cart, 2 genes" name))
@@ -239,7 +240,7 @@
     (is (= ["FB:FBgn0000001"] (cart/id-candidates :wormmine "FB:FBgn0000001")))
     (is (= ["FBgn0000001"] (cart/id-candidates :flymine "FBgn0000001"))))
   (testing "other mines keep the send-to-mine candidates"
-    (is (= ["MGI:104537" "104537"] (cart/id-candidates :mousemine "MGI:104537"))))
+    (is (= ["MGI:104537"] (cart/id-candidates :mousemine "MGI:104537"))))
   (is (= ["WB:WBGene00000001" "WBGene00000001" "HGNC:11998"]
          (cart/all-candidates :wormmine ["WB:WBGene00000001" "WBGene00000001" "HGNC:11998"]))))
 

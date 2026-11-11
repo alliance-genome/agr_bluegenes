@@ -1,5 +1,5 @@
 (ns bluegenes.alliance-release-test
-  (:require [cljs.test :refer-macros [deftest is use-fixtures]]
+  (:require [cljs.test :refer-macros [deftest is testing use-fixtures]]
             [clojure.string :as str]
             [bluegenes.test-utils :as utils]
             [re-frame.core :as rf]
@@ -137,7 +137,7 @@
   (run-test-sync
    (rf/dispatch-sync [::seed (texts-db :alliancemine)])
    (let [texts @(rf/subscribe [::page/texts])]
-     (is (str/includes? (:methods texts) "Alliance of Genome Resources data release 9.2.0"))
+     (is (str/includes? (:methods texts) "Alliance of Genome Resources data release at access time was 9.2.0"))
      (is (str/includes? (:bibtex texts) "iyae049")))
    (rf/dispatch-sync [::seed (texts-db :wormmine)])
    (let [texts @(rf/subscribe [::page/texts])]
