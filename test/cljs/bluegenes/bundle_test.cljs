@@ -54,6 +54,9 @@
   (is (= "The download failed (status 500)." (bundle/error-message 500 nil))))
 
 (deftest download-event
+  ;; The page normally defines serverVars; config/server-vars reads it.
+  (when-not (exists? js/serverVars)
+    (set! (.-serverVars js/window) "{}"))
   (run-test-sync
    (reset! app-db {:current-mine :m
                    :mines {:m {:service {:root "http://m/mine" :token "t"}}}})

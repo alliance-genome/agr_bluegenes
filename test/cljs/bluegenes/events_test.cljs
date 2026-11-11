@@ -139,9 +139,9 @@
                (fn [db]
                  (filter #(= "warning" (:style %)) (vals (:messages db)))))
    (rf/dispatch-sync [:test/set-mine])
-   (rf/dispatch-sync [:assets/failure :assets/fetch-lists])
-   (rf/dispatch-sync [:assets/failure :assets/fetch-templates])
-   (rf/dispatch-sync [:assets/failure :assets/fetch-templates])
+   (rf/dispatch [:assets/failure :assets/fetch-lists])
+   (rf/dispatch [:assets/failure :assets/fetch-templates])
+   (rf/dispatch [:assets/failure :assets/fetch-templates])
    (let [warnings @(rf/subscribe [::warnings])
          text (pr-str (:markup (first warnings)))]
      (testing "exactly one warning for the mine"

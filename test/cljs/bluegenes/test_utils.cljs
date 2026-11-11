@@ -1,6 +1,13 @@
 (ns bluegenes.test-utils
+  "Every test namespace requires this one. Kaocha loads test namespaces one
+  by one, so the app's global event handlers and subscriptions are required
+  here to make them exist whichever test runs first."
   (:require [cljs.core.async :refer [chan put!]]
-            [re-frame.core :as rf]))
+            [re-frame.core :as rf]
+            [bluegenes.events]
+            [bluegenes.subs]
+            [bluegenes.pages.results.events]
+            [bluegenes.pages.results.subs]))
 
 ;; Instructions for writing tests can be found in `docs/developing.md`.
 

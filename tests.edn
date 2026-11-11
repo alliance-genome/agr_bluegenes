@@ -2,4 +2,5 @@
 {:tests [{:id :unit-cljs
           :type :kaocha.type/cljs
           :cljs/repl-env cljs.repl.browser/repl-env
-          :cljs/timeout 60000}]}
+          :cljs/compiler-options {:port 9010}
+          :cljs/timeout 120000}]}
