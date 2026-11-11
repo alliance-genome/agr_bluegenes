@@ -58,12 +58,18 @@
 		'Gene.alleles.alleleSymbol',
 		'Gene.alleles.symbol',
 		'Gene.alleles.alleleType',
-		'Gene.alleles.category'
+		'Gene.alleles.category',
+		'Gene.alleles.alleleSgdid',
+		'Gene.alleles.name',
+		'Gene.alleles.alleleClass'
 	];
 	// The other paths of ALLELE_VIEW are required (config.json depends). alleleSymbol is
 	// missing in YeastMine, and alleleType and category in FlyMine and YeastMine, so each
-	// is left out of the query when the model lacks it.
-	var ALLELE_OPTIONAL = ['Gene.alleles.alleleSymbol', 'Gene.alleles.alleleType', 'Gene.alleles.category'];
+	// is left out of the query when the model lacks it. YeastMine leaves primaryIdentifier
+	// and symbol empty: its allele id is in alleleSgdid, its symbol in name and its type in
+	// alleleClass, so those are read as fallbacks.
+	var ALLELE_OPTIONAL = ['Gene.alleles.alleleSymbol', 'Gene.alleles.alleleType', 'Gene.alleles.category',
+		'Gene.alleles.alleleSgdid', 'Gene.alleles.name', 'Gene.alleles.alleleClass'];
 	var PHENOTYPE_VIEW = ['Gene.alleles.id', 'Gene.alleles.phenotypeAnnotations.id'];
 	var DISEASE_VIEW = ['Gene.alleles.id', 'Gene.alleles.diseaseAnnotations.id'];
 	var MODEL_VIEW = [
@@ -197,9 +203,9 @@
 		return {
 			source: at['Gene.primaryIdentifier'],
 			id: id,
-			identifier: at['Gene.alleles.primaryIdentifier'],
-			symbol: plain(at['Gene.alleles.alleleSymbol'] || at['Gene.alleles.symbol']),
-			type: at['Gene.alleles.alleleType'] || '',
+			identifier: at['Gene.alleles.primaryIdentifier'] || at['Gene.alleles.alleleSgdid'] || '',
+			symbol: plain(at['Gene.alleles.alleleSymbol'] || at['Gene.alleles.symbol'] || at['Gene.alleles.name']),
+			type: at['Gene.alleles.alleleType'] || at['Gene.alleles.alleleClass'] || '',
 			category: at['Gene.alleles.category'] || '',
 			phenotypes: phenotypes[id] || 0,
 			diseases: diseases[id] || 0
@@ -360,7 +366,7 @@
 		var view = alleleViewFor(service);
 		return {
 			view: view,
-			type: view.indexOf('Gene.alleles.alleleType') !== -1,
+			type: view.indexOf('Gene.alleles.alleleType') !== -1 || view.indexOf('Gene.alleles.alleleClass') !== -1,
 			category: view.indexOf('Gene.alleles.category') !== -1,
 			phenotypes: PHENOTYPE_VIEW.every(function (p) { return hasPath(service, p); }),
 			diseases: DISEASE_VIEW.every(function (p) { return hasPath(service, p); })
