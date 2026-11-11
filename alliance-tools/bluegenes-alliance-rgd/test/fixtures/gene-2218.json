@@ -1,0 +1,9 @@
+{
+ "symbol": "Brca1",
+ "name": "BRCA1, DNA repair associated",
+ "description": "involved in the DNA damage response and DNA repair",
+ "rgdId": 2218,
+ "type": "protein-coding",
+ "refSeqStatus": "VALIDATED",
+ "speciesTypeKey": 3
+}

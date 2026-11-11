@@ -1,0 +1,182 @@
+[
+ {
+  "term": "(+)-schisandrin B",
+  "termAcc": "CHEBI:132471",
+  "evidence": "EXP",
+  "aspect": "E",
+  "dataSrc": "CTD",
+  "refRgdId": 6480464,
+  "withInfo": null,
+  "qualifier": "multiple interactions"
+ },
+ {
+  "term": "(-)-alpha-phellandrene",
+  "termAcc": "CHEBI:301",
+  "evidence": "ISO",
+  "aspect": "E",
+  "dataSrc": "CTD",
+  "refRgdId": 6480464,
+  "withInfo": "RGD:10246",
+  "qualifier": "decreases expression"
+ },
+ {
+  "term": "(-)-epigallocatechin 3-gallate",
+  "termAcc": "CHEBI:4806",
+  "evidence": "ISO",
+  "aspect": "E",
+  "dataSrc": "CTD",
+  "refRgdId": 6480464,
+  "withInfo": "RGD:69132",
+  "qualifier": "multiple interactions"
+ },
+ {
+  "term": "Animal Mammary Neoplasms",
+  "termAcc": "DOID:9000403",
+  "evidence": "ISO",
+  "aspect": "D",
+  "dataSrc": "CTD",
+  "refRgdId": 11554173,
+  "withInfo": "RGD:69132",
+  "qualifier": null
+ },
+ {
+  "term": "BRCA1-A complex",
+  "termAcc": "GO:0070531",
+  "evidence": "ISO",
+  "aspect": "C",
+  "dataSrc": "RGD",
+  "refRgdId": 1624291,
+  "withInfo": "RGD:69132",
+  "qualifier": "part_of"
+ },
+ {
+  "term": "BRCA1-A complex",
+  "termAcc": "GO:0070531",
+  "evidence": "IEA",
+  "aspect": "C",
+  "dataSrc": "TreeGrafter",
+  "refRgdId": 1600115,
+  "withInfo": "PANTHER:PTN000349156",
+  "qualifier": "part_of"
+ },
+ {
+  "term": "BRCA1-A complex",
+  "termAcc": "GO:0070531",
+  "evidence": "IBA",
+  "aspect": "C",
+  "dataSrc": "GO_Central",
+  "refRgdId": 1600115,
+  "withInfo": "PANTHER:PTN002673735|UniProtKB:P38398",
+  "qualifier": "part_of"
+ },
+ {
+  "term": "Breast Cancer, Familial",
+  "termAcc": "DOID:9008952",
+  "evidence": "ISO",
+  "aspect": "D",
+  "dataSrc": "ClinVar",
+  "refRgdId": 8554872,
+  "withInfo": "RGD:69132",
+  "qualifier": null
+ },
+ {
+  "term": "Breast Cancer, Familial",
+  "termAcc": "DOID:9008952",
+  "evidence": "ISO",
+  "aspect": "D",
+  "dataSrc": "ClinVar",
+  "refRgdId": 8554872,
+  "withInfo": "RGD:69132",
+  "qualifier": null
+ },
+ {
+  "term": "DNA binding",
+  "termAcc": "GO:0003677",
+  "evidence": "IEA",
+  "aspect": "F",
+  "dataSrc": "InterPro",
+  "refRgdId": 1600115,
+  "withInfo": "InterPro:IPR011364",
+  "qualifier": "enables"
+ },
+ {
+  "term": "DNA damage response",
+  "termAcc": "GO:0006974",
+  "evidence": "IEA",
+  "aspect": "P",
+  "dataSrc": "InterPro",
+  "refRgdId": 1600115,
+  "withInfo": "InterPro:IPR031099",
+  "qualifier": "involved_in"
+ },
+ {
+  "term": "DNA damage response",
+  "termAcc": "GO:0006974",
+  "evidence": "ISO",
+  "aspect": "P",
+  "dataSrc": "RGD",
+  "refRgdId": 1624291,
+  "withInfo": "RGD:10246,MGI:104537",
+  "qualifier": "acts_upstream_of_or_within"
+ },
+ {
+  "term": "DNA damage tolerance",
+  "termAcc": "GO:0006301",
+  "evidence": "ISO",
+  "aspect": "P",
+  "dataSrc": "RGD",
+  "refRgdId": 1624291,
+  "withInfo": "RGD:69132",
+  "qualifier": "involved_in"
+ },
+ {
+  "term": "RNA binding",
+  "termAcc": "GO:0003723",
+  "evidence": "ISO",
+  "aspect": "F",
+  "dataSrc": "RGD",
+  "refRgdId": 1624291,
+  "withInfo": "RGD:69132",
+  "qualifier": "enables"
+ },
+ {
+  "term": "RNA polymerase binding",
+  "termAcc": "GO:0070063",
+  "evidence": "ISS",
+  "aspect": "F",
+  "dataSrc": "UniProt",
+  "refRgdId": 1600115,
+  "withInfo": "UniProtKB:P38398",
+  "qualifier": "enables"
+ },
+ {
+  "term": "ataxia telangiectasia-mutated (ATM) signaling pathway",
+  "termAcc": "PW:0001361",
+  "evidence": "ISO",
+  "aspect": "W",
+  "dataSrc": "RGD",
+  "refRgdId": 8661237,
+  "withInfo": "RGD:69132",
+  "qualifier": null
+ },
+ {
+  "term": "forkhead class A signaling pathway",
+  "termAcc": "PW:0000958",
+  "evidence": "ISO",
+  "aspect": "W",
+  "dataSrc": "PID",
+  "refRgdId": 6484113,
+  "withInfo": "RGD:69132",
+  "qualifier": null
+ },
+ {
+  "term": "homologous recombination pathway of double-strand break repair",
+  "termAcc": "PW:0000202",
+  "evidence": "ISS",
+  "aspect": "W",
+  "dataSrc": "RGD",
+  "refRgdId": 1578504,
+  "withInfo": null,
+  "qualifier": null
+ }
+]
