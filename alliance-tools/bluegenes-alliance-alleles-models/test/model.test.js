@@ -12,7 +12,7 @@ const attrs = (...names) => Object.fromEntries(names.map((n) => [n, {}]));
 // AllianceMine has everything; FlyMine has alleles and paralogues but no disease models
 // and no allele type or category; YeastMine has alleles with fewer fields and nothing else.
 function model(kind) {
-	const alleleAttrs = { alliance: ['id', 'primaryIdentifier', 'alleleSymbol', 'symbol', 'alleleType', 'category'], fly: ['id', 'primaryIdentifier', 'alleleSymbol', 'symbol'], yeast: ['id', 'primaryIdentifier', 'symbol'] }[kind];
+	const alleleAttrs = { alliance: ['id', 'primaryIdentifier', 'alleleSymbol', 'symbol', 'alleleType', 'category'], fly: ['id', 'primaryIdentifier', 'alleleSymbol', 'symbol'], yeast: ['id', 'primaryIdentifier', 'symbol', 'alleleSgdid', 'name', 'alleleClass'] }[kind];
 	const gene = { attributes: attrs('id', 'primaryIdentifier', 'symbol'), collections: { alleles: { referencedType: 'Allele' } }, references: { organism: { referencedType: 'Organism' } } };
 	const classes = {
 		Gene: gene,
@@ -55,8 +55,8 @@ test('alleleColumns follows the model', () => {
 	const c = (kind) => tool.alleleColumns({ model: model(kind) });
 	assert.deepStrictEqual([c('alliance').type, c('alliance').category, c('alliance').phenotypes, c('alliance').diseases], [true, true, true, true]);
 	assert.deepStrictEqual([c('fly').type, c('fly').category, c('fly').phenotypes, c('fly').diseases], [false, false, true, true]);
-	assert.deepStrictEqual([c('yeast').type, c('yeast').category, c('yeast').phenotypes, c('yeast').diseases], [false, false, false, false]);
-	assert.strictEqual(c('yeast').view.length, 4);
+	assert.deepStrictEqual([c('yeast').type, c('yeast').category, c('yeast').phenotypes, c('yeast').diseases], [true, false, false, false], 'YeastMine type comes from alleleClass');
+	assert.strictEqual(c('yeast').view.length, 7);
 	assert.ok(!c('yeast').view.includes('Gene.alleles.alleleSymbol'));
 });
 
@@ -64,6 +64,15 @@ test('toAlleleRow reads a reduced view by column name', () => {
 	const view = ['Gene.primaryIdentifier', 'Gene.alleles.id', 'Gene.alleles.primaryIdentifier', 'Gene.alleles.symbol'];
 	const r = tool.toAlleleRow(['S000001', 7, 'YAL001W-a1', 'tfc3-1'], {}, {}, view);
 	assert.deepStrictEqual([r.source, r.id, r.identifier, r.symbol, r.type, r.category], ['S000001', 7, 'YAL001W-a1', 'tfc3-1', '', '']);
+});
+
+test('toAlleleRow falls back to YeastMine fields when primaryIdentifier and symbol are empty', () => {
+	// Real ACT1 row from YeastMine: primaryIdentifier and symbol are empty strings.
+	const view = tool.alleleColumns({ model: model('yeast') }).view;
+	const at = { 'Gene.primaryIdentifier': 'S000001855', 'Gene.alleles.id': 9, 'Gene.alleles.primaryIdentifier': '', 'Gene.alleles.symbol': '',
+		'Gene.alleles.alleleSgdid': 'S000283301', 'Gene.alleles.name': 'act1-1', 'Gene.alleles.alleleClass': 'missense variant' };
+	const r = tool.toAlleleRow(view.map((p) => at[p]), {}, {}, view);
+	assert.deepStrictEqual([r.identifier, r.symbol, r.type], ['S000283301', 'act1-1', 'missense variant']);
 });
 
 test('main in a FlyMine-like model sends no disease model query and shows two tabs', async () => {
