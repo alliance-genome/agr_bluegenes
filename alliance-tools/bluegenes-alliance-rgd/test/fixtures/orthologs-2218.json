@@ -1,0 +1,30 @@
+[
+ {
+  "symbol": "BRCA1",
+  "name": "BRCA1 DNA repair associated",
+  "rgdId": 69132,
+  "speciesTypeKey": 1,
+  "type": "protein-coding"
+ },
+ {
+  "symbol": "Brca1",
+  "name": "breast cancer 1, early onset",
+  "rgdId": 10246,
+  "speciesTypeKey": 2,
+  "type": "protein-coding"
+ },
+ {
+  "symbol": "Brca1",
+  "name": "BRCA1 DNA repair associated",
+  "rgdId": 8979663,
+  "speciesTypeKey": 4,
+  "type": "protein-coding"
+ },
+ {
+  "symbol": "BRCA1",
+  "name": "BRCA1 DNA repair associated",
+  "rgdId": 11890781,
+  "speciesTypeKey": 5,
+  "type": "protein-coding"
+ }
+]

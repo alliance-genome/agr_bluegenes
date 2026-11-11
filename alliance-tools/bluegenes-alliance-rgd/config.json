@@ -1,0 +1,19 @@
+{
+  "accepts": ["id"],
+  "classes": ["Gene"],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "RGD rat gene",
+    "cljs": "bluegenesAllianceRgd"
+  },
+  "apiBase": "https://rest.rgd.mcw.edu/rgdws",
+  "version": 2,
+  "depends": ["Gene.primaryIdentifier", "Gene.organism.shortName"]
+}
