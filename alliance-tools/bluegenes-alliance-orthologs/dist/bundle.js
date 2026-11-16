@@ -123,6 +123,28 @@
 		};
 	}
 
+	// AllianceMine can hold several Homologue rows for one gene pair. Keeps one row
+	// per query gene and homologue gene: the highest algorithm counts, and a best
+	// flag when any row has it. Order of first appearance is kept.
+	function dedupeRows(rows) {
+		var seen = {};
+		var out = [];
+		rows.forEach(function (row) {
+			var key = row.source + '|' + (row.id != null ? row.id : row.identifier);
+			var kept = seen[key];
+			if (!kept) {
+				seen[key] = row;
+				out.push(row);
+				return;
+			}
+			if (row.match != null && (kept.match == null || row.match > kept.match)) kept.match = row.match;
+			if (row.attempted != null && (kept.attempted == null || row.attempted > kept.attempted)) kept.attempted = row.attempted;
+			kept.best = kept.best || row.best;
+			kept.bestReverse = kept.bestReverse || row.bestReverse;
+		});
+		return out;
+	}
+
 	function cmp(a, b) {
 		a = a == null ? '' : String(a);
 		b = b == null ? '' : String(b);
@@ -301,7 +323,7 @@
 				return res.json();
 			})
 			.then(function (json) {
-				return ((json && json.results) || []).map(function (r) { return toRow(r, view); });
+				return dedupeRows(((json && json.results) || []).map(function (r) { return toRow(r, view); }));
 			});
 	}
 
@@ -341,6 +363,7 @@
 		escapeXml: escapeXml,
 		toRow: toRow,
 		groupRows: groupRows,
+		dedupeRows: dedupeRows,
 		toCurie: toCurie,
 		hasPath: hasPath,
 		viewFor: viewFor,

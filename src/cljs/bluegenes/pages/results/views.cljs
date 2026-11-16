@@ -217,7 +217,7 @@
          [:<>
           [:div.row
            [:div.col-sm-8.col-lg-9
-            [:h2.results-heading "Query Results"]
+            [:h2.results-heading.agr-page-title "Query Results"]
             [:div.results-actions
              [back-button]
              [query-history]

@@ -167,16 +167,18 @@
 
 (defn organism-counts
   "For one organism, how many list genes have exactly one ortholog (:one-to-one),
-  more than one (:one-to-many) or none (:none). Orthologs count by distinct id."
+  more than one (:one-to-many) or none (:none). Orthologs count by distinct id.
+  A gene counts itself in its own organism, so every gene of the list's species
+  is at least :one-to-one there."
   [genes pairs organism]
-  (let [n-by-gene (->> pairs
-                       (filter #(= organism (:organism %)))
-                       (reduce (fn [m {:keys [gene ortholog]}]
-                                 (update m gene (fnil conj #{}) ortholog))
-                               {})
-                       (into {} (map (fn [[g s]] [g (count s)]))))]
-    (reduce (fn [acc {:keys [id]}]
-              (let [n (get n-by-gene id 0)]
+  (let [orthologs-by-gene (->> pairs
+                               (filter #(= organism (:organism %)))
+                               (reduce (fn [m {:keys [gene ortholog]}]
+                                         (update m gene (fnil conj #{}) ortholog))
+                                       {}))]
+    (reduce (fn [acc {:keys [id] gene-organism :organism}]
+              (let [found (get orthologs-by-gene id #{})
+                    n (count (cond-> found (= organism gene-organism) (conj id)))]
                 (update acc (cond (zero? n) :none (= 1 n) :one-to-one :else :one-to-many)
                         inc)))
             {:one-to-one 0 :one-to-many 0 :none 0}
@@ -352,14 +354,24 @@
 (def ^:private col-w 30)
 (def ^:private row-h 22)
 (def ^:private bar-h 140)
-(def ^:private label-w 120)
+(def ^:private min-label-w 90)
+(def ^:private label-char-w 6.6) ; average glyph width at the 11px label size
+(def ^:private label-pad 16)
+
+(defn- label-width
+  "Width of the label column: fits the longest organism name."
+  [orgs]
+  (Math/ceil (max min-label-w
+                  (+ label-pad (* label-char-w (apply max 0 (map count orgs)))))))
 (def ^:private pad 24)
 
 (defn upset-geometry
   "Pixel layout of the UpSet plot. Pure so it can be tested."
   [orgs ints]
-  (let [max-size (apply max 1 (map :size ints))]
-    {:width (+ label-w (* col-w (count ints)) 8)
+  (let [max-size (apply max 1 (map :size ints))
+        label-w (label-width orgs)]
+    {:label-w label-w
+     :width (+ label-w (* col-w (count ints)) 8)
      :height (+ pad bar-h (* row-h (count orgs)) 4)
      :bars (map-indexed
             (fn [i {:keys [size organisms]}]
@@ -376,7 +388,7 @@
                         orgs)}))
 
 (defn upset-plot [orgs ints selected]
-  (let [{:keys [width height bars rows]} (upset-geometry orgs ints)]
+  (let [{:keys [width height bars rows label-w]} (upset-geometry orgs ints)]
     [:svg.upset {:width width :height height :role "img"
                  :aria-label "Overlap of list genes by organisms with orthologs"}
      (for [{:keys [organism cy]} rows]
@@ -411,7 +423,7 @@
 (defn counts-table [counts gene-count]
   [:div.agr-table-wrap
    [:table.agr-table.agr-table-sm.agr-table-striped.ortholog-compare-counts
-    [:caption.agr-note (str gene-count " genes in the list")]
+    [:caption.agr-note (str gene-count " genes in the list. A gene counts as 1:1 with itself in its own organism.")]
     [:thead
      [:tr [:th "Organism"] [:th.num "1:1"] [:th.num "1:many"] [:th.num "No ortholog"]]]
     [:tbody

@@ -39,7 +39,7 @@
 body {
   background: @body-background-color;
   color: @body-foreground-color;
-  margin-top: 5em; // cancels the negative html margin below
+  margin-top: @annoyingscrollbars; // cancels the negative html margin below
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
 }
 
@@ -64,12 +64,9 @@ html {
 @annoyingscrollbars: 5em;
 
 html {
-  //this margin directly offsets the annoying scrollbars
+  // Offsets body's margin-top (same value), so the page starts at the top edge.
   margin-top: -@annoyingscrollbars;
-  @media (max-width: @even-tinier-screen) {
-    //fix for the html body randomly not choosing to fill the screen on small phone browsers.
-    position: absolute;
-  }
+  width: 100%;
 }
 
 main {

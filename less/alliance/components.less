@@ -16,6 +16,21 @@ body, button, input, select, textarea, .btn, .form-control, .dropdown-menu,
 code, kbd, pre, samp { font-family: var(--agr-font-mono); }
 
 h1, .h1 { font-size: var(--agr-h1-size); font-weight: 500; }
+
+// Page title: one H1-sized heading per page.
+.agr-page-title {
+  font-size: var(--agr-h1-size);
+  font-weight: 500;
+  color: var(--agr-text);
+  margin: 0 0 var(--agr-space-4);
+  @media (max-width: 767px) { font-size: 28px; }
+}
+// Sub-heading inside a tool or panel.
+.agr-subtitle {
+  font-size: var(--agr-h4-size);
+  font-weight: 700;
+  margin: 0 0 var(--agr-space-2);
+}
 h3, .h3 { font-size: var(--agr-h3-size); font-weight: 500; }
 h4, .h4 { font-size: var(--agr-h4-size); font-weight: 500; }
 
@@ -88,10 +103,17 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   display: grid;
   grid-template-columns: minmax(100px, 30%) 1fr;
   gap: var(--agr-space-2) var(--agr-space-4);
-  margin: 0;
+  margin: 0 0 var(--agr-space-4);
   dt { font-weight: 700; margin: 0; }
   dd { font-weight: 400; margin: 0; word-break: break-word; }
   .agr-na { font-style: italic; color: var(--agr-muted); }
+  // Label over value on narrow screens.
+  @media (max-width: 575px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+    dt { margin-top: var(--agr-space-2); }
+    dt:first-child { margin-top: 0; }
+  }
 }
 
 // ---- .agr-table ------------------------------------------------------
@@ -100,13 +122,21 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   border-collapse: collapse;
   th { font-weight: 700; text-align: left; padding: var(--agr-space-2) var(--agr-space-3); border-bottom: 2px solid var(--agr-border); }
   td { padding: var(--agr-space-2) var(--agr-space-3); border-top: 1px solid var(--agr-border); vertical-align: top; }
+  // Row groups: a rule between consecutive tbody elements.
+  tbody + tbody { border-top: 1px solid var(--agr-border); }
   tbody tr:hover { background: var(--agr-bg-hover); }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 .agr-table-striped tbody tr:nth-child(odd) { background: var(--agr-bg-light); }
 .agr-table-sm { th, td { padding: var(--agr-space-1) var(--agr-space-2); } }
 // Wrap wide tables so they scroll inside their own container.
-.agr-table-wrap { overflow-x: auto; max-width: 100%; }
+.agr-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-bottom: var(--agr-space-4);
+  // A button directly after a table sits clear of it.
+  + .agr-btn, + .agr-btn-primary, + .agr-btn-danger { margin-top: var(--agr-space-2); }
+}
 
 // ---- .agr-tabs -------------------------------------------------------
 .agr-tabs {
@@ -117,7 +147,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   list-style: none;
   border-bottom: 1px solid var(--agr-border);
   > li { margin-bottom: -1px; }
-  > li > a, > li > button {
+  > li > a, > li > button, > button {
     display: block;
     padding: var(--agr-space-2) var(--agr-space-4);
     background: var(--agr-bg-light);
@@ -129,14 +159,17 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
     cursor: pointer;
     &:hover { background: var(--agr-bg-hover); text-decoration: none; }
   }
-  > li + li > a, > li + li > button { margin-left: 2px; }
-  > li.active > a, > li.active > button, > li > [aria-selected="true"] {
+  > button { margin-bottom: -1px; }
+  > li + li > a, > li + li > button, > button + button { margin-left: 2px; }
+  > li.active > a, > li.active > button, > li > [aria-selected="true"],
+  > button.active, > button[aria-selected="true"] {
     background: var(--agr-bg);
     color: var(--agr-text);
     border-bottom-color: var(--agr-bg);
   }
-  .agr-count { margin-left: var(--agr-space-1); color: var(--agr-muted); }
 }
+// Count next to a label, in tabs or elsewhere.
+.agr-count { margin-left: var(--agr-space-1); color: var(--agr-muted); }
 
 // ---- Buttons ---------------------------------------------------------
 .agr-btn, .agr-btn-primary {
@@ -162,6 +195,22 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   &:hover { background: var(--agr-primary-dark); border-color: var(--agr-primary-dark); color: #fff; }
 }
 .agr-btn-sm { padding: 2px 8px; font-size: 12.5px; }
+.agr-btn-danger {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--agr-danger);
+  border-radius: var(--agr-radius);
+  background: var(--agr-bg);
+  color: var(--agr-danger);
+  font: inherit;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  cursor: pointer;
+  &:hover { background: var(--agr-danger); border-color: var(--agr-danger); color: #fff; text-decoration: none; }
+  &:disabled, &.disabled { opacity: 0.6; cursor: not-allowed; }
+}
 
 // ---- .agr-badge ------------------------------------------------------
 .agr-badge {
@@ -173,6 +222,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   color: var(--agr-muted);
   font-size: 12px;
   line-height: 1.5;
+  white-space: nowrap;
+}
+// Long badge text is cut with an ellipsis (set the width limit with max-width if needed).
+.agr-badge-truncate {
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 .agr-badge-primary { background: var(--agr-primary); border-color: var(--agr-primary); color: #fff; }
 
@@ -194,7 +251,12 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   }
 }
 .agr-error { color: var(--agr-danger); }
-.agr-note { font-size: 12px; color: var(--agr-muted); }
+.agr-note { font-size: 12px; color: var(--agr-muted); overflow-wrap: anywhere; }
+.agr-notice-warning {
+  padding: var(--agr-space-2) var(--agr-space-3);
+  border-left: 4px solid var(--agr-warning);
+  background: var(--agr-bg-light);
+}
 @keyframes agr-spin { to { transform: rotate(360deg); } }
 
 // ---- .agr-filter-bar -------------------------------------------------
@@ -205,6 +267,27 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
   gap: var(--agr-space-2);
   margin-bottom: var(--agr-space-4);
   label { font-weight: 700; margin: 0; }
+  // Checkbox and radio labels are plain text.
+  label:has(input[type="checkbox"]), label:has(input[type="radio"]) {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--agr-space-1);
+    font-weight: 400;
+  }
+  // Undo Bootstrap and Material form-control sizing inside the bar.
+  .form-control {
+    display: inline-block;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    padding: 6px 12px;
+    background-color: var(--agr-bg);
+    border: 1px solid var(--agr-border-strong);
+    border-radius: var(--agr-radius);
+    box-shadow: none;
+  }
+  input[type="number"].form-control { width: 6em; }
 }
 
 // ---- Links -----------------------------------------------------------
@@ -214,6 +297,11 @@ a.agr-external::after {
   font-family: FontAwesome;
   font-size: 0.8em;
   margin-left: var(--agr-space-1);
+}
+// Icon only, for dense columns: the link text is hidden but stays in the title.
+a.agr-external.agr-external-icon {
+  font-size: 0;
+  &::after { font-size: 14px; margin-left: 0; }
 }
 
 // ---- Heat scale ------------------------------------------------------

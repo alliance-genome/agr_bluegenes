@@ -28,18 +28,6 @@
     padding-top: var(--agr-space-4);
     padding-bottom: var(--agr-space-5);
 
-    // Page title, Alliance header style.
-    h2.results-heading {
-        font-size: var(--agr-h1-size);
-        font-weight: 500;
-        color: var(--agr-text);
-        margin: 0 0 var(--agr-space-4);
-
-        @media (max-width: 767px) {
-            font-size: 28px;
-        }
-    }
-
     // One toolbar for navigation and list actions. Panels opened by the
     // buttons span the full toolbar width, below the buttons.
     .results-actions {
@@ -156,27 +144,14 @@
         .agr-filter-bar {
             align-items: flex-end;
 
-            label {
+            label:not(:has(input[type="checkbox"])):not(:has(input[type="radio"])) {
                 display: flex;
                 flex-direction: column;
                 gap: var(--agr-space-1);
                 color: var(--agr-text);
             }
 
-            label:has(input[type="checkbox"]) {
-                flex-direction: row;
-                align-items: center;
-            }
-
-            .form-control {
-                min-width: 200px;
-                height: auto;
-                padding: 6px 12px;
-                background-color: var(--agr-bg);
-                border: 1px solid var(--agr-border-strong);
-                border-radius: var(--agr-radius);
-                box-shadow: none;
-            }
+            .form-control { min-width: 200px; }
         }
 
         .alert {

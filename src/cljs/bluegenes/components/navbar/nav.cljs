@@ -305,6 +305,25 @@
                    (when intent
                      (str " - " (-> intent name str/capitalize)))]]])))])])
 
+(defonce ^:private height-observer (atom nil))
+
+(defn- set-nav-height! []
+  (when-let [el (.getElementById js/document "bluegenes-main-nav")]
+    (.setProperty (.-style js/document.documentElement)
+                  "--agr-nav-height"
+                  (str (.-offsetHeight el) "px"))))
+
+(defn- publish-nav-height!
+  "Ref callback: sets --agr-nav-height on <html> to the navbar's height and
+  keeps it current on resize, so fixed-position pages (query builder) start
+  below the navbar."
+  [el]
+  (when el
+    (set-nav-height!)
+    (when (and (exists? js/ResizeObserver) (nil? @height-observer))
+      (reset! height-observer (js/ResizeObserver. set-nav-height!)))
+    (some-> @height-observer (.observe el))))
+
 (defn main
   "Two bands: a white top band with the mine picker and search, and a primary
   coloured menu bar with the page links, the cart and the login."
@@ -313,7 +332,7 @@
         classes (fn [panel-key]
                   (when (= @active-panel panel-key) "active"))]
     (fn []
-      [:nav#bluegenes-main-nav.main-nav
+      [:nav#bluegenes-main-nav.main-nav {:ref publish-nav-height!}
        [:div.nav-top
         [:ul
          [mine-picker]

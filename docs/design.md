@@ -47,8 +47,15 @@ Global defaults set by `components.less`: Lato on body, forms, buttons and headi
 </section>
 ```
 
+### .agr-page-title, .agr-subtitle
+`.agr-page-title` is the one H1-sized heading of a page (28px below 768px). `.agr-subtitle` is a bold 18px heading for a panel or tool.
+```html
+<h2 class="agr-page-title">Lists</h2>
+<h4 class="agr-subtitle">Paralog families</h4>
+```
+
 ### .agr-attrs
-A `dl`. Use `.agr-na` for missing values.
+A `dl`, 16px margin below. Use `.agr-na` for missing values. Below 576px the label sits over the value.
 ```html
 <dl class="agr-attrs">
   <dt>Symbol</dt><dd>TP53</dd>
@@ -57,6 +64,7 @@ A `dl`. Use `.agr-na` for missing values.
 ```
 
 ### .agr-table, .agr-table-striped, .agr-table-sm, .num, .agr-table-wrap
+`.agr-table-wrap` has 16px margin below, and a `.agr-btn*` right after it gets 8px above. Consecutive `tbody` elements get a rule between them.
 ```html
 <div class="agr-table-wrap">
   <table class="agr-table agr-table-sm">
@@ -67,23 +75,36 @@ A `dl`. Use `.agr-na` for missing values.
 ```
 
 ### .agr-tabs
-Add `class="active"` to the current `li` (or `aria-selected="true"` on the link or button). Put counts in `.agr-count`.
+Add `class="active"` to the current `li` or button (or `aria-selected="true"` on the link or button). The container is a `ul` of `li` or a `div` of buttons.
 ```html
 <ul class="agr-tabs" role="tablist">
   <li class="active"><button role="tab">Orthologs <span class="agr-count">12</span></button></li>
   <li><button role="tab">Paralogs</button></li>
 </ul>
+
+<div class="agr-tabs" role="tablist">
+  <button role="tab" aria-selected="true">Orthologs</button>
+  <button role="tab">Paralogs</button>
+</div>
 ```
 
-### .agr-btn, .agr-btn-primary, .agr-btn-sm
+### .agr-btn, .agr-btn-primary, .agr-btn-danger, .agr-btn-sm
 ```html
 <button class="agr-btn">Download</button>
+<button class="agr-btn-danger">Delete</button>
 <button class="agr-btn-primary agr-btn-sm">Search</button>
 ```
 
-### .agr-badge, .agr-badge-primary
+### .agr-badge, .agr-badge-primary, .agr-badge-truncate
+Badges never wrap. `.agr-badge-truncate` cuts long text at 14em with an ellipsis; set `max-width` to change it.
 ```html
 <span class="agr-badge">Best</span> <span class="agr-badge agr-badge-primary">12</span>
+```
+
+### .agr-count
+Muted count after a label, in tabs or anywhere else.
+```html
+<h3>Orthologs <span class="agr-count">12</span></h3>
 ```
 
 ### .agr-empty, .agr-loading, .agr-error
@@ -93,9 +114,11 @@ Add `class="active"` to the current `li` (or `aria-selected="true"` on the link 
 <p class="agr-error">Could not load data</p>
 ```
 
-### .agr-note
+### .agr-note, .agr-notice-warning
+`.agr-note` wraps long words. `.agr-notice-warning` is a box with a warning-coloured left border.
 ```html
 <p class="agr-note">Data from RGD</p>
+<p class="agr-notice-warning">Only the first 2000 rows are shown.</p>
 ```
 
 ### .agr-filter-bar
@@ -103,13 +126,16 @@ Add `class="active"` to the current `li` (or `aria-selected="true"` on the link 
 <div class="agr-filter-bar">
   <label>Species <select class="form-control"></select></label>
   <label><input type="checkbox"> Best only</label>
+  <label>Threshold <input type="number" class="form-control"></label>
 </div>
 ```
+Inside the bar `.form-control` has auto width and height, `input[type=number]` is 6em wide, and labels around a checkbox or radio are regular weight.
 
-### Links: .agr-link, .agr-external
-Plain `a` is already primary-dark. `a.agr-external` appends a Font Awesome external-link icon.
+### Links: .agr-link, .agr-external, .agr-external-icon
+Plain `a` is already primary-dark. `a.agr-external` appends a Font Awesome external-link icon. Add `.agr-external-icon` in dense columns to show only the icon (keep a `title`).
 ```html
 <a class="agr-external" href="https://www.alliancegenome.org">Alliance</a>
+<a class="agr-external agr-external-icon" title="Alliance" href="https://www.alliancegenome.org">Alliance</a>
 ```
 
 ### .agr-heat-1 to .agr-heat-6

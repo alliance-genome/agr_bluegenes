@@ -464,7 +464,7 @@
 					'Warning: the largest family holds ' + clusters[0].members.length + ' of ' + data.genes.length +
 						' list genes (' + Math.round(share * 100) + '%, over ' + Math.round(DOMINANT_SHARE * 100) +
 						'%). One gene family may dominate this list.',
-					'alliance-paralog-families-warning'
+					'agr-notice-warning'
 				)
 			);
 		}

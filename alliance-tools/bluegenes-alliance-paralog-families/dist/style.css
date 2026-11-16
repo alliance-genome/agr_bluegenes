@@ -1,9 +1,7 @@
 .alliance-paralog-families-cluster { margin-bottom: var(--agr-space-4, 16px); }
 .alliance-paralog-families-cluster h5 { font-weight: 700; margin: var(--agr-space-3, 12px) 0 var(--agr-space-2, 8px); }
-.alliance-paralog-families-warning { padding: var(--agr-space-2, 8px) var(--agr-space-3, 12px); border-left: 4px solid var(--agr-warning, #ffc107); background: var(--agr-bg-light, #f8f9fa); }
 .alliance-paralog-families-reduced textarea { display: block; width: 100%; margin: var(--agr-space-2, 8px) 0; font-family: var(--agr-font-mono, monospace); }
 .alliance-paralog-families-cluster h5 { font-size: 14px; }
 .alliance-paralog-families-cluster .agr-table-wrap { margin-bottom: var(--agr-space-3, 12px); }
-.alliance-paralog-families-options input[type="number"] { width: 90px; height: auto; }
 .alliance-paralog-families-reduced textarea { box-sizing: border-box; }
 .alliance-paralog-families-reduced button { margin-right: var(--agr-space-2, 8px); }
