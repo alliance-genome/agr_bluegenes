@@ -6,7 +6,7 @@
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [clean-tool-name]]
-            [bluegenes.pages.reportpage.utils :refer [description-dropdown]]))
+            [bluegenes.pages.reportpage.utils :refer [description-dropdown toggle-props chevron]]))
 
 (def global-threshold 1000)
 
@@ -46,17 +46,19 @@
          {:class (when collapsed? :report-item-collapsed)
           :id (or id (str tool-id "-container"))}
          [:h4.report-item-heading
-          {:on-click (fn []
+          (toggle-props
+           (fn []
                        ;; Only init the tool if it had been initially collapsed
                        ;; (and therefore not previously initialised).
-                       (when (and (or collapse @collapsed-tool? threshold-halted?)
-                                  (not @override-collapse*))
-                         (dispatch [::events/init-tool tool-details tool-id]))
-                       (when-not threshold-halted?
-                         (if collapsed?
-                           (dispatch [::events/expand-tool cljs])
-                           (dispatch [::events/collapse-tool cljs])))
-                       (reset! override-collapse* true))}
+             (when (and (or collapse @collapsed-tool? threshold-halted?)
+                        (not @override-collapse*))
+               (dispatch [::events/init-tool tool-details tool-id]))
+             (when-not threshold-halted?
+               (if collapsed?
+                 (dispatch [::events/expand-tool cljs])
+                 (dispatch [::events/collapse-tool cljs])))
+             (reset! override-collapse* true))
+           (not collapsed?))
           [:span.report-item-title
            (clean-tool-name human)
            (when (not-empty description)
@@ -66,10 +68,7 @@
           (when threshold-halted?
             [:span.report-item-threshold
              "Results exceed recommended amount for this tool - you can still load it by clicking this header"])
-          [:span.report-item-toggle
-           (if collapsed?
-             [icon "expand-folder"]
-             [icon "collapse-folder"])]]
+          [chevron collapsed?]]
          [:div.report-item-tool {:class (when collapsed? :hidden)}
           [:div {:class cljs
                  :id tool-id}]]]))))

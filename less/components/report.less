@@ -82,58 +82,36 @@
 }
 
 .report-page .report-table {
-    margin-top: @spacer*3.5;
+    margin-top: @spacer*2.5;
 
+    // Section title: Alliance h3 with a bottom rule.
     &-heading {
-        margin-bottom: 0;
-        padding-bottom: @spacer/4;
-        border-bottom: 3px solid @branding-color-secondary;
-        color: @branding-color-secondary;
-    }
-
-    &-body {
-        font-size: 1.2em;
-        display: table;
-        width: 100%;
-    }
-
-    &-row {
-        display: table-row;
-
-        &:nth-child(2n-1) {
-            background-color: @content-color-background;
-        }
-    }
-
-    &-cell {
-        display: table-cell;
-        padding: @spacer/2 @spacer;
-        font-weight: 400;
-        overflow-wrap: break-word;
-
-        .show-more-button {
-            display: inline;
-            margin: 0;
-            padding: 0;
-            padding-left: 0.5*@spacer;
-            color: @highlight-color;
-        }
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0;
+        color: var(--agr-text);
     }
 
     &-link {
-        color: @highlight-color;
+        color: var(--agr-primary-dark);
         text-decoration: underline;
         cursor: pointer;
     }
 
-    &-header {
-        font-weight: 300;
-        overflow-wrap: break-word;
+    .show-more-button {
+        display: inline;
+        margin: 0;
+        padding: 0 0 0 @spacer/2;
+        color: var(--agr-primary-dark);
+        font-size: 0.9em;
+        text-transform: none;
     }
 
     .collapse-table {
-        font-size: 1.4em;
-        outline: 0 !important;
+        font-size: 1.1em;
+        outline: 0;
+        float: none !important;
 
         &,
         .icon {
@@ -142,14 +120,22 @@
         }
 
         .icon {
-            fill: @branding-color-secondary;
+            fill: var(--agr-muted);
             transition: transform 0.2s ease-in-out 0s;
 
             &.collapsed {
                 transform: rotate(180deg);
             }
         }
+        &:focus-visible { outline: 2px solid var(--agr-primary); outline-offset: 2px; }
     }
+
+    .report-attrs, .alliance-summary .agr-attrs {
+        margin-bottom: var(--agr-space-3);
+    }
+    .alliance-summary .agr-attrs { margin-top: var(--agr-space-2); }
+
+    .other-alliance-mines { margin-bottom: var(--agr-space-2); }
 }
 
 .report-page .fasta-value {
@@ -166,9 +152,10 @@
     }
 
     .fasta-sequence {
-        background-color: @content-color-background;
+        background-color: var(--agr-bg-light);
         overflow: auto;
         width: 400px;
+        max-width: 80vw;
         height: 200px;
         resize: both;
         margin: 0;
@@ -181,8 +168,8 @@
     .fasta-download {
         display: flex;
         align-items: center;
-        color: @highlight-color;
-        fill: @highlight-color;
+        color: var(--agr-primary-dark);
+        fill: var(--agr-primary-dark);
         text-decoration: underline;
 
         &.disabled {
@@ -198,77 +185,121 @@
     }
 }
 
-.report-page .toc-hide-heading {
-    // Covers the TOC heading if scrolled to the top of the page, to avoid
-    // displaying the same heading in two places.
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: @spacer*3;
-    z-index: 100;
-    background-color: @body-background-color;
-}
-.report-page .toc-container {
-    font-size: 1.1em;
-    font-weight: 400;
+// ---- Header ----------------------------------------------------------
+.report-page .report-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--agr-space-3);
+    margin-bottom: var(--agr-space-5);
 
-    padding-left: @spacer*2;
+    p { margin: 0; }
+
+    .report-class-label {
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--agr-muted);
+
+        &::before {
+            content: "";
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 5px;
+            border-radius: 50%;
+            background: var(--agr-primary);
+            vertical-align: 1px;
+        }
+    }
+
+    .report-page-heading {
+        margin: 0;
+        font-size: var(--agr-h1-size);
+        font-weight: 500;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .report-species { font-style: italic; margin-top: var(--agr-space-1); }
+    .report-primary-id { color: var(--agr-muted); }
+
+    .report-header-actions { padding-top: var(--agr-space-4); }
+}
+
+.report-page .report-nav { position: relative; }
+
+.report-page-filter {
+    margin-bottom: var(--agr-space-3);
+}
+
+// ---- Table of contents -----------------------------------------------
+.report-page .toc-container {
+    font-size: 1em;
 
     // Stick to top when scrolling past it.
     position: sticky;
     top: @spacer;
     z-index: 10;
 
-    .toc-heading {
-        text-decoration: none;
-
-        .toc-title {
-            line-height: 1.4;
-            font-weight: 600;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-    }
-
     .toc {
         max-height: 90vh;
         overflow: auto;
+        margin: 0;
+        border-top: 1px solid var(--agr-border);
 
         &, ul {
             list-style-type: none;
+            padding-left: 0;
         }
-
-        & { padding-left: 0; }
-        ul { padding-left: @spacer*2; }
 
         a {
-            font-weight: 300;
+            display: block;
+            cursor: pointer;
+            color: var(--agr-primary-dark);
+            font-weight: 400;
+            text-decoration: none;
+
+            li {
+                padding: var(--agr-space-2) var(--agr-space-3);
+                border-bottom: 1px solid var(--agr-border);
+            }
+
+            &:hover li { background: var(--agr-bg-hover); }
 
             &.active {
-                font-weight: bold;
-                color: @extra-color-secondary;
-
-                transition: all 0.3s ease;
-
+                background: var(--agr-primary);
                 li {
-                    border-bottom-color: @extra-color-secondary;
+                    color: #fff;
+                    border-bottom-color: var(--agr-primary);
                 }
+                &:hover li { background: var(--agr-primary-dark); }
             }
         }
 
-        li {
-            padding: @spacer/2 0;
-            border-bottom: 1px solid @light-contrast;
+        // Child items of the active section.
+        ul a li {
+            padding-left: var(--agr-space-5);
+            font-size: 0.95em;
+        }
+        ul a.active { background: var(--agr-primary-light); }
+        ul a.active li { color: var(--agr-text); border-bottom-color: var(--agr-border); }
 
-            .text-highlight {
-                font-weight: bold;
-                color: @highlight-color;
-            }
+        .text-highlight {
+            font-weight: 700;
+            color: inherit;
         }
     }
 }
 
+@media (max-width: 767px) {
+    .report-page .toc-container { position: static; }
+    .report-page .toc-container .toc { max-height: none; margin-bottom: var(--agr-space-4); }
+}
+
+// ---- Sidebar cards ---------------------------------------------------
 .report-page .sidebar {
 
     &-container {
@@ -287,40 +318,56 @@
     }
 
     .sidebar-entry {
-        margin-bottom: @spacer*0.2;
+        margin-bottom: var(--agr-space-4);
 
+        // Alliance card: bordered box, small bold heading on a light bar.
         h4 {
-            font-weight: 400;
-            padding: @spacer*0.6 @spacer*0.8;
-            color: @extra-color-text;
-            background-color: @extra-color-background;
-            border-bottom: 2px solid @light-contrast;
-            margin-bottom: 0;
+            margin: 0;
+            padding: var(--agr-space-2) var(--agr-space-3);
+            font-size: 14.4px;
+            font-weight: 700;
+            color: var(--agr-text);
+            background: var(--agr-bg-light);
+            border: 1px solid var(--agr-border);
+            border-radius: var(--agr-radius) var(--agr-radius) 0 0;
 
             a {
-                color: @extra-color-text;
+                float: right;
                 margin-left: @spacer/2;
+                font-weight: 400;
+                font-size: 12px;
             }
         }
 
         p {
-            padding-left: @spacer;
-            margin-top: @spacer/2;
-            font-weight: 400;
+            margin: 0;
+            padding: var(--agr-space-2) var(--agr-space-3);
+            border: 1px solid var(--agr-border);
+            border-top: 0;
+            color: var(--agr-muted);
+            font-style: italic;
         }
 
         ul {
             list-style-type: none;
-            padding-left: @spacer;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
+            border: 1px solid var(--agr-border);
+            border-top: 0;
+            border-radius: 0 0 var(--agr-radius) var(--agr-radius);
+
+            &:empty { display: none; }
 
             &.sidebar-actions {
                 overflow: visible;
+                border: 1px solid var(--agr-border);
+                border-radius: var(--agr-radius);
 
                 .permanent-url-container {
                     padding: @spacer/4 @spacer/2;
 
-                    p { padding: 0; }
+                    p { padding: 0; border: 0; font-style: normal; color: var(--agr-text); }
 
                     input {
                         max-width: 100%;
@@ -338,9 +385,11 @@
         }
 
         li {
-            padding: @spacer/2 0;
-            border-bottom: 1px solid @light-contrast;
+            padding: var(--agr-space-2) var(--agr-space-3);
+            border-bottom: 1px solid var(--agr-border);
             position: relative;
+
+            &:last-child { border-bottom: 0; }
 
             a {
                 display: block;
@@ -350,6 +399,7 @@
                 &.disabled {
                     cursor: default;
                     text-decoration: none;
+                    color: var(--agr-text);
                 }
 
                 .fade-background {
@@ -362,6 +412,7 @@
                     display: flex;
                     justify-content: flex-end;
                     align-items: center;
+                    padding-right: var(--agr-space-2);
                 }
 
                 .icon-external {
@@ -371,44 +422,59 @@
                 &.sidebar-action {
                     display: flex;
                     align-items: center;
-                    color: @highlight-color;
-                    fill: @highlight-color;
+                    gap: var(--agr-space-2);
+                    color: var(--agr-primary-dark);
+                    fill: var(--agr-primary-dark);
                 }
             }
 
+            // Other mines: mine name, then species (italic) and gene links,
+            // logo at the right. Wraps instead of overflowing on narrow widths.
             &.other-mine {
                 display: flex;
+                flex-wrap: nowrap;
                 justify-content: space-between;
-                align-items: center;
+                align-items: flex-start;
+                gap: var(--agr-space-2);
+
+                > div { flex: 1 1 auto; min-width: 0; }
 
                 .mine {
-                    margin-right: @spacer/2;
+                    display: block;
+                    margin-bottom: var(--agr-space-1);
                 }
 
                 .organism {
                     display: block;
+                    margin-top: var(--agr-space-1);
+                    font-style: italic;
+                    color: var(--agr-muted);
+                    font-size: 0.95em;
                 }
 
                 a {
                     display: inline-block;
                     white-space: normal;
+                    overflow-wrap: anywhere;
                     margin-right: @spacer/2;
 
                     .icon {
                         margin-left: @spacer/4;
-                        fill: @visible-gray;
+                        fill: var(--agr-muted);
                     }
                 }
 
                 img {
+                    flex: 0 0 auto;
                     width: @spacer*2;
                     max-height: @spacer*2;
+                    object-fit: contain;
                 }
 
                 .show-all-homologues {
+                    display: block;
                     font-size: 0.9em;
-                    color: @highlight-color;
-                    text-transform: uppercase;
+                    color: var(--agr-primary-dark);
                     margin-top: @spacer/2;
                 }
             }
@@ -417,12 +483,14 @@
         .show-more {
             display: flex;
             justify-content: center;
+            border: 1px solid var(--agr-border);
+            border-top: 0;
 
             button {
                 font-size: 0.9em;
                 margin: 0;
                 padding: @spacer/4 @spacer/2;
-                color: @highlight-color;
+                color: var(--agr-primary-dark);
             }
         }
     }
@@ -439,37 +507,53 @@
 }
 
 // Not scoped to report-page as it's also used for tools on results page.
+// Alliance panel: light header, bold title, count badge, chevron, 1px border.
 .report-item {
-    margin: @spacer/2 0 @spacer*2 0;
-    border: 1px solid @visible-gray;
-    transition: margin-bottom 0.6s;
-    background-color: @content-color-background;
+    margin: 0 0 var(--agr-space-3) 0;
+    border: 1px solid var(--agr-border);
+    border-radius: var(--agr-radius);
+    background-color: var(--agr-bg);
 
     &-collapsed {
-        margin-bottom: 0;
+        margin-bottom: var(--agr-space-3);
     }
 
     &-no-results {
-        opacity: 0.2;
+        opacity: 0.5;
     }
 
     &-heading {
-        font-size: 1.2em;
-        padding: @spacer*0.7 @spacer;
+        font-size: 14.4px;
+        padding: var(--agr-space-2) var(--agr-space-3);
         margin: 0;
-        color: @extra-color-text;
-        background-color: @extra-color-background;
-        font-weight: 600;
+        color: var(--agr-text);
+        background-color: var(--agr-bg-light);
+        font-weight: 700;
+        border-radius: var(--agr-radius);
 
         display: flex;
         align-items: center;
         justify-content: space-between;
         cursor: pointer;
+
+        &:hover { background-color: var(--agr-bg-hover); }
+        &:focus-visible { outline: 2px solid var(--agr-primary); outline-offset: -2px; }
+    }
+
+    &:not(.report-item-collapsed) > .report-item-heading {
+        border-bottom: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius) var(--agr-radius) 0 0;
     }
 
     &-title {
-        fill: @extra-color-text;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--agr-space-2);
+        fill: var(--agr-text);
     }
+
+    &-count { font-weight: 400; }
 
     &-description {
         padding: @spacer/2 @spacer/2;
@@ -477,9 +561,10 @@
         font-weight: normal;
         line-height: @spacer*1.4;
         min-width: 300px;
+        max-width: 90vw;
 
         a {
-            color: @highlight-color;
+            color: var(--agr-primary-dark);
         }
     }
 
@@ -488,21 +573,46 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        background-color: @extra-color-text;
-        color: @extra-color-background;
+        background-color: var(--agr-text);
+        color: var(--agr-bg);
         border-radius: 4px;
     }
 
     &-toggle {
-        fill: @extra-color-text;
+        flex: 0 0 auto;
+        fill: var(--agr-muted);
+
+        .icon {
+            width: 1em;
+            height: 1em;
+            transition: transform 0.2s ease-in-out 0s;
+            &.collapsed { transform: rotate(180deg); }
+        }
     }
 
     &-tool {
         // Tools should decide themselves if they want padding.
-        // If this wasn't a good idea after all, uncomment!
-        // padding: @spacer*2 @spacer*2.4;
         position: relative;
         overflow: auto;
         resize: vertical;
     }
+
+    > div { max-width: 100%; overflow-x: auto; }
 }
+
+// Narrow screens: stack the flex columns at full width; wide tables scroll
+// inside their panel instead of stretching the page.
+@media (max-width: 767px) {
+    .report-page .report-row > [class*="col-"] {
+        width: 100%;
+        min-width: 0;
+    }
+    .report-page .report-header .report-page-heading { font-size: 28px; }
+    // site.less makes `html` position:absolute at this width, which shrink-wraps
+    // it to the widest content. Pin it to the viewport so tables scroll in their panel.
+    html { width: 100%; }
+    // Nowrap sidebar links would otherwise widen the page.
+    .report-page .sidebar .sidebar-entry li a {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }}

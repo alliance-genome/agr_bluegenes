@@ -396,7 +396,7 @@
   (let [item @(subscribe [::report-item])
         in? @(subscribe [::report-in-cart?])]
     (when item
-      [:button.btn.btn-slim.cart-add
+      [:button.agr-btn.agr-btn-sm.cart-add
        {:type "button"
         :on-click #(dispatch [(if in? ::remove ::add) (if in? (item-key item) item)])}
        (if in? "Remove from cart" "Add to cart")])))
