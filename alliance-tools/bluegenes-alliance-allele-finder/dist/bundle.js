@@ -193,7 +193,8 @@
 	function message(el, text) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-allele-finder');
-		wrap.appendChild(node('span', text));
+		var cls = text === 'Loading...' ? 'agr-loading' : /^Could not/.test(text) ? 'agr-error' : 'agr-empty';
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -210,7 +211,9 @@
 	}
 
 	function renderTable(entries, kind, navigate) {
-		var table = node('table', null, 'table table-condensed table-striped');
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		var table = node('table', null, 'agr-table agr-table-sm');
+		tableWrap.appendChild(table);
 		var heads = ['Species', 'Gene', 'Allele', 'Term'];
 		if (kind === 'disease') heads.push('Qualifier');
 		heads.push('Publications');
@@ -223,7 +226,9 @@
 		var tbody = node('tbody');
 		entries.forEach(function (e) {
 			var tr = node('tr');
-			tr.appendChild(node('td', e.species));
+			var speciesCell = node('td');
+			speciesCell.appendChild(node('em', e.species));
+			tr.appendChild(speciesCell);
 			tr.appendChild(node('td', e.geneSymbol + (e.own ? ' (this gene)' : '')));
 
 			var alleleCell = node('td');
@@ -244,7 +249,7 @@
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		return table;
+		return tableWrap;
 	}
 
 	function countAlleles(entries) {
@@ -274,21 +279,25 @@
 			byKind[k] = aggregate(all.filter(function (r) { return r.kind === k; }));
 		});
 		if (!byKind.disease.length && !byKind.phenotype.length) {
-			wrap.appendChild(node('span', 'No alleles with disease or phenotype annotations for this gene or its orthologs'));
-			if (gaps.note) wrap.appendChild(node('p', gaps.note, 'alliance-allele-finder-note'));
+			wrap.appendChild(node('p', 'No alleles with disease or phenotype annotations for this gene or its orthologs', 'agr-empty'));
+			if (gaps.note) wrap.appendChild(node('p', gaps.note, 'agr-note alliance-allele-finder-note'));
 			return;
 		}
-		if (gaps.note) wrap.appendChild(node('p', gaps.note, 'alliance-allele-finder-note'));
-		if (truncated) wrap.appendChild(node('p', 'Partial result: a query stopped after ' + (PAGE_SIZE * MAX_PAGES) + ' rows, so allele and term counts are incomplete.'));
+		var notes = node('div', null, 'alliance-allele-finder-notes');
+		notes.appendChild(node('p', 'Allele disease and phenotype annotations for this gene and its orthologs, from this mine.', 'agr-note'));
+		if (gaps.note) notes.appendChild(node('p', gaps.note, 'agr-note alliance-allele-finder-note'));
+		if (truncated) notes.appendChild(node('p', 'Partial result: a query stopped after ' + (PAGE_SIZE * MAX_PAGES) + ' rows, so allele and term counts are incomplete.', 'agr-note'));
 
 		var state = { kind: byKind.disease.length ? 'disease' : 'phenotype', term: '', filter: '' };
-		var controls = node('div', null, 'alliance-allele-finder-controls');
-		var toggle = node('div', null, 'btn-group alliance-allele-finder-kind');
+		var controls = node('div', null, 'agr-filter-bar alliance-allele-finder-controls');
+		var toggle = node('ul', null, 'agr-tabs alliance-allele-finder-kind');
 		var filterInput = node('input', null, 'form-control alliance-allele-finder-search');
 		filterInput.type = 'text';
 		filterInput.placeholder = 'Search terms';
+		filterInput.setAttribute('aria-label', 'Search terms');
 		var select = node('select', null, 'form-control alliance-allele-finder-term');
-		var summary = node('p', null, 'alliance-allele-finder-summary');
+		select.setAttribute('aria-label', 'Term');
+		var summary = node('p', null, 'agr-note alliance-allele-finder-summary');
 		var tableHolder = node('div');
 		var buttons = {};
 
@@ -302,7 +311,7 @@
 			clear(summary);
 			summary.textContent = summaryText(entries, state.kind);
 			clear(tableHolder);
-			if (!entries.length) tableHolder.appendChild(node('span', 'No ' + state.kind + ' annotations for this selection'));
+			if (!entries.length) tableHolder.appendChild(node('p', 'No ' + state.kind + ' annotations for this selection', 'agr-empty'));
 			else tableHolder.appendChild(renderTable(entries, state.kind, navigate));
 		}
 
@@ -323,13 +332,16 @@
 
 		function refreshButtons() {
 			kinds.forEach(function (k) {
-				buttons[k].className = 'btn btn-default' + (k === state.kind ? ' active' : '');
+				buttons[k].setAttribute('aria-selected', k === state.kind ? 'true' : 'false');
 			});
 		}
 
 		kinds.forEach(function (k) {
-			var b = node('button', KIND_LABEL[k] + ' (' + byKind[k].length + ')', 'btn btn-default');
+			var li = node('li');
+			var b = node('button', KIND_LABEL[k] + ' ');
+			b.appendChild(node('span', '(' + byKind[k].length + ')', 'agr-count'));
 			b.type = 'button';
+			b.setAttribute('role', 'tab');
 			b.addEventListener('click', function () {
 				if (state.kind === k) return;
 				state.kind = k;
@@ -341,7 +353,8 @@
 				refreshTable();
 			});
 			buttons[k] = b;
-			toggle.appendChild(b);
+			li.appendChild(b);
+			toggle.appendChild(li);
 		});
 		filterInput.addEventListener('input', function () {
 			state.filter = filterInput.value;
@@ -352,12 +365,13 @@
 			refreshTable();
 		});
 
-		controls.appendChild(toggle);
 		controls.appendChild(filterInput);
 		controls.appendChild(select);
-		wrap.appendChild(controls);
+		wrap.appendChild(toggle);
 		wrap.appendChild(summary);
+		wrap.appendChild(controls);
 		wrap.appendChild(tableHolder);
+		wrap.appendChild(notes);
 		refreshButtons();
 		refreshOptions();
 		refreshTable();

@@ -270,6 +270,7 @@
 		a.href = href;
 		a.target = '_blank';
 		a.rel = 'noopener';
+		a.className = 'agr-external';
 		if (title) a.title = title;
 		return a;
 	}
@@ -295,9 +296,14 @@
 		return span;
 	}
 
+	function emphasis(text) {
+		var em = node('em', text);
+		return em;
+	}
+
 	var TABS = [
-		{ key: 'molecular', label: 'Molecular', empty: 'No molecular interactions in the Alliance' },
-		{ key: 'genetic', label: 'Genetic', empty: 'No genetic interactions in the Alliance' }
+		{ key: 'molecular', label: 'Molecular', empty: 'No molecular interactions for this gene' },
+		{ key: 'genetic', label: 'Genetic', empty: 'No genetic interactions for this gene' }
 	];
 
 	function table(rows, mineIds, navigate) {
@@ -305,7 +311,9 @@
 		var heads = ['Partner', 'Species', 'Interaction type'];
 		if (showMethod) heads.push('Detection method');
 		heads.push('Source', 'PMID');
-		var t = node('table', null, 'table table-condensed table-striped');
+		var wrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		wrap.appendChild(t);
 		var headRow = node('tr');
 		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
 		var thead = node('thead');
@@ -314,7 +322,7 @@
 		var tbody = node('tbody');
 		rows.forEach(function (r) {
 			var tr = node('tr');
-			var cells = [partnerCell(r, mineIds, navigate), r.species, r.type];
+			var cells = [partnerCell(r, mineIds, navigate), r.species ? emphasis(r.species) : '', r.type];
 			if (showMethod) cells.push(r.method);
 			cells.push(r.source, pmidCell(r.pmids));
 			cells.forEach(function (c) {
@@ -326,7 +334,7 @@
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		return t;
+		return wrap;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -343,10 +351,10 @@
 		var wrap = node('div', null, 'alliance-interactions');
 		el.appendChild(wrap);
 		if (geneId === undefined || geneId === null || geneId === '') {
-			wrap.appendChild(node('span', 'No gene selected'));
+			wrap.appendChild(node('p', 'No gene selected', 'agr-empty'));
 			return;
 		}
-		wrap.appendChild(node('span', 'Loading...'));
+		wrap.appendChild(node('p', 'Loading...', 'agr-loading'));
 
 		var mineRoot = serviceRoot(service.root);
 		var apiBase = apiBaseOf(config);
@@ -357,13 +365,13 @@
 				var r = rows[0];
 				if (!r) {
 					clear(wrap);
-					wrap.appendChild(node('span', 'Gene not found in this mine'));
+					wrap.appendChild(node('p', 'Gene not found in this mine', 'agr-empty'));
 					return;
 				}
 				var curie = toAllianceCurie(r[0], r[3] || r[2]);
 				if (!curie) {
 					clear(wrap);
-					wrap.appendChild(node('span', 'No Alliance gene for ' + r[0]));
+					wrap.appendChild(node('p', 'No Alliance gene for ' + r[0], 'agr-empty'));
 					return;
 				}
 				start(wrap, { mineRoot: mineRoot, apiBase: apiBase, curie: curie, symbol: r[1] || r[0], navigate: navigate, stale: stale });
@@ -372,16 +380,16 @@
 				if (stale()) return;
 				console.error('interactions: gene lookup failed', err);
 				clear(wrap);
-				wrap.appendChild(node('span', 'Could not load the gene from the mine'));
+				wrap.appendChild(node('p', 'Could not load the gene from the mine', 'agr-error'));
 			});
 	}
 
 	function start(wrap, ctx) {
 		clear(wrap);
-		var bar = node('div', null, 'alliance-interactions-tabs');
+		var bar = node('ul', null, 'agr-tabs alliance-interactions-tabs');
 		bar.setAttribute('role', 'tablist');
 		var panel = node('div', null, 'alliance-interactions-panel');
-		var foot = node('p', 'Data from the Alliance of Genome Resources API. ', 'alliance-interactions-source');
+		var foot = node('p', 'Data from the Alliance of Genome Resources API. ', 'agr-note alliance-interactions-source');
 		foot.appendChild(externalLink('View ' + ctx.symbol + ' on the Alliance', allianceGeneUrl(ctx.curie)));
 		wrap.appendChild(bar);
 		wrap.appendChild(panel);
@@ -392,13 +400,13 @@
 		var active = null;
 		var mineIds = {};
 
-		function labelOf(t) {
-			var s = st[t.key];
-			return s.total == null ? t.label : t.label + ' (' + s.total + ')';
-		}
-
 		function refreshLabels() {
-			TABS.forEach(function (t) { buttons[t.key].textContent = labelOf(t); });
+			TABS.forEach(function (t) {
+				var s = st[t.key];
+				var b = buttons[t.key];
+				b.textContent = s.total == null ? t.label : t.label + ' ';
+				if (s.total != null) b.appendChild(node('span', '(' + s.total + ')', 'agr-count'));
+			});
 		}
 
 		function showActive() {
@@ -406,23 +414,23 @@
 			var tab = TABS.filter(function (t) { return t.key === active; })[0];
 			clear(panel);
 			if (s.status === 'error' && !s.rows.length) {
-				panel.appendChild(node('span', 'Could not load ' + active + ' interactions from the Alliance'));
+				panel.appendChild(node('p', 'Could not load ' + active + ' interactions from the Alliance', 'agr-error'));
 				return;
 			}
 			if (s.status === 'loading' && !s.rows.length) {
-				panel.appendChild(node('span', 'Loading...'));
+				panel.appendChild(node('p', 'Loading...', 'agr-loading'));
 				return;
 			}
 			if (s.status === 'idle') return;
 			if (!s.rows.length) {
-				panel.appendChild(node('span', tab.empty));
+				panel.appendChild(node('p', tab.empty, 'agr-empty'));
 				return;
 			}
-			panel.appendChild(node('p', 'Showing ' + s.rows.length + ' of ' + s.total, 'alliance-interactions-summary'));
+			panel.appendChild(node('p', 'Showing ' + s.rows.length + ' of ' + s.total, 'agr-note alliance-interactions-summary'));
 			panel.appendChild(table(s.rows, mineIds, ctx.navigate));
-			if (s.status === 'error') panel.appendChild(node('p', 'Could not load more ' + active + ' interactions'));
+			if (s.status === 'error') panel.appendChild(node('p', 'Could not load more ' + active + ' interactions', 'agr-error'));
 			if (!s.done && s.rows.length < s.total) {
-				var more = node('button', s.status === 'loading' ? 'Loading...' : 'Load more', 'btn btn-default');
+				var more = node('button', s.status === 'loading' ? 'Loading...' : 'Load more', 'agr-btn agr-btn-sm');
 				more.type = 'button';
 				more.disabled = s.status === 'loading';
 				more.addEventListener('click', function () { loadPage(active); });
@@ -478,13 +486,15 @@
 
 		TABS.forEach(function (t) {
 			st[t.key] = { status: 'idle', rows: [], total: null, page: 0, done: false };
-			var b = node('button', t.label, 'btn btn-default');
+			var li = node('li');
+			var b = node('button', t.label);
 			b.type = 'button';
 			b.setAttribute('role', 'tab');
 			b.setAttribute('aria-selected', 'false');
 			b.addEventListener('click', function () { select(t.key); });
 			buttons[t.key] = b;
-			bar.appendChild(b);
+			li.appendChild(b);
+			bar.appendChild(li);
 		});
 
 		select('molecular');

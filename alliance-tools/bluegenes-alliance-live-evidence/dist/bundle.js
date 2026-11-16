@@ -256,9 +256,9 @@
 	}
 
 	var TABS = [
-		{ key: 'models', label: 'Disease models', endpoint: 'models', toRow: toModelRow, empty: 'No disease models in the Alliance for this gene' },
-		{ key: 'alleles', label: 'Alleles', endpoint: 'alleles', toRow: toAlleleRow, empty: 'No alleles in the Alliance for this gene' },
-		{ key: 'phenotypes', label: 'Phenotypes', endpoint: 'phenotypes', toRow: toPhenotypeRow, empty: 'No phenotypes in the Alliance for this gene' }
+		{ key: 'models', label: 'Disease models', endpoint: 'models', toRow: toModelRow, empty: 'No disease models for this gene' },
+		{ key: 'alleles', label: 'Alleles', endpoint: 'alleles', toRow: toAlleleRow, empty: 'No alleles for this gene' },
+		{ key: 'phenotypes', label: 'Phenotypes', endpoint: 'phenotypes', toRow: toPhenotypeRow, empty: 'No phenotypes for this gene' }
 	];
 
 	var COLUMNS = {
@@ -278,21 +278,25 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
+	var NUMERIC_HEADS = { Publications: true };
+
 	function table(heads, rows, cellsOf) {
-		var t = node('table', null, 'table table-condensed table-striped');
+		var wrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		wrap.appendChild(t);
 		var headRow = node('tr');
-		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
+		heads.forEach(function (h) { headRow.appendChild(node('th', h, NUMERIC_HEADS[h] ? 'num' : null)); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		t.appendChild(thead);
 		var tbody = node('tbody');
 		rows.forEach(function (row) {
 			var tr = node('tr');
-			cellsOf(row).forEach(function (c) { tr.appendChild(node('td', c == null ? '' : c)); });
+			cellsOf(row).forEach(function (c, i) { tr.appendChild(node('td', c == null ? '' : c, NUMERIC_HEADS[heads[i]] ? 'num' : null)); });
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		return t;
+		return wrap;
 	}
 
 	function pad(n) { return n < 10 ? '0' + n : String(n); }
@@ -302,12 +306,13 @@
 	}
 
 	function attribution(curie) {
-		var p = node('p', null, 'alliance-live-evidence-source');
+		var p = node('p', null, 'agr-note alliance-live-evidence-source');
 		p.appendChild(node('span', 'Data from the Alliance of Genome Resources API. '));
 		var a = node('a', 'Gene page for ' + curie);
 		a.href = geneUrl(curie);
 		a.setAttribute('target', '_blank');
 		a.setAttribute('rel', 'noopener noreferrer');
+		a.className = 'agr-external';
 		p.appendChild(a);
 		return p;
 	}
@@ -326,13 +331,13 @@
 		var wrap = node('div', null, 'alliance-live-evidence');
 		el.appendChild(wrap);
 		if (geneId === undefined || geneId === null || geneId === '') {
-			wrap.appendChild(node('span', 'No gene selected'));
+			wrap.appendChild(node('p', 'No gene selected', 'agr-empty'));
 			return;
 		}
 		var root = serviceRoot(service.root);
 		var base = apiBaseOf(config);
-		var note = node('p', null, 'alliance-live-evidence-note');
-		var bar = node('div', null, 'alliance-live-evidence-tabs');
+		var note = node('p', null, 'agr-note alliance-live-evidence-note');
+		var bar = node('ul', null, 'agr-tabs alliance-live-evidence-tabs');
 		bar.setAttribute('role', 'tablist');
 		var panel = node('div', null, 'alliance-live-evidence-panel');
 		var source = node('div', null, 'alliance-live-evidence-footer');
@@ -340,7 +345,7 @@
 		wrap.appendChild(bar);
 		wrap.appendChild(panel);
 		wrap.appendChild(source);
-		panel.appendChild(node('span', 'Loading...'));
+		panel.appendChild(node('p', 'Loading...', 'agr-loading'));
 
 		var curie = null;
 		var st = {};
@@ -349,23 +354,26 @@
 
 		function showMessage(msg) {
 			clear(panel);
-			panel.appendChild(node('span', msg));
+			var cls = /^Loading/.test(msg) ? 'agr-loading' : /^(Could not|Cannot)/.test(msg) ? 'agr-error' : 'agr-empty';
+			panel.appendChild(node('p', msg, cls));
 		}
 
 		function refreshLabels() {
 			TABS.forEach(function (t) {
 				var s = st[t.key];
-				buttons[t.key].textContent = s.status === 'done' ? t.label + ' (' + s.total + ')' : t.label;
+				var b = buttons[t.key];
+				b.textContent = s.status === 'done' ? t.label + ' ' : t.label;
+				if (s.status === 'done') b.appendChild(node('span', '(' + s.total + ')', 'agr-count'));
 			});
 		}
 
 		function pager(key, s) {
 			var from = (s.page - 1) * PAGE_SIZE + 1;
 			var to = from + s.rows.length - 1;
-			var box = node('div', null, 'alliance-live-evidence-pager');
-			var prev = node('button', 'Previous', 'btn btn-default btn-sm');
+			var box = node('div', null, 'agr-filter-bar alliance-live-evidence-pager');
+			var prev = node('button', 'Previous', 'agr-btn agr-btn-sm');
 			prev.setAttribute('type', 'button');
-			var next = node('button', 'Next', 'btn btn-default btn-sm');
+			var next = node('button', 'Next', 'agr-btn agr-btn-sm');
 			next.setAttribute('type', 'button');
 			if (s.page <= 1) prev.setAttribute('disabled', 'disabled');
 			if (to >= s.total) next.setAttribute('disabled', 'disabled');
@@ -374,7 +382,7 @@
 			box.appendChild(prev);
 			box.appendChild(node('span', ' ' + from + '-' + to + ' of ' + s.total + ' '));
 			box.appendChild(next);
-			box.appendChild(node('span', ' Fetched ' + timeStamp(s.fetchedAt)));
+			box.appendChild(node('span', ' Fetched ' + timeStamp(s.fetchedAt), 'agr-note'));
 			return box;
 		}
 
@@ -385,7 +393,8 @@
 			if (s.status === 'error') return showMessage('Could not load ' + t.label.toLowerCase() + ' from the Alliance API: ' + s.error);
 			clear(panel);
 			if (!s.rows.length) {
-				panel.appendChild(node('span', t.empty + '. Fetched ' + timeStamp(s.fetchedAt)));
+				panel.appendChild(node('p', t.empty, 'agr-empty'));
+				panel.appendChild(node('p', 'Fetched ' + timeStamp(s.fetchedAt), 'agr-note'));
 				return;
 			}
 			var cols = COLUMNS[active];
@@ -437,13 +446,15 @@
 		function buildTabs() {
 			TABS.forEach(function (t) {
 				st[t.key] = { status: 'idle', rows: [], total: 0, page: 1 };
-				var b = node('button', t.label, 'btn btn-default');
+				var li = node('li');
+				var b = node('button', t.label);
 				b.setAttribute('type', 'button');
 				b.setAttribute('role', 'tab');
 				b.setAttribute('aria-selected', 'false');
 				b.addEventListener('click', function () { select(t.key); });
 				buttons[t.key] = b;
-				bar.appendChild(b);
+				li.appendChild(b);
+				bar.appendChild(li);
 			});
 		}
 

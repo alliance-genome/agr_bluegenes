@@ -116,7 +116,7 @@ test('trackSvg builds SVG with createElementNS and highlights the current gene',
 	const current = svg.find('g').filter((g) => g.getAttribute('class').includes('alliance-sgd-current'));
 	assert.strictEqual(current.length, 1);
 	assert.ok(current[0].textContent.includes('ACT1'));
-	assert.strictEqual(current[0].find('rect')[0].getAttribute('fill'), '#d9534f');
+	assert.strictEqual(current[0].find('rect')[0].getAttribute('fill'), '#2598c5');
 });
 
 test('main shows half-life rows, the track and the attribution for ACT1', async () => {

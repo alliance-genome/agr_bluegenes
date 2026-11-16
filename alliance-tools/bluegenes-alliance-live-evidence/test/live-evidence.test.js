@@ -226,7 +226,7 @@ test('404 from the API shows no data', async () => {
 	const el = fakeEl();
 	tool.main(el, service, entity(1), {}, {}, () => {});
 	await tick();
-	assert.ok(el.textContent.includes('No disease models in the Alliance for this gene'));
+	assert.ok(el.textContent.includes('No disease models for this gene'));
 	assert.ok(el.textContent.includes('Disease models (0)'));
 });
 

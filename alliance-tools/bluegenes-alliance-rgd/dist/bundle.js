@@ -220,6 +220,7 @@
 		a.href = href;
 		a.target = '_blank';
 		a.rel = 'noopener';
+		a.className = 'agr-external';
 		if (title) a.title = title;
 		return a;
 	}
@@ -229,18 +230,20 @@
 		var head = node('h4');
 		head.appendChild(externalLink(gene.symbol || 'RGD:' + id, rgdGeneLink(id), 'View RGD:' + id + ' at RGD'));
 		card.appendChild(head);
+		var attrs = node('dl', null, 'agr-attrs');
 		[['Name', gene.name], ['Type', gene.type], ['RefSeq status', gene.refSeqStatus], ['Description', gene.description]].forEach(function (f) {
 			if (f[1] === undefined || f[1] === null || f[1] === '') return;
-			var p = node('p');
-			p.appendChild(node('strong', f[0] + ': '));
-			p.appendChild(document.createTextNode(String(f[1])));
-			card.appendChild(p);
+			attrs.appendChild(node('dt', f[0]));
+			attrs.appendChild(node('dd', f[1]));
 		});
+		card.appendChild(attrs);
 		return card;
 	}
 
 	function annotationTable(rows) {
-		var t = node('table', null, 'table table-condensed table-striped');
+		var wrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		wrap.appendChild(t);
 		var headRow = node('tr');
 		['Term', 'Evidence', 'Source', 'Reference'].forEach(function (h) { headRow.appendChild(node('th', h)); });
 		var thead = node('thead');
@@ -259,27 +262,41 @@
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		return t;
+		return wrap;
 	}
 
 	function orthologList(list) {
 		var d = node('details', null, 'alliance-rgd-orthologs');
 		d.appendChild(node('summary', 'Orthologs (' + list.length + ')'));
-		var ul = node('ul');
+		var wrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		var headRow = node('tr');
+		['Gene', 'Species', 'Name'].forEach(function (h) { headRow.appendChild(node('th', h)); });
+		var thead = node('thead');
+		thead.appendChild(headRow);
+		t.appendChild(thead);
+		var tbody = node('tbody');
 		list.forEach(function (o) {
-			var li = node('li');
-			li.appendChild(externalLink(o.symbol || 'RGD:' + o.rgdId, rgdGeneLink(o.rgdId), 'RGD:' + o.rgdId));
-			li.appendChild(document.createTextNode(' ' + speciesName(o.speciesTypeKey) + (o.name ? ', ' + o.name : '')));
-			ul.appendChild(li);
+			var tr = node('tr');
+			var gene = node('td');
+			gene.appendChild(externalLink(o.symbol || 'RGD:' + o.rgdId, rgdGeneLink(o.rgdId), 'RGD:' + o.rgdId));
+			var sp = node('td');
+			sp.appendChild(node('em', speciesName(o.speciesTypeKey)));
+			tr.appendChild(gene);
+			tr.appendChild(sp);
+			tr.appendChild(node('td', o.name || ''));
+			tbody.appendChild(tr);
 		});
-		d.appendChild(ul);
+		t.appendChild(tbody);
+		wrap.appendChild(t);
+		d.appendChild(wrap);
 		return d;
 	}
 
 	// Annotation tabs with per-aspect counts and 50-row paging.
 	function annotationView(groups) {
 		var box = node('div', null, 'alliance-rgd-annotations');
-		var bar = node('div', null, 'alliance-rgd-tabs');
+		var bar = node('ul', null, 'agr-tabs alliance-rgd-tabs');
 		bar.setAttribute('role', 'tablist');
 		var panel = node('div', null, 'alliance-rgd-panel');
 		box.appendChild(bar);
@@ -292,10 +309,10 @@
 			groups.forEach(function (x) { buttons[x.code].setAttribute('aria-selected', x.code === code ? 'true' : 'false'); });
 			clear(panel);
 			var n = Math.min(shown[code] || PAGE_SIZE, g.rows.length);
-			panel.appendChild(node('p', 'Showing ' + n + ' of ' + g.rows.length, 'alliance-rgd-summary'));
+			panel.appendChild(node('p', 'Showing ' + n + ' of ' + g.rows.length, 'agr-note alliance-rgd-summary'));
 			panel.appendChild(annotationTable(g.rows.slice(0, n)));
 			if (n < g.rows.length) {
-				var more = node('button', 'Show ' + Math.min(PAGE_SIZE, g.rows.length - n) + ' more', 'btn btn-default');
+				var more = node('button', 'Show ' + Math.min(PAGE_SIZE, g.rows.length - n) + ' more', 'agr-btn agr-btn-sm');
 				more.type = 'button';
 				more.addEventListener('click', function () {
 					shown[code] = n + PAGE_SIZE;
@@ -306,13 +323,16 @@
 		}
 
 		groups.forEach(function (g) {
-			var b = node('button', g.label + ' (' + g.rows.length + ')', 'btn btn-default');
+			var li = node('li');
+			var b = node('button', g.label + ' ');
+			b.appendChild(node('span', '(' + g.rows.length + ')', 'agr-count'));
 			b.type = 'button';
 			b.setAttribute('role', 'tab');
 			b.setAttribute('aria-selected', 'false');
 			b.addEventListener('click', function () { show(g.code); });
 			buttons[g.code] = b;
-			bar.appendChild(b);
+			li.appendChild(b);
+			bar.appendChild(li);
 		});
 		show(groups[0].code);
 		return box;
@@ -332,10 +352,10 @@
 		var wrap = node('div', null, 'alliance-rgd');
 		el.appendChild(wrap);
 		if (geneId === undefined || geneId === null || geneId === '') {
-			wrap.appendChild(node('span', 'No gene selected'));
+			wrap.appendChild(node('p', 'No gene selected', 'agr-empty'));
 			return;
 		}
-		wrap.appendChild(node('span', 'Loading...'));
+		wrap.appendChild(node('p', 'Loading...', 'agr-loading'));
 
 		var mineRoot = serviceRoot(service.root);
 		var apiBase = apiBaseOf(config);
@@ -348,12 +368,12 @@
 				var r = rows[0];
 				clear(wrap);
 				if (!r) {
-					wrap.appendChild(node('span', 'Gene not found in this mine'));
+					wrap.appendChild(node('p', 'Gene not found in this mine', 'agr-empty'));
 					return;
 				}
 				var id = isRat(r[1], r[2]) ? rgdIdOf(r[0]) : null;
 				if (!id) {
-					wrap.appendChild(node('span', NOT_RAT));
+					wrap.appendChild(node('p', NOT_RAT, 'agr-empty'));
 					return;
 				}
 				load(wrap, { apiBase: apiBase, id: id, stale: stale });
@@ -362,7 +382,7 @@
 				if (stale()) return;
 				console.error('rgd: gene lookup failed', err);
 				clear(wrap);
-				wrap.appendChild(node('span', 'Could not load the gene from the mine'));
+				wrap.appendChild(node('p', 'Could not load the gene from the mine', 'agr-error'));
 			});
 	}
 
@@ -371,10 +391,10 @@
 		var cardBox = node('div');
 		var annBox = node('div');
 		var orthoBox = node('div');
-		var foot = node('p', 'Data from the Rat Genome Database (RGD) REST API', 'alliance-rgd-source');
+		var foot = node('p', 'Data from the Rat Genome Database (RGD) REST API', 'agr-note alliance-rgd-source');
 		[cardBox, annBox, orthoBox, foot].forEach(function (b) { wrap.appendChild(b); });
-		cardBox.appendChild(node('span', 'Loading gene...'));
-		annBox.appendChild(node('span', 'Loading annotations...'));
+		cardBox.appendChild(node('p', 'Loading gene...', 'agr-loading'));
+		annBox.appendChild(node('p', 'Loading annotations...', 'agr-loading'));
 
 		getJson(geneUrl(ctx.apiBase, ctx.id))
 			.then(function (g) {
@@ -386,7 +406,7 @@
 				if (ctx.stale()) return;
 				console.error('rgd: gene failed', err);
 				clear(cardBox);
-				cardBox.appendChild(node('span', 'Could not load the gene from RGD'));
+				cardBox.appendChild(node('p', 'Could not load the gene from RGD', 'agr-error'));
 			});
 
 		getJson(annotationsUrl(ctx.apiBase, ctx.id))
@@ -394,14 +414,14 @@
 				if (ctx.stale()) return;
 				clear(annBox);
 				var groups = groupAnnotations(list);
-				if (!groups.length) annBox.appendChild(node('span', 'No annotations in RGD'));
+				if (!groups.length) annBox.appendChild(node('p', 'No annotations for this gene', 'agr-empty'));
 				else annBox.appendChild(annotationView(groups));
 			})
 			.catch(function (err) {
 				if (ctx.stale()) return;
 				console.error('rgd: annotations failed', err);
 				clear(annBox);
-				annBox.appendChild(node('span', 'Could not load annotations from RGD'));
+				annBox.appendChild(node('p', 'Could not load annotations from RGD', 'agr-error'));
 			});
 
 		getJson(orthologsUrl(ctx.apiBase, ctx.id))
@@ -412,7 +432,7 @@
 			.catch(function (err) {
 				if (ctx.stale()) return;
 				console.error('rgd: orthologs failed', err);
-				orthoBox.appendChild(node('span', 'Could not load orthologs from RGD'));
+				orthoBox.appendChild(node('p', 'Could not load orthologs from RGD', 'agr-error'));
 			});
 	}
 
