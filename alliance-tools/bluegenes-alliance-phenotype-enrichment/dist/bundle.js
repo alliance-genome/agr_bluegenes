@@ -358,10 +358,10 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-phenotype-enrichment');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -379,7 +379,7 @@
 		var wrap = node('div', null, 'alliance-phenotype-enrichment');
 		opts.hiddenPrefixes = opts.hiddenPrefixes || {};
 
-		var controls = node('div', null, 'alliance-phenotype-enrichment-options');
+		var controls = node('div', null, 'agr-filter-bar alliance-phenotype-enrichment-options');
 		var fdrLabel = node('label', 'Max FDR ');
 		var fdrInput = node('input');
 		fdrInput.type = 'number';
@@ -397,7 +397,6 @@
 		alleleLabel.appendChild(alleleInput);
 		alleleLabel.appendChild(document.createTextNode(' Include allele phenotype annotations'));
 		controls.appendChild(alleleLabel);
-		wrap.appendChild(controls);
 
 		function update() {
 			var v = parseFloat(fdrInput.value);
@@ -415,7 +414,7 @@
 		results.forEach(function (t) { if (prefixes.indexOf(t.prefix) < 0) prefixes.push(t.prefix); });
 		prefixes.sort();
 		if (prefixes.length) {
-			var pre = node('div', null, 'alliance-phenotype-enrichment-prefixes');
+			var pre = node('div', null, 'agr-filter-bar alliance-phenotype-enrichment-prefixes');
 			pre.appendChild(node('span', 'Ontology: '));
 			prefixes.forEach(function (pfx) {
 				var l = node('label', ' ');
@@ -431,46 +430,51 @@
 				l.appendChild(document.createTextNode(' ' + pfx + ' '));
 				pre.appendChild(l);
 			});
-			wrap.appendChild(pre);
+			controls.appendChild(pre);
 		}
 
 		var shown = results.filter(function (t) { return (t.incomplete || t.fdr <= opts.maxFdr) && !opts.hiddenPrefixes[t.prefix]; });
 
-		wrap.appendChild(
-			node(
-				'p',
-				'Background: all ' + data.N + ' genes of ' + data.organisms.join(', ') +
-					' in this mine. List: ' + data.n + ' genes. ' +
-					results.filter(function (t) { return !t.incomplete; }).length + ' terms tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.',
-				'alliance-phenotype-enrichment-background'
-			)
-		);
+		var summary = node('p', null, 'alliance-phenotype-enrichment-background');
+		summary.appendChild(document.createTextNode('Background: all ' + data.N + ' genes of '));
+		data.organisms.forEach(function (o, i) {
+			if (i > 0) summary.appendChild(document.createTextNode(', '));
+			summary.appendChild(node('em', o));
+		});
+		summary.appendChild(document.createTextNode(
+			' in this mine. List: ' + data.n + ' genes. ' +
+				results.filter(function (t) { return !t.incomplete; }).length + ' terms tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.'
+		));
+		wrap.appendChild(summary);
+		wrap.appendChild(controls);
 		if (data.allelesUnavailable) {
 			wrap.appendChild(
-				node('p', 'This mine has no allele phenotype annotations, so only gene annotations are used.', 'alliance-phenotype-enrichment-note')
+				node('p', 'This mine has no allele phenotype annotations, so only gene annotations are used.', 'agr-note alliance-phenotype-enrichment-note')
 			);
 		}
 		if (data.skipped > 0) {
 			wrap.appendChild(
-				node('p', data.skipped + ' annotations without a term were skipped', 'alliance-phenotype-enrichment-skipped')
+				node('p', data.skipped + ' annotations without a term were skipped', 'agr-note alliance-phenotype-enrichment-skipped')
 			);
 		}
 		if (data.listCapped) {
-			wrap.appendChild(node('p', 'Result limit reached for the list annotations: counts are incomplete, p and FDR are not shown.', 'alliance-phenotype-enrichment-capped'));
+			wrap.appendChild(node('p', 'Result limit reached for the list annotations: counts are incomplete, p and FDR are not shown.', 'agr-error alliance-phenotype-enrichment-capped'));
 		} else if (data.capped) {
-			wrap.appendChild(node('p', 'Result limit reached for some terms: their background counts are incomplete, so p and FDR are not shown for them.', 'alliance-phenotype-enrichment-capped'));
+			wrap.appendChild(node('p', 'Result limit reached for some terms: their background counts are incomplete, so p and FDR are not shown for them.', 'agr-error alliance-phenotype-enrichment-capped'));
 		}
 
+		var note = node('p', 'Hypergeometric upper-tail test with Benjamini-Hochberg FDR. k/n is the list genes with the term, K/N the background genes with the term.', 'agr-note');
 		if (!shown.length) {
-			wrap.appendChild(node('p', 'No enriched phenotype terms at this FDR'));
+			wrap.appendChild(node('p', 'No enriched phenotype terms at this FDR', 'agr-empty'));
+			wrap.appendChild(note);
 			el.appendChild(wrap);
 			return;
 		}
 
-		var table = node('table', null, 'table table-striped');
+		var table = node('table', null, 'agr-table agr-table-sm');
 		var thead = node('thead');
 		var hr = node('tr');
-		['Phenotype term', 'Ontology', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h) { hr.appendChild(node('th', h)); });
+		['Phenotype term', 'Ontology', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h, i) { hr.appendChild(node('th', h, i > 1 ? 'num' : null)); });
 		thead.appendChild(hr);
 		table.appendChild(thead);
 		var tbody = node('tbody');
@@ -487,15 +491,18 @@
 			cell.appendChild(a);
 			tr.appendChild(cell);
 			tr.appendChild(node('td', t.prefix));
-			tr.appendChild(node('td', t.k + '/' + t.n));
-			tr.appendChild(node('td', t.incomplete ? '>=' + t.K + '/' + t.N : t.K + '/' + t.N));
-			tr.appendChild(node('td', t.fold == null ? '' : t.fold.toFixed(2)));
-			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.p)));
-			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.fdr)));
+			tr.appendChild(node('td', t.k + '/' + t.n, 'num'));
+			tr.appendChild(node('td', t.incomplete ? '>=' + t.K + '/' + t.N : t.K + '/' + t.N, 'num'));
+			tr.appendChild(node('td', t.fold == null ? '' : t.fold.toFixed(2), 'num'));
+			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.p), 'num'));
+			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.fdr), 'num'));
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		wrap.appendChild(table);
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		tableWrap.appendChild(table);
+		wrap.appendChild(tableWrap);
+		wrap.appendChild(note);
 		el.appendChild(wrap);
 	}
 
@@ -511,18 +518,18 @@
 			return v !== undefined && v !== null && v !== '';
 		});
 		if (!list.length) {
-			message(el, 'No genes to analyse');
+			message(el, 'No genes to analyse', 'agr-empty');
 			return;
 		}
 		var sr = serviceRoot(service.root);
 
 		function run(opts) {
-			message(el, 'Loading...');
+			message(el, 'Loading', 'agr-loading');
 			load(sr, list, !!opts.includeAlleles)
 				.then(function (data) {
 					if (el.__agrPhenEnrichReq !== token) return;
 					if (!data.n) {
-						message(el, 'No genes with an organism in this list');
+						message(el, 'No genes with an organism in this list', 'agr-empty');
 						return;
 					}
 					render(el, data, navigate, opts, {
@@ -535,7 +542,7 @@
 				.catch(function (err) {
 					console.error('Phenotype enrichment failed', err);
 					if (el.__agrPhenEnrichReq !== token) return;
-					message(el, 'Could not compute phenotype enrichment from the mine');
+					message(el, 'Could not compute phenotype enrichment from the mine', 'agr-error');
 				});
 		}
 		run({ maxFdr: DEFAULT_MAX_FDR, includeAlleles: false, hiddenPrefixes: {} });

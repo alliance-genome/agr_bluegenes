@@ -264,10 +264,10 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-disease-enrichment');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -280,7 +280,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-disease-enrichment');
 
-		var controls = node('div', null, 'alliance-disease-enrichment-options');
+		var controls = node('div', null, 'agr-filter-bar alliance-disease-enrichment-options');
 		var fdrLabel = node('label', 'Max FDR ');
 		var fdrInput = node('input');
 		fdrInput.type = 'number';
@@ -297,7 +297,6 @@
 		negLabel.appendChild(negInput);
 		negLabel.appendChild(document.createTextNode(' Include negated annotations (is not implicated in)'));
 		controls.appendChild(negLabel);
-		wrap.appendChild(controls);
 
 		function update() {
 			var v = parseFloat(fdrInput.value);
@@ -311,29 +310,34 @@
 		var results = compute(data, opts);
 		var shown = results.filter(function (t) { return t.fdr <= opts.maxFdr; });
 
-		wrap.appendChild(
-			node(
-				'p',
-				'Background: all ' + data.N + ' genes of ' + data.organisms.join(', ') +
-					' in this mine. List: ' + data.n + ' genes. ' +
-					results.length + ' terms tested, ' + shown.length + ' with FDR <= ' + opts.maxFdr + '.',
-				'alliance-disease-enrichment-background'
-			)
-		);
+		var summary = node('p', null, 'alliance-disease-enrichment-background');
+		summary.appendChild(document.createTextNode('Background: all ' + data.N + ' genes of '));
+		data.organisms.forEach(function (o, i) {
+			if (i > 0) summary.appendChild(document.createTextNode(', '));
+			summary.appendChild(node('em', o));
+		});
+		summary.appendChild(document.createTextNode(
+			' in this mine. List: ' + data.n + ' genes. ' +
+				results.length + ' terms tested, ' + shown.length + ' with FDR <= ' + opts.maxFdr + '.'
+		));
+		wrap.appendChild(summary);
+		wrap.appendChild(controls);
 		if (data.capped) {
-			wrap.appendChild(node('p', 'Result limit reached, counts may be incomplete.'));
+			wrap.appendChild(node('p', 'Result limit reached, counts may be incomplete.', 'agr-note'));
 		}
 
+		var note = node('p', 'Hypergeometric upper-tail test with Benjamini-Hochberg FDR. k/n is the list genes with the term, K/N the background genes with the term.', 'agr-note');
 		if (!shown.length) {
-			wrap.appendChild(node('p', 'No enriched disease terms at this FDR'));
+			wrap.appendChild(node('p', 'No enriched disease terms at this FDR', 'agr-empty'));
+			wrap.appendChild(note);
 			el.appendChild(wrap);
 			return;
 		}
 
-		var table = node('table', null, 'table table-striped');
+		var table = node('table', null, 'agr-table agr-table-sm');
 		var thead = node('thead');
 		var hr = node('tr');
-		['Disease term', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h) { hr.appendChild(node('th', h)); });
+		['Disease term', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h, i) { hr.appendChild(node('th', h, i ? 'num' : null)); });
 		thead.appendChild(hr);
 		table.appendChild(thead);
 		var tbody = node('tbody');
@@ -349,15 +353,18 @@
 			});
 			cell.appendChild(a);
 			tr.appendChild(cell);
-			tr.appendChild(node('td', t.k + '/' + t.n));
-			tr.appendChild(node('td', t.K + '/' + t.N));
-			tr.appendChild(node('td', t.fold == null ? '' : t.fold.toFixed(2)));
-			tr.appendChild(node('td', formatP(t.p)));
-			tr.appendChild(node('td', formatP(t.fdr)));
+			tr.appendChild(node('td', t.k + '/' + t.n, 'num'));
+			tr.appendChild(node('td', t.K + '/' + t.N, 'num'));
+			tr.appendChild(node('td', t.fold == null ? '' : t.fold.toFixed(2), 'num'));
+			tr.appendChild(node('td', formatP(t.p), 'num'));
+			tr.appendChild(node('td', formatP(t.fdr), 'num'));
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		wrap.appendChild(table);
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		tableWrap.appendChild(table);
+		wrap.appendChild(tableWrap);
+		wrap.appendChild(note);
 		el.appendChild(wrap);
 	}
 
@@ -373,15 +380,15 @@
 			return v !== undefined && v !== null && v !== '';
 		});
 		if (!list.length) {
-			message(el, 'No genes to analyse');
+			message(el, 'No genes to analyse', 'agr-empty');
 			return;
 		}
-		message(el, 'Loading...');
+		message(el, 'Loading', 'agr-loading');
 		load(serviceRoot(service.root), list)
 			.then(function (data) {
 				if (el.__agrEnrichReq !== token) return;
 				if (!data.n) {
-					message(el, 'No genes with an organism in this list');
+					message(el, 'No genes with an organism in this list', 'agr-empty');
 					return;
 				}
 				render(el, data, navigate, { maxFdr: DEFAULT_MAX_FDR, includeNegated: false });
@@ -389,7 +396,7 @@
 			.catch(function (err) {
 				console.error('Disease enrichment failed', err);
 				if (el.__agrEnrichReq !== token) return;
-				message(el, 'Could not compute disease enrichment from the mine');
+				message(el, 'Could not compute disease enrichment from the mine', 'agr-error');
 			});
 	}
 

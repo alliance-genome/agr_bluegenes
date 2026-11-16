@@ -284,18 +284,24 @@
 		return a;
 	}
 
+	var NUMERIC_HEADS = ['Identity', 'Similarity', 'Rank', 'Methods matched', 'Phenotype annotations', 'Disease annotations'];
+
+	function numClass(head) {
+		return NUMERIC_HEADS.indexOf(head) !== -1 ? 'num' : null;
+	}
+
 	function table(heads, rows, cellsOf) {
-		var t = node('table', null, 'table table-condensed table-striped');
+		var t = node('table', null, 'agr-table agr-table-sm');
 		var headRow = node('tr');
-		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
+		heads.forEach(function (h) { headRow.appendChild(node('th', h, numClass(h))); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		t.appendChild(thead);
 		var tbody = node('tbody');
 		rows.forEach(function (row) {
 			var tr = node('tr');
-			cellsOf(row).forEach(function (c) {
-				var td = node('td');
+			cellsOf(row).forEach(function (c, i) {
+				var td = node('td', null, numClass(heads[i]));
 				if (c && typeof c === 'object') td.appendChild(c);
 				else td.textContent = c == null ? '' : String(c);
 				tr.appendChild(td);
@@ -303,20 +309,22 @@
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		return t;
+		var wrap = node('div', null, 'agr-table-wrap');
+		wrap.appendChild(t);
+		return wrap;
 	}
 
 	var TABS = [
-		{ key: 'alleles', label: 'Alleles', empty: 'No alleles in this mine' },
-		{ key: 'models', label: 'Disease models', empty: 'No disease models in this mine' },
-		{ key: 'paralogs', label: 'Paralogs', empty: 'No paralogs in this mine' }
+		{ key: 'alleles', label: 'Alleles', empty: 'No alleles for this gene' },
+		{ key: 'models', label: 'Disease models', empty: 'No disease models for this gene' },
+		{ key: 'paralogs', label: 'Paralogs', empty: 'No paralogs for this gene' }
 	];
 
 	function renderPanel(panel, key, rows, navigate, multi, truncated, cols) {
 		clear(panel);
 		var tab = TABS.filter(function (t) { return t.key === key; })[0];
 		if (!rows.length) {
-			panel.appendChild(node('span', tab.empty));
+			panel.appendChild(node('p', tab.empty, 'agr-empty'));
 			return;
 		}
 		var heads;
@@ -344,7 +352,7 @@
 			cells = function (r) {
 				return [
 					reportLink(r.symbol || r.identifier, 'Gene', r.id, navigate),
-					r.species,
+					node('em', r.species),
 					pct(r.identity),
 					pct(r.similarity),
 					r.rank,
@@ -357,7 +365,7 @@
 			heads = ['Query gene'].concat(heads);
 			cells = function (r) { return [r.source].concat(inner(r)); };
 		}
-		if (truncated) panel.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' rows.'));
+		if (truncated) panel.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' rows.', 'agr-note'));
 		panel.appendChild(table(heads, rows, cells));
 	}
 
@@ -410,7 +418,7 @@
 		var wrap = node('div', null, 'alliance-alleles-models');
 		el.appendChild(wrap);
 		if (!list.length) {
-			wrap.appendChild(node('span', 'No alleles, models or paralogs in this mine'));
+			wrap.appendChild(node('p', 'No alleles, models or paralogs for this gene', 'agr-empty'));
 			return;
 		}
 		var root = serviceRoot(service.root);
@@ -419,29 +427,31 @@
 		var cols = alleleColumns(service);
 		var stale = function () { return el.__agrAllelesReq !== token; };
 
-		var bar = node('div', null, 'alliance-alleles-models-tabs');
+		var bar = node('ul', null, 'agr-tabs alliance-alleles-models-tabs');
 		bar.setAttribute('role', 'tablist');
 		var panel = node('div', null, 'alliance-alleles-models-panel');
 		wrap.appendChild(bar);
 		wrap.appendChild(panel);
+		wrap.appendChild(node('p', 'Alleles, disease models and paralogs as stored in this mine. Methods matched is the number of orthology methods that agree on the paralog.', 'agr-note'));
 
 		var st = {};
 		var buttons = {};
 		var active = null;
 
-		function labelOf(t) {
+		function setLabel(b, t) {
 			var s = st[t.key];
-			return s.count == null ? t.label : t.label + ' (' + s.count + ')';
+			b.textContent = s.count == null ? t.label : t.label + ' ';
+			if (s.count != null) b.appendChild(node('span', '(' + s.count + ')', 'agr-count'));
 		}
 
 		function showActive() {
 			var s = st[active];
 			if (s.status === 'loading') {
 				clear(panel);
-				panel.appendChild(node('span', 'Loading...'));
+				panel.appendChild(node('p', 'Loading ' + active, 'agr-loading'));
 			} else if (s.status === 'error') {
 				clear(panel);
-				panel.appendChild(node('span', 'Could not load ' + active + ' from the mine'));
+				panel.appendChild(node('p', 'Could not load ' + active + ' from the mine', 'agr-error'));
 			} else if (s.status === 'done') {
 				renderPanel(panel, active, s.rows, navigate, multi, s.rows.length >= MAX_ROWS, cols);
 			}
@@ -471,7 +481,7 @@
 		}
 
 		function refreshLabels() {
-			tabs.forEach(function (t) { buttons[t.key].textContent = labelOf(t); });
+			tabs.forEach(function (t) { setLabel(buttons[t.key], t); });
 		}
 
 		function select(key) {
@@ -485,13 +495,16 @@
 
 		tabs.forEach(function (t) {
 			st[t.key] = { status: 'idle', rows: [], count: null };
-			var b = node('button', t.label, 'btn btn-default');
+			var li = node('li');
+			li.setAttribute('role', 'presentation');
+			var b = node('button', t.label);
 			b.setAttribute('type', 'button');
 			b.setAttribute('role', 'tab');
 			b.setAttribute('aria-selected', 'false');
 			b.addEventListener('click', function () { select(t.key); });
 			buttons[t.key] = b;
-			bar.appendChild(b);
+			li.appendChild(b);
+			bar.appendChild(li);
 		});
 
 		select('alleles');

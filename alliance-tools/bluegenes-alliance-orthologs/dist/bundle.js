@@ -198,10 +198,10 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-orthologs');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -218,7 +218,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-orthologs');
 		if (!rows.length) {
-			wrap.appendChild(node('span', 'No orthologs in this mine'));
+			wrap.appendChild(node('p', 'No orthologs for this gene', 'agr-empty'));
 			el.appendChild(wrap);
 			return;
 		}
@@ -229,9 +229,10 @@
 		wrap.appendChild(
 			node('p', rows.length + ' orthologs in ' + groups.length + ' species: ' + summary, 'alliance-orthologs-summary')
 		);
-		if (truncated) wrap.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' orthologs.'));
+		if (truncated) wrap.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' orthologs.', 'agr-note'));
 
-		var table = node('table', null, 'table table-condensed table-striped');
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		var table = node('table', null, 'agr-table agr-table-sm');
 		var headRow = node('tr');
 		var heads = ['Species', 'Symbol', 'Identifier'];
 		if (showAlgorithms) heads.push('Algorithms');
@@ -247,7 +248,9 @@
 			g.rows.forEach(function (row, i) {
 				var tr = node('tr');
 				if (multi) tr.appendChild(node('td', row.source));
-				tr.appendChild(node('td', i === 0 ? g.species : ''));
+				var speciesCell = node('td');
+				if (i === 0) speciesCell.appendChild(node('em', g.species));
+				tr.appendChild(speciesCell);
 				tr.appendChild(node('td', row.symbol || ''));
 
 				var idCell = node('td');
@@ -261,7 +264,7 @@
 				var curie = toCurie(row.identifier, row.species);
 				if (curie) {
 					idCell.appendChild(document.createTextNode(' '));
-					var ext = node('a', '↗', 'alliance-orthologs-external');
+					var ext = node('a', 'Alliance', 'agr-external');
 					ext.href = alliance(curie);
 					ext.target = '_blank';
 					ext.rel = 'noopener';
@@ -270,13 +273,20 @@
 				}
 				tr.appendChild(idCell);
 
-				if (showAlgorithms) tr.appendChild(node('td', support(row)));
-				if (showBest) tr.appendChild(node('td', row.best ? 'best' : row.bestReverse ? 'best reverse' : ''));
+				if (showAlgorithms) tr.appendChild(node('td', support(row), 'num'));
+				if (showBest) {
+					var bestCell = node('td');
+					var bestLabel = row.best ? 'best' : row.bestReverse ? 'best reverse' : '';
+					if (bestLabel) bestCell.appendChild(node('span', bestLabel, 'agr-badge'));
+					tr.appendChild(bestCell);
+				}
 				tbody.appendChild(tr);
 			});
 		});
 		table.appendChild(tbody);
-		wrap.appendChild(table);
+		tableWrap.appendChild(table);
+		wrap.appendChild(tableWrap);
+		wrap.appendChild(node('p', 'Orthologs as stored in this mine. Algorithms shows how many of the orthology methods support the pair.', 'agr-note'));
 		el.appendChild(wrap);
 	}
 
@@ -307,10 +317,10 @@
 			return v !== undefined && v !== null && v !== '';
 		});
 		if (!list.length) {
-			message(el, 'No orthologs in this mine');
+			message(el, 'No orthologs for this gene', 'agr-empty');
 			return;
 		}
-		message(el, 'Loading...');
+		message(el, 'Loading orthologs', 'agr-loading');
 		var view = viewFor(service);
 		fetchRows(serviceRoot(service.root), list, view)
 			.then(function (rows) {
@@ -319,7 +329,7 @@
 			})
 			.catch(function () {
 				if (el.__agrOrthReq !== token) return;
-				message(el, 'Could not load orthologs from the mine');
+				message(el, 'Could not load orthologs from the mine', 'agr-error');
 			});
 	}
 

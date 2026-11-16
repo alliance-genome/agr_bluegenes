@@ -325,6 +325,7 @@
 
 	function link(href, text) {
 		var a = make('a', null, text);
+		a.className = 'agr-external';
 		a.href = href;
 		a.target = '_blank';
 		a.rel = 'noopener';
@@ -343,8 +344,8 @@
 		return g.symbol || g.primaryIdentifier || String(g.geneId);
 	}
 
-	function appendCell(tr, content) {
-		var td = make('td');
+	function appendCell(tr, content, className) {
+		var td = make('td', className);
 		if (typeof content === 'string') {
 			td.textContent = content;
 		} else if (content) {
@@ -359,7 +360,7 @@
 		var term = make('span');
 		var href = doidHref(g.termId);
 		term.appendChild(href ? link(href, g.termName || g.termId) : make('span', null, g.termName || g.termId || ''));
-		if (href && g.termName) term.appendChild(make('small', 'text-muted', ' ' + g.termId));
+		if (href && g.termName) term.appendChild(make('small', 'agr-note', ' ' + g.termId));
 		cells.push(term);
 		cells.push(g.qualifier ? g.qualifier.replace(/_/g, ' ') : '');
 		cells.push(g.codes.join(', '));
@@ -387,10 +388,12 @@
 	}
 
 	function renderTable(groups, headers, cellsFor, showGene, limit) {
-		var table = make('table', 'table table-condensed table-striped');
+		var table = make('table', 'agr-table agr-table-sm');
 		var headRow = make('tr');
-		(showGene ? ['Gene'].concat(headers) : headers).forEach(function (h) {
-			headRow.appendChild(make('th', null, h));
+		var cols = showGene ? ['Gene'].concat(headers) : headers;
+		// The last column is the annotation count.
+		cols.forEach(function (h, i) {
+			headRow.appendChild(make('th', i === cols.length - 1 ? 'num' : null, h));
 		});
 		var thead = make('thead');
 		thead.appendChild(headRow);
@@ -398,13 +401,16 @@
 		var tbody = make('tbody');
 		groups.slice(0, limit).forEach(function (g) {
 			var tr = make('tr');
-			cellsFor(g, showGene).forEach(function (c) {
-				appendCell(tr, c);
+			var cells = cellsFor(g, showGene);
+			cells.forEach(function (c, i) {
+				appendCell(tr, c, i === cells.length - 1 ? 'num' : null);
 			});
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		return table;
+		var tableWrap = make('div', 'agr-table-wrap');
+		tableWrap.appendChild(table);
+		return tableWrap;
 	}
 
 	function totalCount(groups) {
@@ -417,18 +423,20 @@
 	function renderSection(box, kind, groups, showGene, truncated) {
 		function draw(expanded) {
 			clear(box);
-			box.appendChild(make('h4', null, kind.title + ' (' + totalCount(groups) + ')'));
+			var heading = make('h4', null, kind.title + ' ');
+			heading.appendChild(make('span', 'agr-count', '(' + totalCount(groups) + ')'));
+			box.appendChild(heading);
 			if (truncated) {
-				box.appendChild(make('p', 'text-warning', 'Showing first ' + MAX_ROWS + ' rows, results are incomplete'));
+				box.appendChild(make('p', 'agr-note', 'Showing first ' + MAX_ROWS + ' rows, results are incomplete'));
 			}
 			if (groups.length === 0) {
-				box.appendChild(make('p', 'text-muted', kind.empty));
+				box.appendChild(make('p', 'agr-empty', kind.empty));
 				return;
 			}
 			var limit = expanded ? groups.length : COLLAPSE_AFTER;
 			box.appendChild(renderTable(groups, kind.headers, kind.cellsFor, showGene, limit));
 			if (!expanded && groups.length > COLLAPSE_AFTER) {
-				var btn = make('button', 'btn btn-default btn-sm', 'Show all ' + groups.length + ' rows');
+				var btn = make('button', 'agr-btn agr-btn-sm', 'Show all ' + groups.length + ' rows');
 				btn.type = 'button';
 				btn.addEventListener('click', function () {
 					draw(true);
@@ -439,17 +447,17 @@
 		draw(false);
 	}
 
-	function showMessage(box, title, text) {
+	function showMessage(box, title, text, className) {
 		clear(box);
 		box.appendChild(make('h4', null, title));
-		box.appendChild(make('p', 'text-muted', text));
+		box.appendChild(make('p', className, text));
 	}
 
 	var DISEASE_KIND = {
 		title: 'Disease',
 		headers: ['Disease', 'Association', 'Evidence', 'Source', 'Annotations'],
 		cellsFor: diseaseCells,
-		empty: 'No disease annotations',
+		empty: 'No disease annotations for this gene',
 		build: buildDiseaseQuery,
 		group: groupDisease
 	};
@@ -457,13 +465,13 @@
 		title: 'Phenotype',
 		headers: ['Phenotype', 'Publications', 'Annotations'],
 		cellsFor: phenotypeCells,
-		empty: 'No phenotype annotations',
+		empty: 'No phenotype annotations for this gene',
 		build: buildPhenotypeQuery,
 		group: groupPhenotype
 	};
 
 	function loadSection(el, token, box, kind, serviceRoot, ids) {
-		showMessage(box, kind.title, 'Loading...');
+		showMessage(box, kind.title, 'Loading', 'agr-loading');
 		fetchRows(serviceRoot, kind.build(ids))
 			.then(function (rows) {
 				if (el.__agrReq !== token) return;
@@ -471,7 +479,7 @@
 			})
 			.catch(function () {
 				if (el.__agrReq !== token) return;
-				showMessage(box, kind.title, 'Could not load ' + kind.title.toLowerCase() + ' annotations from the mine');
+				showMessage(box, kind.title, 'Could not load ' + kind.title.toLowerCase() + ' annotations from the mine', 'agr-error');
 			});
 	}
 
@@ -487,11 +495,12 @@
 		var phenotypeBox = make('div', 'alliance-phenotype');
 		wrap.appendChild(diseaseBox);
 		wrap.appendChild(phenotypeBox);
+		wrap.appendChild(make('p', 'agr-note', 'Annotations as stored in this mine. The last column counts distinct annotations behind each row.'));
 		el.appendChild(wrap);
 		var ids = entityIds(imEntity);
 		if (ids.length === 0) {
-			showMessage(diseaseBox, DISEASE_KIND.title, DISEASE_KIND.empty);
-			showMessage(phenotypeBox, PHENOTYPE_KIND.title, PHENOTYPE_KIND.empty);
+			showMessage(diseaseBox, DISEASE_KIND.title, DISEASE_KIND.empty, 'agr-empty');
+			showMessage(phenotypeBox, PHENOTYPE_KIND.title, PHENOTYPE_KIND.empty, 'agr-empty');
 			return;
 		}
 		loadSection(el, token, diseaseBox, DISEASE_KIND, serviceRoot(service.root), ids);
@@ -500,7 +509,7 @@
 		if (PHENOTYPE_PATHS.every(function (p) { return hasPath(service, p); })) {
 			loadSection(el, token, phenotypeBox, PHENOTYPE_KIND, serviceRoot(service.root), ids);
 		} else {
-			showMessage(phenotypeBox, PHENOTYPE_KIND.title, 'Phenotype annotations are not available in this mine');
+			showMessage(phenotypeBox, PHENOTYPE_KIND.title, 'Phenotype annotations are not available in this mine', 'agr-empty');
 		}
 	}
 

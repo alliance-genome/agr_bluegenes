@@ -59,7 +59,7 @@ test('main posts to the service root with a form body and renders terms', async 
 	const out = text(el);
 	assert.match(out, /4 disease terms on orthologs/);
 	assert.match(out, /also annotated to this gene/);
-	assert.match(out, /Nf1 \(D\. melanogaster\); is_implicated_in; evidence ECO:7, ECO:9/);
+	assert.match(out, /Nf1D\. melanogasteris implicated inECO:7, ECO:9/);
 	assert.ok(!/Gx/.test(out));
 	const links = el.find('a');
 	assert.strictEqual(links[0].href, 'https://disease-ontology.org/?id=DOID:1');
@@ -70,7 +70,7 @@ test('empty result shows the empty state', async () => {
 	const el = document.createElement('div');
 	tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
 	await tick();
-	assert.strictEqual(text(el), 'No disease annotations on orthologs');
+	assert.strictEqual(text(el), 'No disease annotations on orthologs for this gene');
 });
 
 test('failure of the main query shows a short message and logs', async () => {
@@ -117,7 +117,7 @@ test('a stale response does not overwrite a newer one', async () => {
 	tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
 	tool.main(el, { root: ROOT }, { Gene: { value: 2 } }, {}, {}, () => {});
 	await new Promise((r) => setTimeout(r, 80));
-	assert.strictEqual(text(el), 'No disease annotations on orthologs');
+	assert.strictEqual(text(el), 'No disease annotations on orthologs for this gene');
 });
 
 test('terms collapse after 25 and the button reveals the rest', () => {
@@ -128,7 +128,7 @@ test('terms collapse after 25 and the button reveals the rest', () => {
 	}
 	const el = document.createElement('div');
 	tool.render(el, rows.map(tool.toRow), {}, false, false);
-	const items = el.find('li').filter((li) => li.className === 'alliance-ortholog-disease-term');
+	const items = el.find('tbody').filter((li) => li.className === 'alliance-ortholog-disease-term');
 	assert.strictEqual(items.length, 30);
 	assert.strictEqual(items.filter((li) => li.style && li.style.display === 'none').length, 5);
 	const btn = el.find('button')[0];
@@ -144,7 +144,7 @@ test('list input uses ONE OF and shows the source gene', async () => {
 	tool.main(el, { root: ROOT }, { Gene: { value: [1, 2] } }, {}, {}, () => {});
 	await tick();
 	assert.match(decodeURIComponent(calls[0].opts.body), /op="ONE OF"/);
-	assert.match(text(el), /ortholog of MGI:1/);
+	assert.match(text(el), /Query gene[\s\S]*MGI:1/);
 });
 
 test('main query excludes inferred and NOT qualifiers, own query excludes NOT', async () => {

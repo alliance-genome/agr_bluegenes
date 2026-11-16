@@ -96,7 +96,7 @@ test('empty state', async () => {
 	const el = fakeEl();
 	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
 	await tick();
-	assert.strictEqual(el.textContent, 'No orthologs in this mine');
+	assert.strictEqual(el.textContent, 'No orthologs for this gene');
 });
 
 test('error shows a short message', async () => {

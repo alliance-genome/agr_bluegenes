@@ -287,10 +287,10 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-disease-atlas');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -326,17 +326,20 @@
 
 	function organismSection(org, navigate, withTerm, showModels) {
 		var sec = node('div', null, 'alliance-disease-atlas-organism');
-		var head = node('h4', org.name + ' (' + org.genes.length + ' genes)');
+		var head = node('h4');
+		head.appendChild(node('em', org.name));
+		head.appendChild(document.createTextNode(' '));
+		head.appendChild(node('span', '(' + org.genes.length + ' genes)', 'agr-count'));
 		sec.appendChild(head);
 		if (org.genes.length) {
-			var btn = node('button', 'Open as query', 'btn btn-default btn-sm alliance-disease-atlas-open');
+			var btn = node('button', 'Open as query', 'agr-btn agr-btn-sm alliance-disease-atlas-open');
 			btn.type = 'button';
 			btn.addEventListener('click', function () {
 				if (typeof navigate === 'function') navigate('query', geneQueryObject(org.genes));
 			});
 			sec.appendChild(btn);
 
-			var table = node('table', null, 'table table-striped');
+			var table = node('table', null, 'agr-table agr-table-sm');
 			var thead = node('thead');
 			var hr = node('tr');
 			['Gene', 'Direct', 'Via orthology'].concat(showModels ? ['Disease models'] : [])
@@ -355,10 +358,12 @@
 				tbody.appendChild(tr);
 			});
 			table.appendChild(tbody);
-			sec.appendChild(table);
+			var tableWrap = node('div', null, 'agr-table-wrap');
+			tableWrap.appendChild(table);
+			sec.appendChild(tableWrap);
 		}
 		if (org.notGenes.length) {
-			var p = node('p', 'Annotated NOT (' + org.notGenes.length + '): ', 'alliance-disease-atlas-not');
+			var p = node('p', 'Annotated NOT (' + org.notGenes.length + '): ', 'agr-note alliance-disease-atlas-not');
 			org.notGenes.forEach(function (g, i) {
 				if (i) p.appendChild(document.createTextNode(', '));
 				p.appendChild(symbolLink(g, navigate));
@@ -372,6 +377,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-disease-atlas');
 
+		var bar = node('div', null, 'agr-filter-bar');
 		var label = node('label', ' ');
 		var box = node('input');
 		box.type = 'checkbox';
@@ -380,11 +386,11 @@
 		label.appendChild(box);
 		label.appendChild(document.createTextNode(' include child terms'));
 		box.addEventListener('change', function () { onToggle(!!box.checked); });
-		wrap.appendChild(label);
+		bar.appendChild(label);
 
 		var g = group(data.annotations, data.models);
 		var nTerms = data.terms.length;
-		wrap.appendChild(
+		var summary = (
 			node(
 				'p',
 				g.geneCount + ' genes in ' + g.organisms.length + ' organisms annotated to ' +
@@ -394,19 +400,22 @@
 				'alliance-disease-atlas-summary'
 			)
 		);
+		wrap.appendChild(summary);
+		wrap.appendChild(bar);
 		if (data.modelsUnavailable) {
-			wrap.appendChild(node('p', 'This mine has no disease model data, so the disease models column is left out.', 'alliance-disease-atlas-note'));
+			wrap.appendChild(node('p', 'This mine has no disease model data, so the disease models column is left out.', 'agr-note alliance-disease-atlas-note'));
 		}
 		if (data.childrenUnavailable) {
-			wrap.appendChild(node('p', 'This mine has no child term data, so only the term itself is used.', 'alliance-disease-atlas-note'));
+			wrap.appendChild(node('p', 'This mine has no child term data, so only the term itself is used.', 'agr-note alliance-disease-atlas-note'));
 		}
-		if (data.capped) wrap.appendChild(node('p', 'Result limit reached, the list may be incomplete.'));
+		if (data.capped) wrap.appendChild(node('p', 'Result limit reached, the list may be incomplete.', 'agr-note'));
 		if (!g.organisms.length) {
-			wrap.appendChild(node('p', 'No genes annotated to this disease term'));
+			wrap.appendChild(node('p', 'No genes annotated to this disease term', 'agr-empty'));
 		}
 		g.organisms.forEach(function (o) {
 			wrap.appendChild(organismSection(o, navigate, includeChildren, !data.modelsUnavailable));
 		});
+		wrap.appendChild(node('p', 'Disease annotations as stored in this mine. Direct annotations sit on the gene, via orthology ones are inferred from its orthologs.', 'agr-note'));
 		el.appendChild(wrap);
 	}
 
@@ -419,19 +428,19 @@
 		var id = entity && entity.value;
 		if (Array.isArray(id)) id = id[0];
 		if (id === undefined || id === null || id === '') {
-			message(el, 'No disease term');
+			message(el, 'No disease term', 'agr-empty');
 			return;
 		}
 		var sr = serviceRoot(service.root);
 
 		function run(includeChildren) {
 			var token = (el.__agrAtlasReq = (el.__agrAtlasReq || 0) + 1);
-			message(el, 'Loading...');
+			message(el, 'Loading', 'agr-loading');
 			load(sr, id, includeChildren)
 				.then(function (data) {
 					if (el.__agrAtlasReq !== token) return;
 					if (!data.term) {
-						message(el, 'Disease term not found in this mine');
+						message(el, 'Disease term not found in this mine', 'agr-empty');
 						return;
 					}
 					render(el, data, navigate, includeChildren, run);
@@ -439,7 +448,7 @@
 				.catch(function (err) {
 					console.error('Disease atlas failed', err);
 					if (el.__agrAtlasReq !== token) return;
-					message(el, 'Could not load genes for this disease from the mine');
+					message(el, 'Could not load genes for this disease from the mine', 'agr-error');
 				});
 		}
 		run(false);
