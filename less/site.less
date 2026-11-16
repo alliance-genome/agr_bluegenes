@@ -34,6 +34,7 @@
 @import "datatype-colors";
 @import "components/icons";
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,700,300);
+// Branding colours from web properties are not used for chrome: the @extra-color-* and @branding-color-* variables are fixed to the Alliance palette (see docs/design.md).
 
 body {
   background: @body-background-color;
@@ -598,3 +599,5 @@ textarea.hidden-clipboard {
     }
 }
 
+@import "alliance/tokens";
+@import "alliance/components";

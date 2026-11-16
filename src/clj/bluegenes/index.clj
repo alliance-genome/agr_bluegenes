@@ -103,6 +103,7 @@
     (when-let [ga4-id (not-empty (:google-analytics env))]
       [:script {:async true :src (str "https://www.googletagmanager.com/gtag/js?id=" ga4-id)}])
     [:script "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments)};"]
+    (include-css "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap")
     (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
     (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
     (include-css (use-deployment-path bluegenes-css))

@@ -1,8 +1,9 @@
+// Chrome colours use the Alliance palette for every mine. The --branding-header-* values from web properties are no longer read here (docs/design.md).
 @body-background-color: #f7f7f7;
-@body-foreground-color: #444444;
-@link-color: #000;
+@body-foreground-color: #212529;
+@link-color: #2681a6;
 //Bits you want to draw the eye to - usually y 1-2 items per page, pls
-@highlight-color: #039BE5;
+@highlight-color: #2598c5;
 @highlight-color-text: #fff;
 @cta-color: @highlight-color;
 @cta-color-text: @body-background-color;
@@ -20,13 +21,13 @@
 //for pages ares that need to be brought forward from the background. Assume same colour text as normal.
 @content-color-background: #fff;
 @content-color-text: @body-foreground-color;
-@extra-color-background: var(--branding-header-main, fadeout(@highlight-color, 40%));
-@extra-color-text: var(--branding-header-text, @highlight-color-text);
-@extra-color-secondary: var(--branding-header-secondary, @extra-color-background);
-@branding-color-main: var(--branding-header-main, @body-foreground-color);
+@extra-color-background: #2598c5;
+@extra-color-text: #fff;
+@extra-color-secondary: #2598c5;
+@branding-color-main: #2598c5;
 // Secondary is a new value you can't expect all mines to have, hence fallback to main.
-@branding-color-secondary: var(--branding-header-secondary, @branding-color-main);
-@branding-color-text: var(--branding-header-text, @body-background-color);
+@branding-color-secondary: #2598c5;
+@branding-color-text: #fff;
 @visible-gray: #CCCCCC;
 //to provide common styles.
 //please never pad manually, use multiples / divisons of @spacer instead.
