@@ -118,7 +118,8 @@ test('main renders families, warning and coverage, and posts to the service root
 	const text = el.textContent;
 	assert.ok(text.includes('1 paralog families with 2 or more list genes'));
 	assert.ok(text.includes('Paralogue data found for: H. sapiens'));
-	assert.ok(text.includes('A - B: identity 70'));
+	assert.ok(el.find('td').some((c) => c.textContent === 'A - B'));
+	assert.ok(el.find('td').some((c) => c.textContent === '70'));
 	assert.ok(text.includes('Warning: the largest family holds 2 of 5'));
 	assert.ok(calls.every((c) => c.url === 'http://localhost:9999/alliancetestmine/service/query/results'));
 	assert.ok(calls.every((c) => c.init.method === 'POST'));

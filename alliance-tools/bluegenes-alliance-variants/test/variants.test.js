@@ -155,7 +155,7 @@ test('main shows the empty state when the API has no variants', async () => {
 	tool.main(el, { root: MINE }, entity('1'), {}, {}, () => {});
 	await tick();
 	await tick();
-	assert.ok(texts(el, 'span').includes('No variants in the Alliance for this gene'));
+	assert.ok(texts(el, 'p').includes('No variants for this gene'));
 	assert.strictEqual(el.find('table').length, 0);
 });
 
@@ -165,7 +165,7 @@ test('main treats a 404 as no data', async () => {
 	tool.main(el, { root: MINE }, entity('1'), {}, {}, () => {});
 	await tick();
 	await tick();
-	assert.ok(texts(el, 'span').includes('No variants in the Alliance for this gene'));
+	assert.ok(texts(el, 'p').includes('No variants for this gene'));
 });
 
 test('main logs and shows a short message when the API fails', async () => {
@@ -179,7 +179,7 @@ test('main logs and shows a short message when the API fails', async () => {
 	await tick();
 	console.error = orig;
 	assert.strictEqual(errors.length, 1);
-	assert.ok(texts(el, 'span').includes('Could not load variants from the Alliance API'));
+	assert.ok(texts(el, 'p').includes('Could not load variants from the Alliance API'));
 });
 
 test('main logs and shows a message when the mine query fails', async () => {
@@ -192,7 +192,7 @@ test('main logs and shows a message when the mine query fails', async () => {
 	await tick();
 	console.error = orig;
 	assert.strictEqual(errors.length, 1);
-	assert.ok(texts(el, 'span').includes('Could not load the gene from the mine'));
+	assert.ok(texts(el, 'p').includes('Could not load the gene from the mine'));
 });
 
 test('main says so when the species has no Alliance identifier', async () => {
@@ -202,7 +202,7 @@ test('main says so when the species has no Alliance identifier', async () => {
 	tool.main(el, { root: MINE }, entity('1'), {}, {}, () => {});
 	await tick();
 	await tick();
-	assert.ok(texts(el, 'span').includes('No Alliance identifier for AT1G01010'));
+	assert.ok(texts(el, 'p').includes('No Alliance identifier for AT1G01010'));
 	assert.strictEqual(log.filter((l) => !l.url.startsWith(MINE)).length, 0);
 });
 

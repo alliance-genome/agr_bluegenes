@@ -260,8 +260,9 @@
 		return typeof n === 'number' ? n : 0;
 	}
 
+	// Heat step for a count, 0 for none and 1 to 6 matching agr-heat-1 to agr-heat-6.
 	function level(n) {
-		return n <= 0 ? 0 : n < 3 ? 1 : n < 10 ? 2 : n < 30 ? 3 : 4;
+		return n <= 0 ? 0 : n < 2 ? 1 : n < 4 ? 2 : n < 10 ? 3 : n < 20 ? 4 : n < 50 ? 5 : 6;
 	}
 
 	// Slim ids to ask the details endpoint for one cell.
@@ -332,7 +333,8 @@
 
 	function message(el, text) {
 		clear(el);
-		el.appendChild(node('span', text));
+		var cls = /^Loading/.test(text) ? 'agr-loading' : /^Could not/.test(text) ? 'agr-error' : 'agr-empty';
+		el.appendChild(node('p', text, cls));
 	}
 
 	function link(text, href) {
@@ -340,6 +342,7 @@
 		a.href = href;
 		a.target = '_blank';
 		a.rel = 'noopener noreferrer';
+		a.className = 'agr-external';
 		return a;
 	}
 
@@ -347,10 +350,12 @@
 		clear(box);
 		box.appendChild(node('h4', subject.symbol + ': ' + col.label + ' (' + rows.length + ' terms)'));
 		if (!rows.length) {
-			box.appendChild(node('span', 'No annotations for this cell'));
+			box.appendChild(node('p', 'No annotations for this cell', 'agr-empty'));
 			return;
 		}
-		var t = node('table', null, 'table table-condensed table-striped');
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		tableWrap.appendChild(t);
 		var hr = node('tr');
 		['Term', 'Evidence code', 'Reference'].forEach(function (h) { hr.appendChild(node('th', h)); });
 		var thead = node('thead');
@@ -374,9 +379,9 @@
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		box.appendChild(t);
+		box.appendChild(tableWrap);
 		if (rows.length > MAX_DETAIL_ROWS) {
-			box.appendChild(node('p', 'Showing the first ' + MAX_DETAIL_ROWS + ' of ' + rows.length + ' terms', 'alliance-go-ribbon-note'));
+			box.appendChild(node('p', 'Showing the first ' + MAX_DETAIL_ROWS + ' of ' + rows.length + ' terms', 'agr-note alliance-go-ribbon-note'));
 		}
 	}
 
@@ -387,7 +392,9 @@
 		var bySubject = {};
 		(ribbon.subjects || []).forEach(function (s) { bySubject[s.id] = s; });
 
+		var gridWrap = node('div', null, 'agr-table-wrap');
 		var table = node('table', null, 'alliance-go-ribbon-grid');
+		gridWrap.appendChild(table);
 		var thead = node('thead');
 		var top = node('tr');
 		var corner = node('th', 'Gene');
@@ -414,11 +421,17 @@
 		rows.forEach(function (row) {
 			var data = bySubject[row.curie];
 			var tr = node('tr');
-			tr.appendChild(node('th', row.symbol + (row.species ? ' (' + row.species + ')' : '')));
+			var rowHead = node('th', row.symbol + (row.species ? ' (' : ''));
+			if (row.species) {
+				rowHead.appendChild(node('em', row.species));
+				rowHead.appendChild(document.createTextNode(')'));
+			}
+			tr.appendChild(rowHead);
 			cols.forEach(function (c) {
 				var n = countOf(data, c);
-				var td = node('td');
-				var b = node('button', n || '', 'alliance-go-ribbon-cell alliance-go-ribbon-l' + level(n));
+				var lv = level(n);
+				var td = node('td', null, lv ? 'agr-heat-' + lv : 'alliance-go-ribbon-l0');
+				var b = node('button', n || '', 'alliance-go-ribbon-cell');
 				b.setAttribute('type', 'button');
 				b.setAttribute('aria-label', row.symbol + ', ' + c.label + ', ' + n + (n === 1 ? ' annotation' : ' annotations'));
 				var on = !!selected && selected.curie === row.curie && selected.key === c.key;
@@ -431,7 +444,7 @@
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		box.appendChild(table);
+		box.appendChild(gridWrap);
 	}
 
 	function main(el, service, imEntity, state, config) {
@@ -450,17 +463,17 @@
 		var wrap = node('div', null, 'alliance-go-ribbon');
 		el.appendChild(wrap);
 		if (!list.length) {
-			wrap.appendChild(node('span', 'No GO annotations available'));
+			wrap.appendChild(node('p', 'No GO annotations for this gene', 'agr-empty'));
 			return;
 		}
 		var sr = serviceRoot(service.root);
 		var base = apiBase(config);
 		var internalId = list[0];
 
-		var controls = node('div', null, 'alliance-go-ribbon-controls');
+		var controls = node('div', null, 'agr-filter-bar alliance-go-ribbon-controls');
 		var body = node('div');
 		var details = node('div', null, 'alliance-go-ribbon-details');
-		var source = node('p', null, 'alliance-go-ribbon-source');
+		var source = node('p', null, 'agr-note alliance-go-ribbon-source');
 		wrap.appendChild(controls);
 		wrap.appendChild(body);
 		wrap.appendChild(details);
@@ -485,7 +498,7 @@
 				renderDetails(details, row, col, []);
 				return;
 			}
-			details.appendChild(node('span', 'Loading annotations...'));
+			details.appendChild(node('p', 'Loading annotations...', 'agr-loading'));
 			fetchSlimmer(base, row.curie, slims)
 				.then(function (resp) {
 					if (stale() || mine !== detailSeq) return;
@@ -509,7 +522,7 @@
 				.then(function (json) {
 					if (stale() || mine !== seq) return;
 					if (!json || !json.categories || !(json.subjects || []).length) {
-						message(body, 'No GO annotations available');
+						message(body, 'No GO annotations for this gene');
 						return;
 					}
 					ribbon = json;
@@ -530,7 +543,7 @@
 		compareLabel.appendChild(compare);
 		compareLabel.appendChild(document.createTextNode(' Compare with orthologs'));
 		controls.appendChild(compareLabel);
-		var orthoNote = node('span', null, 'alliance-go-ribbon-note');
+		var orthoNote = node('span', null, 'agr-note alliance-go-ribbon-note');
 		controls.appendChild(orthoNote);
 
 		compare.addEventListener('change', function () {
@@ -545,7 +558,7 @@
 					if (stale() || mine !== seq) return;
 					orthologs = pickOrthologs(res, focus.curie, MAX_ORTHOLOGS);
 					orthoNote.textContent = !orthologs.total
-						? 'No orthologs in this mine'
+						? 'No orthologs for this gene'
 						: orthologs.total > orthologs.picked.length
 							? 'Showing ' + orthologs.picked.length + ' of ' + orthologs.total + ' orthologs'
 							: '';
@@ -565,7 +578,7 @@
 				if (stale()) return;
 				var s = res.length ? toSubject(res[0]) : null;
 				if (!s) {
-					message(body, res.length ? 'No Alliance identifier for this gene' : 'No GO annotations available');
+					message(body, res.length ? 'No Alliance identifier for this gene' : 'No GO annotations for this gene');
 					return;
 				}
 				focus = s;

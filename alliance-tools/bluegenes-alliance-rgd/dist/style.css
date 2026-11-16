@@ -1,0 +1,3 @@
+.alliance-rgd-gene, .alliance-rgd-annotations, .alliance-rgd-orthologs { margin-bottom: var(--agr-space-4, 16px); }
+.alliance-rgd-orthologs summary { cursor: pointer; font-weight: 700; margin-bottom: var(--agr-space-2, 8px); }
+.alliance-rgd-annotations .agr-btn { margin-top: var(--agr-space-2, 8px); }

@@ -126,7 +126,7 @@ test('countOf reads ALL annotations and level shades by count', () => {
 	assert.strictEqual(tool.countOf(tp53, cols[0]), 107);
 	assert.strictEqual(tool.countOf(tp53, { key: 'GO:none' }), 0);
 	assert.strictEqual(tool.countOf(undefined, cols[0]), 0);
-	assert.deepStrictEqual([0, 1, 2, 3, 9, 10, 29, 30, 500].map(tool.level), [0, 1, 1, 2, 2, 3, 3, 4, 4]);
+	assert.deepStrictEqual([0, 1, 2, 3, 9, 10, 29, 30, 500].map(tool.level), [0, 1, 2, 2, 3, 4, 5, 5, 6]);
 });
 
 test('slimsFor asks for the aspect, the term, or the terms of the other group', () => {
@@ -224,7 +224,7 @@ test('main renders one row with a labelled button per cell and the source note',
 	const mf = buttons.find((b) => b.getAttribute('aria-label') === 'TP53, all molecular function, 107 annotations');
 	assert.ok(mf);
 	assert.strictEqual(mf.textContent, '107');
-	assert.ok(mf.className.includes('alliance-go-ribbon-l4'));
+	assert.ok(el.find('td').some((td) => td.children.includes(mf) && td.className === 'agr-heat-6'));
 	assert.ok(buttons.some((b) => b.disabled === true));
 	const text = el.textContent;
 	assert.ok(text.includes('TP53 (H. sapiens)'));
@@ -316,7 +316,7 @@ test('a gene with a bare id from another mine is converted before the API call',
 	tool.main(el, { root: ROOT }, entity(8000144), {}, {});
 	await tick();
 	assert.ok(log.some((l) => l.url.includes('subject=FB%3AFBgn0003731')));
-	assert.ok(el.textContent.includes('No GO annotations available'));
+	assert.ok(el.textContent.includes('No GO annotations for this gene'));
 });
 
 test('404 from the API shows no data without console.error', async () => {
@@ -328,7 +328,7 @@ test('404 from the API shows no data without console.error', async () => {
 		const el = fakeEl();
 		tool.main(el, { root: ROOT }, entity(1), {}, {});
 		await tick();
-		assert.ok(el.textContent.includes('No GO annotations available'));
+		assert.ok(el.textContent.includes('No GO annotations for this gene'));
 		assert.strictEqual(errors.length, 0);
 	} finally {
 		console.error = orig;
@@ -372,7 +372,7 @@ test('gene unknown to the mine and gene without a curie give short messages', as
 	let el = fakeEl();
 	tool.main(el, { root: ROOT }, entity(1), {}, {});
 	await tick();
-	assert.ok(el.textContent.includes('No GO annotations available'));
+	assert.ok(el.textContent.includes('No GO annotations for this gene'));
 	globalThis.fetch = fakeNet({ gene: ['ENSG1', 'X', 'H. sapiens', '9606'] });
 	el = fakeEl();
 	tool.main(el, { root: ROOT }, entity(1), {}, {});
@@ -380,7 +380,7 @@ test('gene unknown to the mine and gene without a curie give short messages', as
 	assert.ok(el.textContent.includes('No Alliance identifier for this gene'));
 	el = fakeEl();
 	tool.main(el, { root: ROOT }, entity([]), {}, {});
-	assert.ok(el.textContent.includes('No GO annotations available'));
+	assert.ok(el.textContent.includes('No GO annotations for this gene'));
 });
 
 test('a response for an older entity does not overwrite the newer one', async () => {

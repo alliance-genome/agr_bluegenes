@@ -11,7 +11,8 @@
     "hideInAllianceMine": true
   },
   "files": {
-    "js": "dist/bundle.js"
+    "js": "dist/bundle.js",
+    "css": "dist/style.css"
   },
   "toolName": {
     "human": "Alliance models, alleles and phenotypes",

@@ -114,6 +114,7 @@
 		a.href = href;
 		a.target = '_blank';
 		a.rel = 'noopener noreferrer';
+		a.className = 'agr-external';
 		return a;
 	}
 
@@ -205,41 +206,48 @@
 			role: 'img', 'aria-label': 'Genes around the locus on S288C'
 		});
 		svg.setAttribute('class', 'alliance-sgd-track');
-		svg.appendChild(svgText(min + ' bp', { x: String(TRACK.left), y: '12', 'font-size': '10', fill: '#666' }));
-		svg.appendChild(svgText(max + ' bp', { x: String(TRACK.width - TRACK.right), y: '12', 'font-size': '10', fill: '#666', 'text-anchor': 'end' }));
+		svg.appendChild(svgText(min + ' bp', { x: String(TRACK.left), y: '12', 'font-size': '10', fill: '#6c757d', 'class': 'alliance-sgd-axis' }));
+		svg.appendChild(svgText(max + ' bp', { x: String(TRACK.width - TRACK.right), y: '12', 'font-size': '10', fill: '#6c757d', 'class': 'alliance-sgd-axis', 'text-anchor': 'end' }));
 		genes.forEach(function (g, i) {
 			var y = TRACK.top + lanes[i] * TRACK.laneH;
 			var w = Math.max(x(g.end) - x(g.start), 2);
-			var color = g.current ? '#d9534f' : '#5b8db8';
+			// Primary colour for the current gene, muted greys for neighbours. These values match the
+			// tokens that style.css applies through the classes.
+			var color = g.current ? '#2598c5' : '#ced4da';
 			var gEl = svgNode('g', { 'class': g.current ? 'alliance-sgd-gene alliance-sgd-current' : 'alliance-sgd-gene' });
 			var title = svgNode('title');
 			title.appendChild(document.createTextNode(g.name + ' ' + g.start + '-' + g.end + ' (' + g.strand + ')'));
 			gEl.appendChild(title);
 			gEl.appendChild(svgNode('rect', {
 				x: x(g.start).toFixed(1), y: String(y), width: w.toFixed(1), height: String(TRACK.boxH),
-				fill: color, stroke: g.current ? '#8a1f1c' : '#2f5f8a'
+				fill: color, stroke: g.current ? '#2681a6' : '#7f7f7f'
 			}));
 			gEl.appendChild(svgText((g.strand === '-' ? '← ' : '') + g.name + (g.strand === '+' ? ' →' : ''), {
 				x: (x(g.start) + w / 2).toFixed(1), y: String(y + TRACK.boxH + 12),
-				'font-size': '11', 'text-anchor': 'middle', 'font-weight': g.current ? 'bold' : 'normal'
+				'font-size': '11', 'text-anchor': 'middle', 'font-weight': g.current ? 'bold' : 'normal',
+				fill: g.current ? '#2681a6' : '#6c757d'
 			}));
 			svg.appendChild(gEl);
 		});
 		return svg;
 	}
 
-	function table(headers, rows) {
-		var t = node('table', null, 'table table-condensed table-striped');
+	// numeric: header names whose column is right aligned.
+	function table(headers, rows, numeric) {
+		var wrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		wrap.appendChild(t);
+		var isNum = function (i) { return !!numeric && numeric.indexOf(headers[i]) !== -1; };
 		var thead = node('thead');
 		var hr = node('tr');
-		headers.forEach(function (h) { hr.appendChild(node('th', h)); });
+		headers.forEach(function (h, i) { hr.appendChild(node('th', h, isNum(i) ? 'num' : null)); });
 		thead.appendChild(hr);
 		t.appendChild(thead);
 		var tbody = node('tbody');
 		rows.forEach(function (cells) {
 			var tr = node('tr');
-			cells.forEach(function (c) {
-				var td = node('td');
+			cells.forEach(function (c, i) {
+				var td = node('td', null, isNum(i) ? 'num' : null);
 				if (c && typeof c === 'object') td.appendChild(c);
 				else td.appendChild(document.createTextNode(c == null ? '' : String(c)));
 				tr.appendChild(td);
@@ -247,19 +255,19 @@
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		return t;
+		return wrap;
 	}
 
 	function halfLifeSection(rows) {
 		var sec = node('div', null, 'alliance-sgd-halflife');
 		sec.appendChild(node('h4', 'Protein half-life'));
 		if (!rows.length) {
-			sec.appendChild(node('span', 'No protein half-life data in SGD for this gene.'));
+			sec.appendChild(node('p', 'No protein half-life data in SGD for this gene.', 'agr-empty'));
 			return sec;
 		}
 		sec.appendChild(table(['Experiment', 'Value', 'Unit', 'Reference'], rows.map(function (r) {
 			return [r.experiment, r.value, r.unit, r.referenceUrl ? externalLink(r.reference, r.referenceUrl) : r.reference];
-		})));
+		}), ['Value']));
 		return sec;
 	}
 
@@ -267,13 +275,15 @@
 		var sec = node('div', null, 'alliance-sgd-neighbourhood');
 		sec.appendChild(node('h4', 'Neighbourhood on S288C' + (nb && nb.chromosome ? ' (' + nb.chromosome + ')' : '')));
 		if (!nb || !nb.genes.length) {
-			sec.appendChild(node('span', 'No neighbouring genes in SGD for this gene.'));
+			sec.appendChild(node('p', 'No neighbouring genes in SGD for this gene.', 'agr-empty'));
 			return sec;
 		}
-		sec.appendChild(trackSvg(nb.genes));
+		var track = node('div', null, 'alliance-sgd-track-wrap');
+		track.appendChild(trackSvg(nb.genes));
+		sec.appendChild(track);
 		sec.appendChild(table(['Gene', 'Systematic name', 'Start', 'End', 'Strand'], nb.genes.map(function (g) {
 			return [g.link ? externalLink(g.name, g.link) : g.name, g.systematic, g.start, g.end, g.strand];
-		})));
+		}), ['Start', 'End']));
 		return sec;
 	}
 
@@ -291,10 +301,10 @@
 		var wrap = node('div', null, 'alliance-sgd-protein');
 		el.appendChild(wrap);
 		if (geneId === undefined || geneId === null || geneId === '') {
-			wrap.appendChild(node('span', 'No gene selected'));
+			wrap.appendChild(node('p', 'No gene selected', 'agr-empty'));
 			return;
 		}
-		wrap.appendChild(node('span', 'Loading...'));
+		wrap.appendChild(node('p', 'Loading...', 'agr-loading'));
 		var base = backendBaseOf(config);
 
 		postRows(serviceRoot(service.root), buildQuery(geneId))
@@ -303,12 +313,12 @@
 				var r = rows[0];
 				clear(wrap);
 				if (!r) {
-					wrap.appendChild(node('span', 'Gene not found in this mine'));
+					wrap.appendChild(node('p', 'Gene not found in this mine', 'agr-empty'));
 					return;
 				}
 				var sgdid = sgdIdOf(r[0], r[1]);
 				if (!sgdid) {
-					wrap.appendChild(node('span', 'SGD data is for budding yeast genes.'));
+					wrap.appendChild(node('p', 'SGD data is for budding yeast genes.', 'agr-empty'));
 					return;
 				}
 				show(wrap, base, sgdid, stale);
@@ -317,14 +327,14 @@
 				if (stale()) return;
 				console.error('sgd-protein: gene lookup failed', err);
 				clear(wrap);
-				wrap.appendChild(node('span', 'Could not load the gene from the mine'));
+				wrap.appendChild(node('p', 'Could not load the gene from the mine', 'agr-error'));
 			});
 	}
 
 	function section(wrap, title, promise, build, stale) {
 		var holder = node('div');
 		holder.appendChild(node('h4', title));
-		holder.appendChild(node('span', 'Loading...'));
+		holder.appendChild(node('p', 'Loading...', 'agr-loading'));
 		wrap.appendChild(holder);
 		promise.then(
 			function (json) {
@@ -337,7 +347,7 @@
 				console.error('sgd-protein: ' + title + ' failed', err);
 				clear(holder);
 				holder.appendChild(node('h4', title));
-				holder.appendChild(node('span', 'Could not load ' + title.toLowerCase() + ' from SGD'));
+				holder.appendChild(node('p', 'Could not load ' + title.toLowerCase() + ' from SGD', 'agr-error'));
 			}
 		);
 	}
@@ -347,7 +357,7 @@
 			function (json) { return halfLifeSection(toHalfLifeRows(json)); }, stale);
 		section(wrap, 'Neighbourhood on S288C', getJson(proxyUrl(base, sgdid, 'neighbor_sequence_details')),
 			function (json) { return neighbourhoodSection(toNeighbors(json, sgdid)); }, stale);
-		var foot = node('p', 'Data from SGD (yeastgenome.org). ', 'alliance-sgd-source');
+		var foot = node('p', 'Data from SGD (yeastgenome.org). ', 'agr-note alliance-sgd-source');
 		foot.appendChild(externalLink('View ' + sgdid + ' at SGD', SGD_SITE + '/locus/' + sgdid));
 		wrap.appendChild(foot);
 	}

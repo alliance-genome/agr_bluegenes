@@ -1,0 +1,8 @@
+/* Neighbourhood track. Classes are set on the SVG nodes; the attributes in bundle.js carry the same colours for pages without tokens. */
+.alliance-sgd-track-wrap { overflow-x: auto; max-width: 100%; margin-bottom: var(--agr-space-3, 12px); }
+.alliance-sgd-track { max-width: 100%; height: auto; font-family: var(--agr-font, Lato, Helvetica, sans-serif); }
+.alliance-sgd-gene rect { fill: var(--agr-border-strong, #ced4da); stroke: var(--agr-secondary, #7f7f7f); }
+.alliance-sgd-gene text { fill: var(--agr-muted, #6c757d); }
+.alliance-sgd-gene.alliance-sgd-current rect { fill: var(--agr-primary, #2598c5); stroke: var(--agr-primary-dark, #2681a6); }
+.alliance-sgd-gene.alliance-sgd-current text { fill: var(--agr-primary-dark, #2681a6); }
+.alliance-sgd-axis { fill: var(--agr-muted, #6c757d); }

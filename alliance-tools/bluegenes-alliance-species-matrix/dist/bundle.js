@@ -192,14 +192,16 @@
 	function message(el, text) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-species-matrix');
-		wrap.appendChild(node('span', text));
+		var cls = text === 'Loading...' ? 'agr-loading' : /^Could not/.test(text) ? 'agr-error' : 'agr-empty';
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
+	// Heat class (agr-heat-1 to agr-heat-6) for a cell total on a log scale, '' for no annotations.
 	function shade(total, max) {
 		if (!total || !max) return '';
-		var alpha = 0.12 + 0.55 * (Math.log(1 + total) / Math.log(1 + max));
-		return 'rgba(31, 119, 180, ' + alpha.toFixed(2) + ')';
+		var step = Math.ceil(6 * (Math.log(1 + total) / Math.log(1 + max)));
+		return 'agr-heat-' + Math.min(6, Math.max(1, step));
 	}
 
 	function symbols(cell) {
@@ -234,17 +236,21 @@
 
 	function showDetail(box, gene, species, cell, annotations) {
 		clear(box);
-		box.appendChild(node('h4', gene + ' in ' + species));
+		var title = node('h4', gene + ' in ');
+		title.appendChild(node('em', species));
+		box.appendChild(title);
 		var rows = detailRows(cell, annotations);
 		if (!rows.length) {
-			box.appendChild(node('p', 'No annotations for ' + symbols(cell)));
+			box.appendChild(node('p', 'No annotations for ' + symbols(cell), 'agr-empty'));
 			return;
 		}
 		if (rows.length > MAX_DETAIL_ROWS) {
-			box.appendChild(node('p', 'Showing the first ' + MAX_DETAIL_ROWS + ' of ' + rows.length + ' annotations.'));
+			box.appendChild(node('p', 'Showing the first ' + MAX_DETAIL_ROWS + ' of ' + rows.length + ' annotations.', 'agr-note'));
 			rows = rows.slice(0, MAX_DETAIL_ROWS);
 		}
-		var table = node('table', null, 'table table-condensed table-striped');
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		var table = node('table', null, 'agr-table agr-table-sm');
+		tableWrap.appendChild(table);
 		var tr = node('tr');
 		['Gene', 'Type', 'Phenotype or disease', 'Qualifier'].forEach(function (h) { tr.appendChild(node('th', h)); });
 		var thead = node('thead');
@@ -257,7 +263,7 @@
 			tbody.appendChild(row);
 		});
 		table.appendChild(tbody);
-		box.appendChild(table);
+		box.appendChild(tableWrap);
 	}
 
 	// noPhenotypes: the mine has no phenotype annotations, so cells show disease counts only.
@@ -265,7 +271,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-species-matrix');
 		if (totalGenes > MAX_GENES) {
-			wrap.appendChild(node('p', 'Showing the first ' + MAX_GENES + ' of ' + totalGenes + ' genes.'));
+			wrap.appendChild(node('p', 'Showing the first ' + MAX_GENES + ' of ' + totalGenes + ' genes.', 'agr-note'));
 		}
 		wrap.appendChild(
 			node(
@@ -285,10 +291,16 @@
 		});
 
 		var detail = node('div', null, 'alliance-species-matrix-detail');
-		var table = node('table', null, 'table table-condensed');
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		var table = node('table', null, 'agr-table agr-table-sm');
+		tableWrap.appendChild(table);
 		var hr = node('tr');
 		hr.appendChild(node('th', 'Gene'));
-		species.forEach(function (sp) { hr.appendChild(node('th', sp)); });
+		species.forEach(function (sp) {
+			var th = node('th', null, 'num');
+			th.appendChild(node('em', sp));
+			hr.appendChild(th);
+		});
 		var thead = node('thead');
 		thead.appendChild(hr);
 		table.appendChild(thead);
@@ -300,19 +312,19 @@
 			tr.appendChild(node('td', name));
 			species.forEach(function (sp) {
 				var cell = (model.cells[g.id] || {})[sp];
-				var td = node('td');
+				var td = node('td', null, 'num');
 				var text = cellLabel(name, sp, cell, noPhenotypes);
 				td.title = text;
 				if (!cell) {
 					td.textContent = '-';
 					td.setAttribute('aria-label', text);
 				} else {
-					var btn = node('button', noPhenotypes ? String(cell.diseases) : cell.phenotypes + ' / ' + cell.diseases, 'btn btn-link btn-xs');
+					var btn = node('button', noPhenotypes ? String(cell.diseases) : cell.phenotypes + ' / ' + cell.diseases, 'agr-btn agr-btn-sm');
 					btn.type = 'button';
 					btn.title = text;
 					btn.setAttribute('aria-label', text);
-					var bg = shade(cell.phenotypes + cell.diseases, max);
-					if (bg) td.style.backgroundColor = bg;
+					var heat = shade(cell.phenotypes + cell.diseases, max);
+					if (heat) td.className = 'num ' + heat;
 					btn.addEventListener('click', function () {
 						showDetail(detail, name, sp, cell, model.annotations);
 					});
@@ -323,7 +335,7 @@
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		wrap.appendChild(table);
+		wrap.appendChild(tableWrap);
 		wrap.appendChild(detail);
 		wrap.appendChild(
 			node(
@@ -332,7 +344,7 @@
 					? ''
 					: 'Phenotype ontologies differ per species (MP, WBPhenotype, FBcv, ZP, HP), so phenotype counts are not directly comparable across columns. ') +
 					'Disease counts exclude annotations via orthology and is_not_implicated_in.',
-				'alliance-species-matrix-note'
+				'agr-note alliance-species-matrix-note'
 			)
 		);
 		el.appendChild(wrap);

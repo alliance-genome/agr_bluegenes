@@ -1,0 +1,3 @@
+.alliance-variants .agr-table-wrap { margin-bottom: var(--agr-space-2, 8px); }
+.alliance-variants-pager { margin-bottom: var(--agr-space-3, 12px); }
+.alliance-variants-filters select { width: auto; display: inline-block; }
