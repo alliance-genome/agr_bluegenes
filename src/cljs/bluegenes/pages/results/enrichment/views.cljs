@@ -114,7 +114,7 @@
           [:div.enrichment-category-right-side
            (when (not-empty results)
              [:<>
-              [:button.btn.btn-default.btn-raised.btn-xs
+              [:button.agr-btn.agr-btn-sm
                {:on-click #(dispatch [:enrichment/view-results details identifiers])}
                "View"]
               [:button.btn.btn-icon
@@ -167,8 +167,8 @@
       (if (nil? (vals @all-enrichment-results))
         ;; No Enrichment widgets available - only if there are no widgets for any of the datatypes in the columns. If there are widgets but there are 0 results, the second option below (div.demo) fires.
         [:div (if @loading-widget-types
-                [:h4 "Finding enrichment widgets" [:span [mini-loader "tiny"]]]
-                [:h4 "No Enrichment Widgets Available"])]
+                [:p.agr-loading "Finding enrichment widgets"]
+                [:p.agr-empty "No Enrichment Widgets Available"])]
         [:div.demo
          [css-transition-group
           {:transition-name "fade"
@@ -230,8 +230,7 @@
          [:p "This mine is running an older InterMine version which does not support enrichment with background population in BlueGenes."]])])
 
    (when-let [message @(subscribe [:enrichment/enrichment-results-message])]
-     [:div.alert.alert-info
-      [:p message]])
+     [:p.agr-note.enrichment-message message])
 
    [text-filter]])
 
@@ -296,7 +295,7 @@
 
 (defn enrich []
   [:div
-   [:h3.enrichment-heading
+   [:h3.enrichment-heading.agr-section-title
     "Enrichment " [enrichment-help-text]]
    [:div.enrichment
     [enrichable-column-displayer]

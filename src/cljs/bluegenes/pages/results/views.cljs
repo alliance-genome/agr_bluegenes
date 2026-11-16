@@ -54,8 +54,9 @@
         current-query (subscribe [:results/history-index])]
     (fn []
       [:div.dropdown
-       [:button.btn.btn-link.btn-results.recent-queries.dropdown-toggle
-        {:data-toggle "dropdown"}
+       [:button.agr-btn.recent-queries.dropdown-toggle
+        {:type "button"
+         :data-toggle "dropdown"}
         "Recent Queries" [icon "caret-down"]]
        (into [:ul.dropdown-menu.history-list]
              (map (fn [[title {:keys [source value display-title] :as query}]]
@@ -123,8 +124,9 @@
 
 (defn back-button []
   (let [intent @(subscribe [:results/intent])]
-    [:button.btn.btn-link.btn-results
-     {:on-click #(dispatch (case intent
+    [:button.agr-btn
+     {:type "button"
+      :on-click #(dispatch (case intent
                              :query [::route/navigate ::route/querybuilder]
                              :search [::route/navigate ::route/search]
                              :list [::route/navigate ::route/lists]
@@ -145,32 +147,24 @@
   (let [{:keys [title]} @(subscribe [:results/query])
         {:keys [size authorized timestamp type tags
                 description] :as list} @(subscribe [:results/current-list])]
-    [:div.query-details
+    [:section.agr-section.query-details
      (when list
        {:title "Use the Edit button on the Lists page to change details"})
-     [:div.query-or-list
-      [:span.query-title title]
-      (when list ; You won't have this data if it's an unsaved query.
-        [:<>
-         [:div.list-size-auth
-          [:span (str "[" size "]")]
-          (if authorized
-            [icon "user-circle" nil ["authorized"]]
-            [icon "globe"])]
-         [:span (pretty-timestamp timestamp)]
-         [:code.start {:class (str "start-" type)} type]
-         (into [:div.list-tags]
-               ;; Hide internal tags.
-               (for [tag (remove internal-tag? tags)]
-                 [:code.tag tag]))])]
+     [:h3.agr-section-title.query-title title]
+     (when list ; You won't have this data if it's an unsaved query.
+       [:div.query-or-list
+        [:span.agr-badge.agr-badge-primary.list-size (str size)]
+        (if authorized
+          [:span.list-auth [icon "user-circle" nil ["authorized"]] "Private"]
+          [:span.list-auth [icon "globe"] "Public"])
+        [:span.agr-note.list-date (pretty-timestamp timestamp)]
+        [:code.start {:class (str "start-" type)} type]
+        (into [:div.list-tags]
+              ;; Hide internal tags.
+              (for [tag (remove internal-tag? tags)]
+                [:code.tag tag]))])
      (when-not (empty? description)
-       [:p.list-description description])
-     (when list
-       [:<>
-        [orthologs/convert-button (:name list)]
-        [orthologs-compare/compare-button (:name list)]
-        [send-to-mine/send-button (:name list)]
-        [bundle/download-button list]])]))
+       [:p.list-description description])]))
 
 (defn scroll-into-view! [id]
   (when-let [elem (or (nil? id) (gdom/getElement id))]
@@ -189,7 +183,7 @@
   (let [tool-names (map :names @(subscribe [:bluegenes.components.tools.subs/suitable-tools]))]
     (when (seq tool-names)
       [:<>
-       [:h3.results-heading "Tools"]
+       [:h3.results-heading.agr-section-title "Tools"]
        (into [:div.jump-to
               [:span "Jump to: "]
               [:span.jump-item
@@ -199,6 +193,17 @@
                [:span.jump-item
                 {:on-click #(scroll-into-view! (str cljs "-container"))}
                 (clean-tool-name human)]))])))
+
+(defn list-actions
+  "Action buttons for the current Gene list, rendered inside the toolbar. Each
+  component renders its panel after its button; the panels span the full width."
+  []
+  (when-let [list @(subscribe [:results/current-list])]
+    [:<>
+     [orthologs/convert-button (:name list)]
+     [orthologs-compare/compare-button (:name list)]
+     [send-to-mine/send-button (:name list)]
+     [bundle/download-button list]]))
 
 (defn main
   "Result page for a list or query."
@@ -216,7 +221,9 @@
             [:div.results-actions
              [back-button]
              [query-history]
-             [cite/cite-button]]
+             [cite/cite-button]
+             (when (= @intent :list)
+               [list-actions])]
             [cite/cite-panel]
             ;; Query details is only interesting if it's a saved list.
             (when (= @intent :list)

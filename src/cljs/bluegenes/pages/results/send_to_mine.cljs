@@ -472,10 +472,10 @@
      :rows 4
      :value (str/join "\n" (take max-shown-unresolved unresolved))}]
    (when (> (count unresolved) max-shown-unresolved)
-     [:p.text-muted (str "Showing the first " max-shown-unresolved ".")])])
+     [:p.agr-note (str "Showing the first " max-shown-unresolved ".")])])
 
 (defn login-notice [target label]
-  [:p.alert.alert-warning
+  [:p.alert.alert-warning.login-notice
    "You are not logged in to " [:strong label] ". "
    [:a {:href (route/href ::route/home {:mine target})}
     (str "Log in to " label)]
@@ -488,19 +488,19 @@
         source-reasons @(subscribe [::source-reasons])
         target-reason (reason-of mines target)
         list-name (effective-list-name state)]
-    [:div.send-to-mine-panel
-     [:div.form-group
-      [:label "Target mine"]
-      [:select.form-control
-       {:value (if target (name target) "")
-        :on-change #(dispatch [::select-mine (oget % :target :value)])}
-       [:option {:value ""} "Select a mine"]
-       (for [{:keys [id label reason]} mines]
-         ^{:key id} [:option {:value (name id) :disabled (boolean reason)}
-                     (if reason (str label " (unavailable)") label)])]
-      (when-let [unavailable (seq (filter :reason mines))]
-        [:p.text-muted
-         [:small (str/join ". " (map :reason unavailable)) "."]])]
+    [:section.agr-section.send-to-mine-panel
+     [:h3.agr-section-title "Send to another mine"]
+     [:div.agr-filter-bar
+      [:label "Target mine"
+       [:select.form-control
+        {:value (if target (name target) "")
+         :on-change #(dispatch [::select-mine (oget % :target :value)])}
+        [:option {:value ""} "Select a mine"]
+        (for [{:keys [id label reason]} mines]
+          ^{:key id} [:option {:value (name id) :disabled (boolean reason)}
+                      (if reason (str label " (unavailable)") label)])]]]
+     (when-let [unavailable (seq (filter :reason mines))]
+       [:p.agr-note (str/join ". " (map :reason unavailable)) "."])
      (when (and target (not target-reason))
        [:<>
         (when-not logged-in? [login-notice target (label-of mines target)])
@@ -517,7 +517,7 @@
                            :on-change #(dispatch [::set-mode :orthologs])}]
            " Orthologs in a species of the target mine"]
           (when-let [r (:orthologs source-reasons)]
-            [:p.text-muted [:small r "."]])]
+            [:p.agr-note r "."])]
          (when (= mode :orthologs)
            [:select.form-control
             {:value (or organism "")
@@ -525,17 +525,17 @@
             [:option {:value ""} "Select an organism"]
             (for [o organisms]
               ^{:key o} [:option {:value o} o])])]
-        [:button.btn.btn-default
+        [:button.agr-btn
          {:type "button"
           :disabled (not (ready-to-resolve? state))
           :on-click #(dispatch [::resolve])}
-         (if resolving? "Resolving..." "Resolve identifiers")]
+         (if resolving? "Resolving" "Resolve identifiers")]
         (when result
           [:div.resolution-result
            [:p [:strong (:resolved result)] " of " [:strong (:source-count result)]
             " identifiers resolved in the target mine."]
            (when (seq (:multi-mapped result))
-             [:p.text-muted
+             [:p.agr-note
               (str (count (:multi-mapped result))
                    " identifiers matched more than one gene in the target mine: "
                    (str/join ", " (take 10 (:multi-mapped result)))
@@ -545,17 +545,17 @@
              [unresolved-list (:unresolved result)])
            (when (pos? (count (:object-ids result)))
              [:<>
-              [:div.form-group
-               [:label "New list name"]
-               [:input.form-control
-                {:type "text"
-                 :value (or list-name "")
-                 :on-change #(dispatch [::set-list-name (oget % :target :value)])}]]
-              [:button.btn.btn-primary.btn-raised
-               {:type "button"
-                :disabled (not (ready-to-save? state))
-                :on-click #(dispatch [::save])}
-               (if saving? "Saving..." "Save list in target mine")]])])
+              [:div.agr-filter-bar
+               [:label "New list name"
+                [:input.form-control
+                 {:type "text"
+                  :value (or list-name "")
+                  :on-change #(dispatch [::set-list-name (oget % :target :value)])}]]
+               [:button.agr-btn-primary
+                {:type "button"
+                 :disabled (not (ready-to-save? state))
+                 :on-click #(dispatch [::save])}
+                (if saving? "Saving" "Save list in target mine")]]])])
         (when saved
           [:p.saved-list
            "Saved. "
@@ -568,7 +568,7 @@
   [list-name]
   (when @(subscribe [::available?])
     [:div.send-to-mine
-     [:button.btn.btn-slim
+     [:button.agr-btn
       {:type "button"
        :on-click #(dispatch [::toggle list-name])}
       "Send to another mine"]
