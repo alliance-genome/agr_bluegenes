@@ -23,149 +23,291 @@
 
 .results {
     width: 100%;
+    min-width: 0;
     max-width: 1800px;
+    padding-top: var(--agr-space-4);
+    padding-bottom: var(--agr-space-5);
 
-    .results-heading {
-        color: @highlight-color;
+    // Page title, Alliance header style.
+    h2.results-heading {
+        font-size: var(--agr-h1-size);
+        font-weight: 500;
+        color: var(--agr-text);
+        margin: 0 0 var(--agr-space-4);
+
+        @media (max-width: 767px) {
+            font-size: 28px;
+        }
     }
 
+    // One toolbar for navigation and list actions. Panels opened by the
+    // buttons span the full toolbar width, below the buttons.
     .results-actions {
         display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: var(--agr-space-2);
+        margin-bottom: var(--agr-space-4);
 
-        .btn-results {
-            text-transform: none;
-            font-weight: 500;
-            text-decoration: underline;
-            font-size: 1.4em;
-            color: @highlight-color;
-            fill: @highlight-color;
-            padding-left: 0;
-
-            .icon {
-                margin: 0 @spacer/4 0 0;
-            }
-
-            &.recent-queries {
-                .icon {
-                    // This is just to make the dropdown wide!
-                    margin-right: @spacer*20;
-                }
-            }
+        .icon {
+            margin: 0 var(--agr-space-1) 0 0;
+            fill: currentColor;
         }
+
+        .dropdown {
+            position: relative;
+        }
+
+        // Wrappers of the list action buttons dissolve into the toolbar.
+        .convert-to-orthologs,
+        .compare-orthologs,
+        .send-to-mine,
+        .download-bundle {
+            display: contents;
+        }
+
+        .orthologs-panel,
+        .orthologs-compare-panel,
+        .send-to-mine-panel,
+        .bundle-error,
+        p.convert-to-orthologs {
+            order: 10;
+            flex: 0 0 100%;
+            min-width: 0;
+        }
+
+        .bundle-error,
+        p.convert-to-orthologs {
+            display: block;
+            margin: 0;
+        }
+    }
+
+    .recent-queries .icon {
+        margin: 0 0 0 var(--agr-space-2);
     }
 
     .history-list {
         list-style-type: none;
         padding: 0;
-        margin: 0;
-        color: black;
-        border: 1px solid #e9e9e9;
-        background-color: @highlight-color-text;
-
-        width: 100%;
-
+        margin: var(--agr-space-1) 0 0;
+        min-width: 320px;
         max-height: 645px;
         overflow: auto;
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+        background-color: var(--agr-bg);
+        color: var(--agr-text);
 
         .history-item {
             cursor: pointer;
-            border-top: 1px solid #e9e9e9;
-            padding: 6px;
+            border-top: 1px solid var(--agr-border);
+            padding: var(--agr-space-2) var(--agr-space-3);
+
+            &:first-child {
+                border-top: none;
+            }
+
             &.active {
-                background-color: @highlight-color;
-                color: @highlight-color-text;
-                &:hover {
-                    background-color: @highlight-color;
-                }
+                background-color: var(--agr-primary);
+                color: #fff;
             }
+
             &:hover {
-                background-color: #e9e9e9;
+                background-color: var(--agr-bg-hover);
+                color: var(--agr-text);
             }
+
+            &.active:hover {
+                background-color: var(--agr-primary-dark);
+                color: #fff;
+            }
+
             .title {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+
             .time {
-                font-size: 0.7em;
+                font-size: 12px;
                 text-align: right;
             }
         }
     }
 
-    .description {
-        background-color: #D2CEBF;
-        padding: @spacer/2;
-        overflow: auto;
-    }
-
-    .description-edit {
-        padding: @spacer/2;
-
-        .controls {
-            display: flex;
-            align-items: baseline;
-        }
-    }
-
-    .results-table {
-        background-color: @content-color-background;
-        margin-bottom: @spacer*3;
-        border: 1px solid @light-contrast;
-    }
-
+    // Action panels and list meta share the .agr-section card look.
+    .orthologs-panel,
+    .orthologs-compare-panel,
+    .send-to-mine-panel,
+    .cite-panel,
     .query-details {
-        width: 100%;
-        background-color: @content-color-background;
-        padding: @spacer/2 @spacer;
-        margin-bottom: @spacer*1.5;
-        border: 1px solid @light-contrast;
+        background-color: var(--agr-bg);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+        padding: var(--agr-space-4);
+        margin-bottom: var(--agr-space-4);
 
-        .query-or-list {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .agr-section-title {
+            font-size: var(--agr-h4-size);
+            font-weight: 700;
         }
 
-        .query-title {
-            overflow-wrap: anywhere;
-            font-weight: 600;
-        }
+        .agr-filter-bar {
+            align-items: flex-end;
 
-        span {
-            font-size: 1.3em;
-        }
+            label {
+                display: flex;
+                flex-direction: column;
+                gap: var(--agr-space-1);
+                color: var(--agr-text);
+            }
 
-        .list-size-auth {
-            display: flex;
-            align-items: baseline;
-        }
+            label:has(input[type="checkbox"]) {
+                flex-direction: row;
+                align-items: center;
+            }
 
-        .icon {
-            flex-shrink: 0;
-
-            &.authorized {
-                fill: #FFEE51;
+            .form-control {
+                min-width: 200px;
+                height: auto;
+                padding: 6px 12px;
+                background-color: var(--agr-bg);
+                border: 1px solid var(--agr-border-strong);
+                border-radius: var(--agr-radius);
+                box-shadow: none;
             }
         }
 
+        .alert {
+            border-radius: var(--agr-radius);
+        }
+    }
+
+    .orthologs-compare-panel {
+        .ortholog-compare-counts {
+            margin-bottom: var(--agr-space-4);
+        }
+
+        .ortholog-compare-selected {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .ortholog-compare-selection ul {
+            columns: 4 160px;
+            padding-left: 0;
+        }
+
+        svg.upset {
+            display: block;
+            max-width: none;
+        }
+    }
+
+    .send-to-mine-panel {
+        .resolution-result {
+            margin: var(--agr-space-4) 0;
+        }
+
+        .radio label,
+        .agr-filter-bar label {
+            font-weight: 400;
+        }
+
+        .form-group > label {
+            font-weight: 700;
+        }
+
+        .saved-list {
+            margin: var(--agr-space-4) 0 0;
+        }
+    }
+
+    .cite-panel {
+        .cite-block {
+            margin-bottom: var(--agr-space-4);
+
+            textarea {
+                font-family: var(--agr-font-mono);
+                font-size: 12.5px;
+                padding: var(--agr-space-2) var(--agr-space-3);
+                background-color: var(--agr-bg-light);
+                border: 1px solid var(--agr-border-strong);
+                border-radius: var(--agr-radius);
+            }
+        }
+
+        .cite-label {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 var(--agr-space-2);
+        }
+
+        .cite-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--agr-space-2);
+            margin-top: var(--agr-space-2);
+        }
+    }
+
+    // Results table: border and surface only. im-tables keeps its own layout.
+    .results-table {
+        background-color: var(--agr-bg);
+        margin-bottom: var(--agr-space-5);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+        // Wide tables scroll inside the box, not the page.
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    // List meta under the page title.
+    .query-details {
+        .agr-section-title {
+            font-size: var(--agr-h3-size);
+            font-weight: 500;
+            overflow-wrap: anywhere;
+        }
+
+        .query-or-list {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--agr-space-2) var(--agr-space-3);
+        }
+
+        .list-auth {
+            display: inline-flex;
+            align-items: center;
+            color: var(--agr-muted);
+
+            .icon {
+                margin: 0 var(--agr-space-1) 0 0;
+                fill: var(--agr-muted);
+            }
+        }
+
+        .list-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--agr-space-1);
+        }
+
         code.tag {
-            background-color: #DFE6ED;
-            color: #4B5C6B;
-            margin-right: @spacer/2;
+            background-color: var(--agr-bg-light);
+            border: 1px solid var(--agr-border);
+            color: var(--agr-muted);
             overflow-wrap: break-word;
         }
 
         code.start {
             // For long types like `ChromosomalDuplication`
             overflow-wrap: break-word;
-
             color: inherit;
             background-color: @color-Nuffink;
 
-            // If only we had CSS-in-JS [;
-            // Actually, I do think if we want to do this well, (including
-            // the 3 other places this is used) we should use inline style.
             &.start-Gene {
                 background-color: @color-Gene;
                 color: #fff;
@@ -189,21 +331,14 @@
             }
         }
 
-        .list-tags {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
         .list-description {
-            margin-bottom: 0;
-            font-size: 1.2em;
+            margin: var(--agr-space-3) 0 0;
             overflow-wrap: anywhere;
         }
     }
 
     .widget-heading {
-        color: @highlight-color;
-        margin-bottom: @spacer;
+        margin-bottom: var(--agr-space-4);
     }
 
     .widgets {
@@ -211,23 +346,36 @@
         flex-wrap: wrap;
 
         .widget {
-            background-color: @content-color-background;
-            padding: @spacer;
-            border: 1px solid @light-contrast;
+            background-color: var(--agr-bg);
+            padding: var(--agr-space-4);
+            border: 1px solid var(--agr-border);
+            border-radius: var(--agr-radius);
 
             &.is-loading {
                 opacity: 0.3;
                 pointer-events: none;
             }
 
+            .widget-title {
+                font-size: var(--agr-h4-size);
+                font-weight: 700;
+                margin: 0 0 var(--agr-space-2);
+            }
+
+            .widget-description {
+                color: var(--agr-muted);
+            }
+
             &-filter {
                 display: flex;
                 align-items: baseline;
-
-                margin-bottom: @spacer;
+                gap: var(--agr-space-2);
+                margin-bottom: var(--agr-space-4);
+                font-weight: 700;
 
                 select {
-                    margin-left: @spacer/3;
+                    margin-left: var(--agr-space-1);
+                    font-weight: 400;
                 }
             }
 
@@ -240,6 +388,7 @@
             .table-widget {
                 max-height: 400px;
                 overflow: auto;
+                margin-top: var(--agr-space-2);
             }
         }
 
@@ -253,42 +402,55 @@
         }
     }
 
+    h3.results-heading {
+        margin-top: var(--agr-space-4);
+    }
+
+    // The visualizations and tools row can be wider than a phone screen.
+    // Scroll it inside its own box instead of widening the page.
+    > .row + .row {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    // im-tables keeps its layout. Colours and fonts follow the tokens.
+    .im-table {
+        font-family: var(--agr-font);
+        color: var(--agr-text);
+
+        a {
+            color: var(--agr-primary-dark);
+        }
+
+        .table > thead > tr > th {
+            color: var(--agr-text);
+        }
+
+        .btn-primary,
+        .pagination > .active > a {
+            background-color: var(--agr-primary);
+            border-color: var(--agr-primary);
+            color: #fff;
+        }
+    }
+
     .jump-to {
-        background-color: @body-background-color;
+        background-color: var(--agr-bg);
         position: sticky;
         top: 0;
         z-index: 10;
-        padding: @spacer/4 @spacer/2;
+        padding: var(--agr-space-2) 0;
+        border-bottom: 1px solid var(--agr-border);
 
         .jump-item {
-            font-size: 1.2em;
             font-weight: 400;
-            margin-right: @spacer;
+            margin-right: var(--agr-space-4);
             cursor: pointer;
+            color: var(--agr-primary-dark);
 
             &:hover {
-                color: @highlight-color;
+                text-decoration: underline;
             }
         }
-    }
-}
-
-.cite-panel {
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    padding: 1em;
-    margin: 1em 0;
-
-    .cite-block {
-        margin-bottom: 1em;
-
-        textarea {
-            font-family: monospace;
-            font-size: 0.9em;
-        }
-    }
-
-    .cite-actions .btn {
-        margin-right: 0.5em;
     }
 }

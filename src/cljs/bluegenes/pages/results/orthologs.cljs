@@ -219,40 +219,40 @@
   (let [{:keys [organisms organism count loading-organisms?
                 loading-count? saving?] :as state} @(subscribe [::state])
         list-name (effective-list-name state)]
-    [:div.orthologs-panel
+    [:section.agr-section.orthologs-panel
+     [:h3.agr-section-title "Convert to orthologs"]
      (cond
-       loading-organisms? [:p "Looking for orthologs..."]
-       (empty? organisms) [:p "No orthologs found for the genes in this list."]
+       loading-organisms? [:p.agr-loading "Looking for orthologs"]
+       (empty? organisms) [:p.agr-empty "No orthologs found for the genes in this list."]
        :else
        [:<>
-        [:div.form-group
-         [:label "Target organism"]
-         [:select.form-control
-          {:value (or organism "")
-           :on-change #(dispatch [::select-organism (oget % :target :value)])}
-          [:option {:value ""} "Select an organism"]
-          (for [o organisms]
-            ^{:key o} [:option {:value o} o])]]
-        (when organism
-          [:p.ortholog-count
-           (cond
-             loading-count? "Counting orthologs..."
-             :else [:<> [:strong count] " ortholog genes found"])])
-        [:div.form-group
-         [:label "New list name"]
-         [:input.form-control
-          {:type "text"
-           :value (or list-name "")
-           :on-change #(dispatch [::set-list-name (oget % :target :value)])}]]
-        [:button.btn.btn-primary.btn-raised
-         {:type "button"
-          :disabled (or saving?
-                        loading-count?
-                        (not organism)
-                        (not (pos? (or count 0)))
-                        (str/blank? list-name))
-          :on-click #(dispatch [::save])}
-         (if saving? "Saving..." "Save list")]])]))
+        [:div.agr-filter-bar
+         [:label "Target organism"
+          [:select.form-control
+           {:value (or organism "")
+            :on-change #(dispatch [::select-organism (oget % :target :value)])}
+           [:option {:value ""} "Select an organism"]
+           (for [o organisms]
+             ^{:key o} [:option {:value o} o])]]
+         (when organism
+           (if loading-count?
+             [:span.agr-loading "Counting orthologs"]
+             [:span.ortholog-count [:strong count] " ortholog genes found"]))]
+        [:div.agr-filter-bar
+         [:label "New list name"
+          [:input.form-control
+           {:type "text"
+            :value (or list-name "")
+            :on-change #(dispatch [::set-list-name (oget % :target :value)])}]]
+         [:button.agr-btn-primary
+          {:type "button"
+           :disabled (or saving?
+                         loading-count?
+                         (not organism)
+                         (not (pos? (or count 0)))
+                         (str/blank? list-name))
+           :on-click #(dispatch [::save])}
+          (if saving? "Saving" "Save list")]]])]))
 
 (defn convert-button
   "Toggle button and panel. For a Gene list in a mine whose model lacks a path
@@ -261,12 +261,12 @@
   (if @(subscribe [::available?])
     (let [open? (:open? @(subscribe [::state]))]
       [:div.convert-to-orthologs
-       [:button.btn.btn-slim
+       [:button.agr-btn
         {:type "button"
          :on-click #(dispatch [::toggle list-name])}
         "Convert to orthologs"]
        (when open?
          [convert-panel])])
     (when-let [reason @(subscribe [::blocked-reason])]
-      [:div.convert-to-orthologs.text-muted
-       [:small "Convert to orthologs is not available. " reason "."]])))
+      [:p.agr-note.convert-to-orthologs
+       "Convert to orthologs is not available. " reason "."])))

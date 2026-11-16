@@ -1,10 +1,10 @@
 @import "../variables";
 
 .enrichment-heading {
-    color: @highlight-color;
+    margin-top: 0;
 
     a {
-        fill: @highlight-color;
+        fill: var(--agr-primary-dark);
 
         .icon {
             margin-left: 0;
@@ -13,14 +13,20 @@
 }
 
 .enrichment {
-    background: rgba(0,0,0,0.04);
-    margin-top: @spacer*1.5;
-    font-size: 0.9em;
+    background: var(--agr-bg);
+    border: 1px solid var(--agr-border);
+    border-radius: var(--agr-radius);
+    margin-top: 0;
+    font-size: 13px;
 
-    padding: @spacer/2 @spacer;
+    padding: var(--agr-space-3) var(--agr-space-4);
 
     a {
-        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .enrichment-message {
+        margin: 0 0 var(--agr-space-2);
     }
 
 
@@ -32,7 +38,7 @@
     .form-control,
     label {
         font-size: 0.8em;
-        color: #525252;
+        color: var(--agr-text);
     }
 
     .standard-enrichment-padding {
@@ -50,21 +56,23 @@
         justify-content: space-between;
         padding: 0 @spacer/2;
 
-        background: @extra-color-background;
-        color: @extra-color-text;
+        background: var(--agr-bg-light);
+        color: var(--agr-text);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius) var(--agr-radius) 0 0;
 
         h4 {
-            font-size: 1.3em;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 700;
+            margin: var(--agr-space-2) 0;
 
             .icon-warning {
-                fill: red;
+                fill: var(--agr-danger);
             }
         }
 
         &.inactive {
-            background: @extra-color-background;
-            opacity: 0.3;
+            opacity: 0.6;
         }
 
         &-right-side {
@@ -76,7 +84,7 @@
         }
 
         .toggle-enrichment {
-            fill: @highlight-color-text;
+            fill: var(--agr-primary-dark);
             padding: @spacer/4 @spacer/2;
             font-size: 1.2em;
         }
@@ -101,7 +109,7 @@
         select {
             font-size: 1em;
             .border-radius;
-            border: solid 1px #ddd;
+            border: solid 1px var(--agr-border-strong);
         }
 
         .pval select {
@@ -136,7 +144,7 @@
 
     .enrichment-header,
     .enrichment-list {
-        background-color: @content-color-background;
+        background-color: var(--agr-bg);
 
         padding-left: 0;
         font-size: 0.9em;
@@ -169,11 +177,11 @@
         font-size: 1.1em;
 
         &:nth-child(2n) {
-            background-color: @body-background-color;
+            background-color: var(--agr-bg-light);
         }
 
         .enrichment-p-value {
-            color: @link-color;
+            color: var(--agr-primary-dark);
             white-space: nowrap;
         }
     }

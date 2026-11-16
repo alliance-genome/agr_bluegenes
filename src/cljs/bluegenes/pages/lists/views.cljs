@@ -44,23 +44,25 @@
                       (debounced value)))]
     (fn []
       [:div.filter-lists
-       [:h2 "Lists"
+       [:h2.lists-title "Lists"
         [poppable {:data "When you upload lists, duplicates are removed and the naming of the items standardised. This means that you can do set operations correctly on lists of the same type (e.g. genes), such as finding the intersection between two (or more) lists, and subtracting lists. See the options below - selecting an option provides further guidance and explanation."
                    :children [icon "info"]}]]
-       [:div.filter-input
-        [:input {:id "lists-keyword-filter"
-                 :type "text"
-                 :placeholder "Search for keywords"
-                 :on-change on-change
-                 :value @input}]
+       [:div.filter-input.agr-filter-bar
+        [:input.form-control
+         {:id "lists-keyword-filter"
+          :type "text"
+          :placeholder "Search for keywords"
+          :on-change on-change
+          :value @input}]
         [icon "search"]]])))
 
 (defn top-controls []
   (let [insufficient-selected (not @(subscribe [:lists/selected-operation?]))]
-    (into [:div.top-controls]
+    (into [:div.top-controls.agr-filter-bar]
           (for [set-op set-operations]
-            [:button.btn.btn-raised
-             {:disabled insufficient-selected
+            [:button.agr-btn
+             {:type "button"
+              :disabled insufficient-selected
               :on-click #(dispatch [:lists/open-modal set-op])}
              (get-in set-operations->assets [set-op :text])
              (get-in set-operations->assets [set-op :icon])]))))
@@ -72,18 +74,22 @@
        [:div
         [:span.selected-indicator
          (str "Selected " list-count (cond-> " list" (> list-count 1) (str "s")))]
-        [:button.btn.btn-raised.btn-default
-         {:on-click #(dispatch [:lists/clear-selected])}
+        [:button.agr-btn
+         {:type "button"
+          :on-click #(dispatch [:lists/clear-selected])}
          "Deselect all"]]
        [:div
-        [:button.btn.btn-raised.btn-info
-         {:on-click #(dispatch [:lists/open-modal :move])}
+        [:button.agr-btn
+         {:type "button"
+          :on-click #(dispatch [:lists/open-modal :move])}
          "Move all" [icon "new-folder"]]
-        [:button.btn.btn-raised.btn-info
-         {:on-click #(dispatch [:lists/open-modal :copy])}
+        [:button.agr-btn
+         {:type "button"
+          :on-click #(dispatch [:lists/open-modal :copy])}
          "Copy all" [icon "list-copy"]]
-        [:button.btn.btn-raised.btn-danger
-         {:on-click #(dispatch [:lists/open-modal :delete])}
+        [:button.agr-btn.agr-btn-danger
+         {:type "button"
+          :on-click #(dispatch [:lists/open-modal :delete])}
          "Delete all" [icon "list-delete"]]]])))
 
 (defn pagination-items [p pages]
@@ -115,8 +121,9 @@
       [:div.pagination-controls
        [:span "Rows per page"]
        [:div.dropdown
-        [:button.btn.btn-raised.dropdown-toggle.rows-per-page
-         {:data-toggle "dropdown"}
+        [:button.agr-btn.agr-btn-sm.dropdown-toggle.rows-per-page
+         {:type "button"
+          :data-toggle "dropdown"}
          per-page [icon "caret-down"]]
         (into [:ul.dropdown-menu]
               (map (fn [value]
@@ -421,11 +428,9 @@
     (when is-empty
       [:div.no-lists
        (cond
-         no-lists? [:h3 (str mine-name " has no public lists available")]
-         no-filtered-lists? [:h3 "No list matches active filters"])
-       [:hr]
-       [:p "You may have lists saved to your account. Login to access them."]
-       [:hr]
+         no-lists? [:p.agr-empty (str mine-name " has no public lists available")]
+         no-filtered-lists? [:p.agr-empty "No list matches active filters"])
+       [:p.agr-note "You may have lists saved to your account. Login to access them."]
        (when-not no-lists?
          [:p [:a {:role "button"
                   :on-click #(dispatch [:lists/reset-filters])}
