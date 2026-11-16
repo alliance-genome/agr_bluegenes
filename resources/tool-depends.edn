@@ -1,0 +1,152 @@
+;; npm tool name -> depends merged into that tool's config.json when the tool list
+;; is served (bluegenes.ws.tool-depends). Entries are class names or dotted paths,
+;; taken from the PathQuery select/where paths in each tool's src/ and dist/.
+;; Survives tool reinstalls. A tool shows only if every entry resolves in the mine.
+{"@intermine/bluegenes-cytoscape-interaction-network-viewer"
+ ["Gene.interactions.participant2.primaryIdentifier"
+  "Gene.interactions.participant2.symbol"
+  "Gene.interactions.details.name"
+  "Gene.interactions.details.role1"
+  "Gene.interactions.details.role2"
+  "Gene.interactions.details.type"
+  "Gene.interactions.details.dataSets.name"]
+
+ "@intermine/bluegenes-interaction-network"
+ ["Gene.interactions.participant2.primaryIdentifier"
+  "Gene.interactions.participant2.symbol"
+  "Gene.interactions.details.type"
+  "Gene.interactions.details.name"
+  "Gene.interactions.details.role1"
+  "Gene.interactions.details.role2"
+  "Gene.interactions.details.experiment.interactionDetectionMethods.name"
+  "Gene.interactions.details.experiment.name"
+  "Gene.interactions.details.experiment.publication.pubMedId"
+  "Gene.interactions.details.dataSets.name"]
+
+ "@intermine/bluegenes-disease-expression-arrayexpress-visualizer"
+ ["Gene.organism.name"
+  "Gene.atlasExpression.condition"
+  "Gene.atlasExpression.type"
+  "Gene.atlasExpression.tStatistic"
+  "Gene.atlasExpression.pValue"
+  "Gene.atlasExpression.expression"]
+
+ "@intermine/bluegenes-tissue-expression-arrayexpress-visualizer"
+ ["Gene.organism.name"
+  "Gene.atlasExpression.condition"
+  "Gene.atlasExpression.type"
+  "Gene.atlasExpression.tStatistic"
+  "Gene.atlasExpression.pValue"
+  "Gene.atlasExpression.expression"]
+
+ "@intermine/bluegenes-expression-box-swarm-visualizer"
+ ["Gene.organism.name"
+  "Gene.atlasExpression.condition"
+  "Gene.atlasExpression.type"
+  "Gene.atlasExpression.tStatistic"
+  "Gene.atlasExpression.pValue"
+  "Gene.atlasExpression.expression"]
+
+ "@intermine/bluegenes-esyn-viewer"
+ ["Gene.organism.taxonId"]
+
+ "@intermine/bluegenes-go-concept-relation"
+ ["Gene.organism.shortName"
+  "Gene.organism.taxonId"
+  "Gene.goAnnotation.qualifier"
+  "Gene.goAnnotation.evidence.code.code"
+  "Gene.goAnnotation.ontologyTerm.identifier"
+  "Gene.goAnnotation.ontologyTerm.name"
+  "Gene.goAnnotation.ontologyTerm.namespace"
+  "Gene.goAnnotation.ontologyTerm.description"
+  "Gene.goAnnotation.ontologyTerm.obsolete"]
+
+ "@intermine/bluegenes-go-term-visualizer"
+ ["Gene.organism.name"
+  "Gene.goAnnotation.ontologyTerm.identifier"
+  "Gene.goAnnotation.ontologyTerm.name"
+  "Gene.goAnnotation.ontologyTerm.parents.identifier"
+  "Gene.goAnnotation.ontologyTerm.parents.name"]
+
+ "@intermine/bluegenes-gwas-visualizer"
+ ["GWAS.results.study.primaryIdentifier"
+  "GWAS.results.phenotype.primaryIdentifier"
+  "GWAS.results.marker.primaryIdentifier"
+  "GWAS.results.pValue"
+  "GWAS.results.marker.chromosome.secondaryIdentifier"
+  "GWAS.results.marker.chromosomeLocation.start"
+  "GWAS.results.marker.chromosome.length"
+  "GWAS.results.associatedGenes.primaryIdentifier"
+  "GWASResult.associatedGenes.chromosomeLocation.start"
+  "GWASResult.associatedGenes.chromosome.length"
+  "GWASResult.associatedGenes.chromosome.primaryIdentifier"]
+
+ "@intermine/bluegenes-human-tissue-expression-visualizer"
+ ["Gene.atlasExpression.dataSets.name"
+  "Gene.atlasExpression.condition"
+  "Gene.atlasExpression.expression"
+  "Gene.atlasExpression.type"
+  "Gene.rnaSeqResults.tissue"
+  "Gene.rnaSeqResults.expressionScore"
+  "Gene.rnaSeqResults.dataSets.name"]
+
+ "@intermine/bluegenes-jbrowse-tool"
+ ["Gene.chromosomeLocation.start"
+  "Gene.chromosomeLocation.end"
+  "Gene.chromosomeLocation.locatedOn.primaryIdentifier"
+  "Gene.organism.taxonId"]
+
+ "@intermine/bluegenes-list-enrichment-visualizer"
+ ["Gene"]
+
+ "@intermine/bluegenes-msa-viewer"
+ ["Gene.proteins.primaryIdentifier"
+  "Gene.proteins.primaryAccession"
+  "Gene.proteins.name"
+  "Gene.proteins.isUniprotCanonical"
+  "Gene.proteins.molecularWeight"
+  "Gene.proteins.length"
+  "Gene.proteins.isFragment"
+  "Protein.sequence.length"
+  "Protein.sequence.residues"]
+
+ "@intermine/bluegenes-pathway-visualizer"
+ ["Gene.pathways.name"
+  "Gene.pathways.identifier"
+  "Gene.organism.shortName"]
+
+ "@intermine/bluegenes-protein-atlas-tissue-expression-visualizer"
+ ["Gene.proteinAtlasExpression.tissue.name"
+  "Gene.proteinAtlasExpression.tissue.tissueGroup.name"
+  "Gene.proteinAtlasExpression.cellType"
+  "Gene.proteinAtlasExpression.reliability"
+  "Gene.proteinAtlasExpression.level"]
+
+ "@intermine/bluegenes-protein-tissue-localisation"
+ ["Gene.proteinAtlasExpression.tissue.name"
+  "Gene.proteinAtlasExpression.cellType"
+  "Gene.proteinAtlasExpression.reliability"
+  "Gene.proteinAtlasExpression.level"]
+
+ "@intermine/bluegenes-protein-visualizer"
+ ["Gene.proteins.primaryIdentifier"
+  "Gene.proteins.primaryAccession"
+  "Gene.proteins.name"
+  "Gene.proteins.length"
+  "Protein.canonicalProtein.primaryAccession"]
+
+ "@intermine/bluegenes-protvista"
+ ["Protein.primaryAccession"]
+
+ "@intermine/bluegenes-tissue-expression-visualizer"
+ ["Gene.organism.name"
+  "Gene.microArrayResults.mRNASignal"
+  "Gene.microArrayResults.mRNASignalSEM"
+  "Gene.microArrayResults.presentCall"
+  "Gene.microArrayResults.enrichment"
+  "Gene.microArrayResults.affyCall"
+  "Gene.microArrayResults.dataSets.name"
+  "Gene.microArrayResults.tissue.name"
+  "Gene.rnaSeqResults.stage"
+  "Gene.rnaSeqResults.expressionScore"
+  "Gene.rnaSeqResults.expressionLevel"]}
