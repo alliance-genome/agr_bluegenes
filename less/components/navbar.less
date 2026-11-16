@@ -1,420 +1,413 @@
-    @import "../variables";
-    //most of these styles apply to all navs, but there's a class down the bottom for just the main (top) navbar.
-    nav {
-        margin-left: -15px;
-        margin-right: -15px;
-        color: @navbar-color-text;
-        background-color: @navbar-color;
-        fill: @navbar-color-text;
-        margin-bottom: 0;
-        border-width: 0;
-        border-radius: 0;
-        transition: background-color 0.3s ease-in-out;
-        ul {
-            display: flex;
-            padding: 0;
-            align-items: stretch;
-            justify-content: flex-start;
-            margin-bottom: 0;
-            height: 100%;
+// Main navbar: white top band (mine picker, search) over a primary menu bar.
+// Height of the top band and the menu bar. The sum is the navbar height at
+// desktop widths (querybuilder.less positions its columns below it).
+@nav-top-height: 56px;
+@nav-menu-height: 44px;
+
+nav.main-nav {
+    position: relative;
+    z-index: 43;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--agr-bg);
+    color: var(--agr-text);
+    font-family: var(--agr-font);
+
+    ul:not(.dropdown-menu) {
+        display: flex;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        list-style: none;
+    }
+
+    .dropdown-menu {
+        left: auto;
+        right: 0;
+        top: 100%;
+        margin-top: 0;
+        border: 1px solid var(--agr-border);
+        border-radius: 0 0 var(--agr-radius) var(--agr-radius);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        color: var(--agr-text);
+        text-align: left;
+    }
+
+    // ---- Top band ---------------------------------------------------
+    .nav-top {
+        background: var(--agr-bg);
+        border-bottom: 1px solid var(--agr-border);
+
+        > ul {
+            align-items: center;
+            gap: var(--agr-space-5);
+            min-height: @nav-top-height;
+            padding: var(--agr-space-2) var(--agr-space-5);
         }
-        .active-nav-link { // for use as mixin
+    }
+
+    .minename {
+        position: relative;
+        flex-shrink: 0;
+        cursor: pointer;
+
+        > a {
+            display: flex;
+            align-items: center;
+            gap: var(--agr-space-2);
+            padding: var(--agr-space-1) var(--agr-space-2);
+            border-radius: var(--agr-radius);
+            color: var(--agr-text);
+            font-size: var(--agr-h4-size);
+            font-weight: 700;
             text-decoration: none;
-            box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.2);
-            color: inherit;
-        }
-        li.bluegenes-logo a {
-            font-size: 18px;
-            font-weight: bold;
-            letter-spacing: 0.12em;
-            color: inherit;
 
-            svg {
-                fill: inherit;
-            }
-
-            &:focus,
             &:hover,
-            &:active {
-                box-shadow: none;
-            }
-        }
-        li.logon.dropdown .dropdown-menu {
-            .email {
-                background-color: @active-entry-color;
-                font-weight: bold;
+            &:focus {
+                background: var(--agr-bg-hover);
+                text-decoration: none;
             }
 
-            li > a {
-                display: flex; // So the text is centered.
-            }
-        }
-        li.logon > a {
             svg {
-                fill: inherit;
+                width: 12px;
+                height: 12px;
                 margin: 0;
+                fill: var(--agr-muted);
             }
         }
-        li.active a {
-            .active-nav-link;
+
+        .active-mine-image {
+            width: 36px;
+            max-height: 36px;
+            object-fit: contain;
         }
-        .nav-links {
-            flex-grow: 1;
-            display: flex;
-            overflow: auto;
+
+        &.recently-changed > a {
+            animation: nav-mine-changed 3s ease;
         }
-        .queries-button {
+    }
+
+    @keyframes nav-mine-changed {
+        0%, 70% { background: var(--agr-primary-light); }
+        100% { background: transparent; }
+    }
+
+    .mine-picker {
+        right: auto;
+        left: 0;
+        min-width: 260px;
+        max-height: 70vh;
+        padding: var(--agr-space-1) 0;
+        overflow-y: auto;
+
+        li a {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            gap: var(--agr-space-2);
+            padding: var(--agr-space-2) var(--agr-space-4);
+            color: var(--agr-text);
+            font-size: var(--agr-font-size);
+            font-weight: 400;
+            text-decoration: none;
+
+            img {
+                width: 24px;
+                max-height: 24px;
+                object-fit: contain;
+            }
 
             .icon {
-                fill: inherit;
+                margin-left: auto;
+                fill: var(--agr-muted);
+            }
+
+            &:hover {
+                background: var(--agr-bg-light);
+                color: var(--agr-primary-dark);
+            }
+
+            &.current {
+                background: var(--agr-primary-light);
+                font-weight: 700;
             }
         }
-        li {
-            min-height: 3*@spacer;
-            flex-grow: 1;
-            justify-content: center;
-            text-align: center;
-            list-style-type: none;
-            display: flex;
-            flex-direction: column;
-            & > a {
-                height: 100%;
-                justify-content: center;
-                flex-grow: 1;
-                align-items: center;
-                display: flex;
-                color: inherit;
-                font-size: 15px;
-                font-weight: 500;
-                &:focus,
-                &:hover,
-                &:active {
-                    .active-nav-link;
-                }
-                &:hover {
-                    .transitions;
-                }
+
+        li.header {
+            padding: var(--agr-space-2) var(--agr-space-4);
+            background: var(--agr-bg-light);
+            border-top: 1px solid var(--agr-border);
+
+            h4 {
+                margin: 0;
+                font-size: var(--agr-font-size);
+                font-weight: 700;
+                color: var(--agr-muted);
+                text-transform: uppercase;
             }
-            .transitions; //this is the mine chooser dropdown
-            &.mine-settings {
-              img {
-                width:@spacer*1.5;
-                margin-right:@spacer;
-              }
-                .dropdown-menu {
-                    padding: 0;
-                    text-align: left;
-                }
-                li a {
-                    //before we added this they were huge and ran off the bottom of small screens
-                    height: 2.2* @spacer;
-                    line-height: 1.2 * @spacer;
-                    font-size: @spacer;
-                    padding: 0.6 * @spacer 0.8*@spacer;
-                    box-sizing: border-box;
-                }
-                li a {
-                    .transitions;
-                    background: @body-background-color;
-                    text-align: left;
-                    .icon {
-                        fill: rgba(0, 0, 0, 0.2);
-                        margin-right: @spacer;
-                    }
-                    &:hover {
-                        background: darken(@body-background-color, 3%);
-                        color: @highlight-color;
-                        .transitions;
-                    }
-                    &.active,
-                    &.active>a {
-                        background-color: @highlight-color;
-                        .icon {
-                            fill: @body-background-color;
-                        }
-                        &>a:hover,
-                        &:hover {
-                            background: darken(@highlight-color, 3%);
-                            .transitions;
-                        }
-                    }
-                }
-                li a.current {
-                    background-color: @active-entry-color;
-                    font-weight: bold;
-                }
-                li.header {
-                    padding: 0.2*@spacer 0.8*@spacer;
-                    background-color: #ddd;
 
-                    h4 {
-                        text-align: left;
-                        font-size: 1.2em;
-                    }
-
-                    .icon {
-                        fill: @body-foreground-color;
-                    }
-                }
+            .icon {
+                fill: var(--agr-muted);
             }
         }
-        .minename {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            .transitions;
-            .logo.icon {
-                vertical-align: middle;
-                width: @spacer*1.5;
-                height: @spacer*1.5;
-                margin-top: -4px;
-                margin-right: 2px;
-                margin-left: 0;
-            }
-            .active-mine-image {
-                width: @spacer*2;
-                max-height: @spacer*2;
-                margin-right: @spacer/2;
-            }
-            & > a {
-                font-size: 22px;
-                font-weight: bold;
-                color: inherit;
+    }
 
-                &:hover,
-                &:active {
-                    .active-nav-link;
-                }
-                &:hover {
-                    .transitions;
-                } //this and the keyframes are for changing mines.
+    .search {
+        flex: 1 1 auto;
+        max-width: 560px;
+        margin-left: auto;
 
-                svg {
-                    fill: inherit;
-                    margin: 0;
-                }
+        .dropdown {
+            position: relative;
+        }
+
+        .typeahead-search {
+            width: 100%;
+            height: 36px;
+            padding: 0 var(--agr-space-6) 0 var(--agr-space-3);
+            background: var(--agr-bg);
+            border: 1px solid var(--agr-border-strong);
+            border-radius: var(--agr-radius);
+            color: var(--agr-text);
+            font-size: var(--agr-font-size);
+
+            &::placeholder {
+                color: var(--agr-muted);
             }
-            &.recently-changed {
-                animation-duration: 3s;
-                animation-name: slidein;
-                transition-timing-function: ease;
-            }
-            @keyframes slidein {
-                0% {
-                    margin-left: 100%;
-                    min-width: 5em;
-                    flex-grow: 5;
-                    background: @highlight-color;
-                }
-                70% {
-                    background: @highlight-color;
-                }
-                100% {
-                    background: @navbar-color;
-                    width: auto;
-                }
+
+            &:focus {
+                border-color: var(--agr-primary);
+                box-shadow: 0 0 0 2px var(--agr-primary-light);
+                outline: none;
             }
         }
-        .short-name {
-            display: none;
-        }
+
         .dropdown-menu {
-            left: auto;
+            left: 0;
             right: 0;
-            height: auto;
+            min-width: 0;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
 
-            &.quicksearch {
-                top: 45px;
-                border-top: none;
+        .search-button {
+            display: block; // Override its display:none defined elsewhere.
+            position: absolute;
+            right: var(--agr-space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            fill: var(--agr-muted);
+            cursor: pointer;
+        }
+    }
+
+    // ---- Menu bar ---------------------------------------------------
+    .nav-menu {
+        background: var(--agr-primary);
+        color: #fff;
+        fill: #fff;
+
+        > ul {
+            flex-wrap: wrap;
+            align-items: stretch;
+            min-height: @nav-menu-height;
+            padding: 0 var(--agr-space-4);
+        }
+
+        li {
+            display: flex;
+            position: relative;
+        }
+
+        .nav-spacer {
+            flex-grow: 1;
+        }
+
+        li > a {
+            display: flex;
+            align-items: center;
+            gap: var(--agr-space-1);
+            padding: 0 var(--agr-space-3);
+            border-bottom: 3px solid transparent;
+            color: #fff;
+            font-size: var(--agr-font-size);
+            font-weight: 400;
+            text-decoration: none;
+            white-space: nowrap;
+
+            &:hover,
+            &:focus {
+                background: rgba(0, 0, 0, 0.12);
+                color: #fff;
+                text-decoration: none;
             }
 
-            &.login-form-dropdown {
-                top: 68px;
-                border-top: none;
+            svg {
+                width: 12px;
+                height: 12px;
+                margin: 0;
+                fill: #fff;
             }
 
-            &.profile-dropdown {
-                top: 68px;
-                border-top: none;
+            .icon-selection,
+            .icon-user-circle {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        li.active > a {
+            border-bottom-color: #fff;
+            font-weight: 700;
+        }
+
+        .dropdown-menu {
+            color: var(--agr-text);
+            fill: var(--agr-text);
+
+            svg {
+                fill: var(--agr-text);
+            }
+        }
+
+        .profile-dropdown {
+            min-width: 180px;
+            padding: var(--agr-space-1) 0;
+
+            li {
+                display: block;
+            }
+
+            li > a,
+            .email span {
+                display: block;
+                padding: var(--agr-space-2) var(--agr-space-4);
+                border: 0;
+                color: var(--agr-text);
+                font-weight: 400;
+            }
+
+            li > a:hover {
+                background: var(--agr-bg-light);
+                color: var(--agr-primary-dark);
+            }
+
+            .email {
+                background: var(--agr-bg-light);
+
+                span {
+                    font-weight: 700;
+                }
+            }
+        }
+
+        .login-form-dropdown {
+            padding: 0;
+        }
+
+        .results-dropdown {
+            right: auto;
+            left: 0;
+            width: 35vw;
+            min-width: 280px;
+            padding: 0;
+
+            li {
+                display: block;
+            }
+
+            .list-group-item {
+                padding: var(--agr-space-2) var(--agr-space-4);
+                border: 0;
+                border-top: 1px solid var(--agr-border);
+                border-left: 3px solid var(--agr-primary);
+                color: var(--agr-text);
+
+                &.results-heading {
+                    border-left-color: transparent;
+                    background: var(--agr-bg-light);
+                }
+
+                &:not(.results-heading):hover {
+                    background: var(--agr-bg-light);
+                }
+            }
+
+            .list-group-item-content {
+                display: block;
                 padding: 0;
-            }
+                text-align: left;
+                font-size: 12px;
+                cursor: pointer;
+                color: var(--agr-text);
 
-            &.mine-picker {
-                top: 68px;
-                border-top: none;
-                right: auto;
-                width: 100%;
-            }
-
-            &.results-dropdown {
-                top: 68px;
-                border-top: none;
-                right: auto;
-                padding: 0;
-
-                // To stop it from expanding past the width of the page.
-                width: 35vw;
-
-                .list-group-item {
-                    border-left: 3px solid @highlight-color;
-                    border-top: solid 1px rgba(0, 0, 0, 0.1);
-                    padding: @spacer/2 @spacer;
-                    color: rgb(68, 68, 68);
-                    transition-duration: 0s;
-
-                    &.results-heading {
-                        border-left: 3px solid transparent;
-                        background-color: #eaeaea;
-                        padding-bottom: 0;
-
-                        .list-group-item-heading {
-                            color: #000;
-                        }
-                    }
-
-                    &:not(:first-child):hover {
-                            background: #ddd;
-                    }
-                }
-
-                .list-group-item-content {
-                    display: block;
-                    text-align: left;
-                    font-size: 0.8em;
-                    padding: 0;
-                    cursor: default;
-
-                    &:focus, &:hover {
-                        box-shadow: none;
-                    }
-                }
-
-                .list-group-item-heading {
-                    font-size: 1.6em;
-                    font-weight: 300;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                .list-group-item-text {
-                    color: rgb(68, 68, 68);
+                &:hover,
+                &:focus {
+                    background: transparent;
+                    box-shadow: none;
                 }
             }
+
+            .list-group-item-heading {
+                margin: 0;
+                overflow: hidden;
+                font-size: var(--agr-font-size);
+                font-weight: 700;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .list-group-item-text {
+                color: var(--agr-muted);
+            }
+        }
+    }
+}
+
+@media (max-width: 767px) {
+    nav.main-nav {
+        .nav-top > ul {
+            gap: var(--agr-space-2);
+            padding: var(--agr-space-2) var(--agr-space-3);
+        }
+
+        .minename > a {
+            padding: var(--agr-space-1);
         }
 
         .search {
-            height: 100%;
-            justify-content: center;
-            flex-grow: 1;
-            align-items: center;
+            min-width: 0;
+        }
 
-            .typeahead-search {
-                background-color: inherit;
-                color: inherit;
-                border: none;
-                border-bottom: 1px solid;
-                padding-right: 20px;
-                font-size: 13px;
-                font-weight: 500;
+        .mine-picker {
+            max-width: calc(100vw - 24px);
+        }
 
-                &::placeholder {
-                    color: inherit;
-                    font-size: 13px;
-                    font-weight: 500;
-                    opacity: 0.5;
-                }
-            }
+        .nav-menu > ul {
+            padding: 0 var(--agr-space-1);
+        }
 
-            .dropdown-menu {
-                min-width: 40vw;
-            }
+        .nav-menu li > a {
+            padding: 0 var(--agr-space-2);
+            min-height: @nav-menu-height;
+        }
 
-            .search-button {
-                display: block; // Override its display:none defined elsewhere.
-                fill: inherit;
-                cursor: pointer;
-                position: absolute;
-                right: -4px;
-                top: 2px;
-            }
+        .nav-menu .nav-spacer {
+            display: none;
+        }
+
+        // Dropdowns must stay inside the viewport.
+        .nav-menu .dropdown-menu {
+            max-width: calc(100vw - 8px);
+        }
+
+        .login-form-dropdown .login-form {
+            min-width: 0;
         }
     }
-
-    @media (max-width:800px) {
-        nav {
-            .long-name {
-                display: none;
-            }
-            .short-name {
-                display: inline;
-            }
-            .navbar-nav {
-                margin-top: 0;
-            }
-            .container-fluid {
-                margin-left: 0;
-                padding-left: 2px;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: stretch;
-            }
-        }
-        li {
-            .transitions;
-            padding: 0;
-            a {
-                .transitions;
-                padding-left: 7px;
-                padding-right: 7px;
-            }
-            .minename {
-                .transitions;
-                @cp: inset(4px 0px round 3px);
-                clip-path: @cp;
-                -webkit-clip-path: @cp;
-                min-width: 1.3*@spacer;
-                text-overflow: clip;
-                font-family: "Courier New", monospace;
-                overflow: hidden;
-                padding-left: 0.4em;
-                padding-right: 0.4em;
-            }
-        }
-    }
-
-    @media(max-width:@tiny-screen) {
-        nav ul {
-            margin-left: @spacer*1.5;
-            margin-right: @spacer;
-        }
-    }
-
-    @media (max-width:@even-tinier-screen) {
-        nav {
-            li {
-                // a desperate attempt to make the search bar a bit narrower
-                font-family: "Roboto condensed", "Helvetica Neue Condensed", "PT Sans Narrow", "Open Sans Condensed", "Liberation Sans Narrow", "Arial Narrow", "sans serif", sans-serif;
-                a {
-                    padding-left: 4px;
-                    padding-right: 4px;
-                    font-size: @spacer*0.9;
-                }
-            }
-        }
-    }
-
-//This is for *just* the top main navbar
-&.main-nav {
-  z-index: 43;
-  svg {
-      fill: rgba(255, 255, 255, 0.84);
-  }
-  margin: 0;
-  height: 70px;
 }
