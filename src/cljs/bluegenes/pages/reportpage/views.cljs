@@ -3,7 +3,7 @@
             [reagent.core :as r]
             [bluegenes.pages.reportpage.components.toc :as toc]
             [bluegenes.pages.reportpage.components.sidebar :as sidebar]
-            [bluegenes.pages.reportpage.utils :as utils :refer [description-dropdown]]
+            [bluegenes.pages.reportpage.utils :as utils :refer [description-dropdown toggle-props chevron]]
             #_[bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader mini-loader]]
@@ -16,7 +16,7 @@
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
-            [bluegenes.components.icons :refer [icon icon-comp]]
+            [bluegenes.components.icons :refer [icon-comp]]
             [bluegenes.pages.regions.utils :refer [strand-cell]]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
@@ -42,19 +42,20 @@
                                       :report-item-no-results)]
                             :id id}
                            [:h4.report-item-heading
-                            {:on-click (fn []
-                                         ;; Run query if it hasn't been run due to being collapsed.
-                                         (when (and (nil? result-count) @is-collapsed*)
-                                           (dispatch [:im-tables/load loc (dissoc props :loc)]))
-                                         (swap! is-collapsed* not))}
+                            (toggle-props
+                             (fn []
+                               ;; Run query if it hasn't been run due to being collapsed.
+                               (when (and (nil? result-count) @is-collapsed*)
+                                 (dispatch [:im-tables/load loc (dissoc props :loc)]))
+                               (swap! is-collapsed* not))
+                             (not @is-collapsed*))
                             [:span.report-item-title
-                             (str title (when result-count (str " (" result-count ")")))
+                             title
+                             (when result-count
+                               [:span.agr-badge.report-item-count result-count])
                              (when description [description-dropdown description])]
                             (when ((some-fn nil? pos?) result-count)
-                              [:span.report-item-toggle
-                               (if @is-collapsed*
-                                 [icon "expand-folder"]
-                                 [icon "collapse-folder"])])]
+                              [chevron @is-collapsed*])]
                            (cond
                              @is-collapsed* nil
                              (zero? result-count) nil
@@ -113,11 +114,13 @@
 (defn section []
   (let [collapsed* (r/atom false)]
     (fn [{:keys [title id]} & children]
-      (into [:div.report-table {:id id}
-             [:h3.report-table-heading
+      (into [:section.report-table.agr-section {:id id}
+             [:h3.report-table-heading.agr-section-title
               title
               [:button.btn.btn-link.pull-right.collapse-table
-               {:on-click #(swap! collapsed* not)}
+               {:on-click #(swap! collapsed* not)
+                :aria-expanded (not @collapsed*)
+                :aria-label (str (if @collapsed* "Expand " "Collapse ") title)}
                [icon-comp "chevron-up"
                 :classes [(when @collapsed* "collapsed")]]]]]
             (when-not @collapsed* children)))))
@@ -176,7 +179,7 @@
        (cond
          loading? [mini-loader "tiny"]
          :else
-         [:table.table.table-condensed.other-alliance-mines
+         [:table.agr-table.agr-table-sm.other-alliance-mines
           [:thead
            [:tr [:th "Species"] [:th "Symbol"] [:th "Mine"]]]
           [:tbody
@@ -193,20 +196,19 @@
                       (str (or (:symbol row) nom) " in " mine-name)]
                      [:span mine-name " " [other-mines-status row]])]])]])
        (when (seq unavailable)
-         [:p.text-muted.other-alliance-mines-unavailable
+         [:p.agr-note.other-alliance-mines-unavailable
           "Unavailable: " (str/join ", " unavailable)])
        (when (seq skipped)
-         [:p.text-muted.other-alliance-mines-skipped
+         [:p.agr-note.other-alliance-mines-skipped
           "Skipped. " (str/join ". " (map :reason skipped)) "."])
        (when orthologs-reason
-         [:p.text-muted.other-alliance-mines-orthologs
+         [:p.agr-note.other-alliance-mines-orthologs
           "Orthologs not listed. " orthologs-reason "."])])))
 
 (defn summary-location [[label value]]
   [:<>
-   [:div.report-table-cell.report-table-header
-    label]
-   [:div.report-table-cell
+   [:dt label]
+   [:dd
     [:span.report-table-link
      {:on-click #(dispatch [::events/open-in-region-search value])}
      [poppable {:data "Perform a search of this region"
@@ -232,32 +234,26 @@
 (defn summary-fasta [[label value]]
   (let [fasta @(subscribe [::subs/fasta])]
     [:<>
-     [:div.report-table-cell.report-table-header
-      label]
+     [:dt label]
      (case fasta
        :fasta/fetch
-       [:div.report-table-cell.fasta-value
+       [:dd.fasta-value
         [mini-loader "tiny"]]
 
        :fasta/none
-       [:div.report-table-cell.fasta-value
-        [:a.fasta-download.disabled
-         {:role "button"
-          :disabled true}
-         [icon-comp "my-data"]
-         "NOT AVAILABLE"]]
+       [:dd.agr-na "Not available"]
 
        :fasta/long
        (let [{:keys [mine type id]} @(subscribe [:panel-params])]
-         [:div.report-table-cell.fasta-value
+         [:dd.fasta-value
           [:a.fasta-download
            {:role "button"
             :on-click #(dispatch [:fetch-fasta (keyword mine) type id])}
            [icon-comp "my-data"]
-           "LOAD FASTA"]])
+           "Load FASTA"]])
 
        ;; In this branch, fasta will be a string containing the fasta.
-       [:div.report-table-cell.fasta-value
+       [:dd.fasta-value
         [:span.dropdown
          [:a.dropdown-toggle.fasta-button
           {:data-toggle "dropdown" :role "button"}
@@ -284,41 +280,43 @@
   (defn summary-cell []
     (let [show-more* (r/atom false)]
       (fn [cell]
-        (let [too-long? (< limit (-> cell second str count))
+        (let [value (second cell)
+              missing? (or (nil? value) (and (string? value) (str/blank? value)))
+              too-long? (< limit (-> value str count))
               cell-header (-> cell first (str/split " > ") last)
-              ?limit (when (and too-long? (not @show-more*)) limit)
-              cell-value (-> cell second (or "N/A") (anchor-if-url ?limit))]
+              ?limit (when (and too-long? (not @show-more*)) limit)]
           [:<>
-           [:div.report-table-cell.report-table-header
-            cell-header]
-           [:div.report-table-cell
-            cell-value
-            (when too-long?
-              [:button.btn.btn-link.show-more-button
-               {:on-click #(swap! show-more* not)}
-               (if @show-more* "Show less" "Show more")])]])))))
+           [:dt cell-header]
+           (if missing?
+             [:dd.agr-na "Not available"]
+             [:dd
+              (anchor-if-url value ?limit)
+              (when too-long?
+                [:button.btn.btn-link.show-more-button
+                 {:on-click #(swap! show-more* not)}
+                 (if @show-more* "Show less" "Show more")])])])))))
 
 (defn alliance-summary-row [label value]
-  [:div.report-table-row
-   [:div.report-table-cell.report-table-header label]
-   [:div.report-table-cell value]])
+  [:<>
+   [:dt label]
+   [:dd value]])
 
 (defn alliance-summary-block []
   (let [{:keys [status curie description synonyms gene-type message]}
         @(subscribe [::alliance-summary/block])]
     (case status
       :loading [:div.alliance-summary [mini-loader "tiny"]]
-      :error [:p.text-muted.alliance-summary
+      :error [:p.agr-note.alliance-summary
               (str "Alliance summary unavailable (" message ").")]
       :done [:div.alliance-summary
-             [:div.report-table-body
+             [:dl.agr-attrs
               (when description
                 [alliance-summary-row "Alliance summary" description])
               (when (seq synonyms)
                 [alliance-summary-row "Alliance synonyms" (str/join ", " synonyms)])
               (when gene-type
                 [alliance-summary-row "Gene type" gene-type])]
-             [:p.text-muted
+             [:p.agr-note
               alliance-summary/attribution ": "
               [:a {:href (alliance-summary/gene-url curie)
                    :target "_blank"
@@ -332,26 +330,22 @@
         chromosome-location @(subscribe [::subs/chromosome-location])
         fasta-length        @(subscribe [::subs/fasta-length])
         strand              @(subscribe [::subs/strand])
-        entries (->> (concat (sort-by key (filter val (zipmap columnHeaders (first results))))
-                             (when (not-empty chromosome-location)
-                               [^{:type :location} ["Chromosome Location" chromosome-location]])
-                             (when strand
-                               [["Strand" (strand-cell strand)]])
-                             (when fasta
-                               [^{:type :fasta} ["Sequence Length" fasta-length]]))
-                     (partition-all 2))]
+        entries (concat (sort-by key (filter val (zipmap columnHeaders (first results))))
+                        (when (not-empty chromosome-location)
+                          [^{:type :location} ["Chromosome Location" chromosome-location]])
+                        (when strand
+                          [["Strand" (strand-cell strand)]])
+                        (when fasta
+                          [^{:type :fasta} ["Sequence Length" fasta-length]]))]
     [section
      {:title utils/pre-section-title
       :id utils/pre-section-id}
-     (into [:div.report-table-body]
-           (for [row entries]
-             (into [:div.report-table-row]
-                   (for [cell row
-                         :let [meta-type (-> cell meta :type)]]
-                     (case meta-type
-                       :location [summary-location cell]
-                       :fasta [summary-fasta cell]
-                       [summary-cell cell])))))
+     (into [:dl.agr-attrs.report-attrs]
+           (for [cell entries]
+             (case (-> cell meta :type)
+               :location [summary-location cell]
+               :fasta [summary-fasta cell]
+               [summary-cell cell])))
      [alliance-summary-block]
      [:div.hidden-lg.sidebar-collapsed
       [sidebar/main]]]))
@@ -373,13 +367,28 @@
          :on-change on-change
          :value @input}]])))
 
+(defn- summary-value
+  "First non-blank value in the summary row whose view path is `path`."
+  [{:keys [views results]} path]
+  (let [v (get (zipmap views (first results)) path)]
+    (when-not (str/blank? (str v)) v)))
+
 (defn heading []
-  (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
-        title @(subscribe [::subs/report-title])]
-    [:h1.report-page-heading
-     title
-     [:code.start {:class (str "start-" rootClass)} rootClass]
-     [cart/add-button]]))
+  (let [{:keys [rootClass] :as summary} @(subscribe [::subs/report-summary])
+        title @(subscribe [::subs/report-title])
+        species (or (summary-value summary (str rootClass ".organism.shortName"))
+                    (summary-value summary (str rootClass ".organism.name")))
+        primary-id (summary-value summary (str rootClass ".primaryIdentifier"))]
+    [:header.report-header
+     [:div.report-header-main
+      [:p.report-class-label rootClass]
+      [:h1.report-page-heading title]
+      (when species
+        [:p.report-species species])
+      (when (and primary-id (not= primary-id title))
+        [:p.report-primary-id primary-id])]
+     [:div.report-header-actions
+      [cart/add-button]]]))
 
 (defn invalid-object []
   (let [{error-type :type ?message :message} @(subscribe [::subs/report-error])]
@@ -407,15 +416,12 @@
        fetching-report? [loader (str (:type params) " Report")]
        error [invalid-object]
        :else [:<>
-              [:div.row
-               [:div.col-xs-2
-                [filter-input]]
-               [:div.col-xs-8
-                [heading]]]
               [:div.row.report-row
-               [:div.col-xs-2
+               [:div.col-sm-3.col-md-2.report-nav
+                [filter-input]
                 [toc/main]]
-               [:div.col-xs-10.col-lg-8
+               [:div.col-sm-9.col-md-10.col-lg-8
+                [heading]
                 [summary]
                 [report]
                 [other-mines-panel]]

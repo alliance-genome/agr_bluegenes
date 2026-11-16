@@ -48,11 +48,7 @@
             active-toc @(subscribe [::subs/report-active-toc])
             filter-text @(subscribe [::subs/report-filter-text])]
         [:<>
-         [:div.toc-hide-heading]
-         [:div.toc-container
-          [:a.toc-heading {:on-click #(scroll-into-view! nil)}
-           [:h4.toc-title title
-            [:code.start {:class (str "start-" rootClass)} rootClass]]]
+         [:div.toc-container {:role "navigation" :aria-label (str title " sections")}
           (into [:ul.toc]
                 (doall
                  (for [{:keys [category children] parent-id :id}
