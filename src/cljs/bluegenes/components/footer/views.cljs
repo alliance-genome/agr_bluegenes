@@ -34,7 +34,7 @@
                          [:br] (str "Build: " release-version)]
                   :children [link "http://www.intermine.org" "InterMine"]}]]
       [:div.column.inner
-       [:span.thin "FUNDED BY"]
+       [:span.thin "Funded by"]
        [:span
         [link "https://www.wellcome.ac.uk/" "Wellcome Trust"]
         [:span.thin " | "]
@@ -64,6 +64,6 @@
                     :children [icon "discord" 2]}]])]
      [:div.section.column
       [link @(subscribe [:current-mine/citation])
-       (str "CITE " (some-> @(subscribe [:current-mine-human-name]) str/upper-case))]
-      [link @(subscribe [:current-mine/url :aboutUs]) "ABOUT US"]
-      [link @(subscribe [:current-mine/url :privacyPolicy]) "PRIVACY POLICY"]]]))
+       (str "Cite " @(subscribe [:current-mine-human-name]))]
+      [link @(subscribe [:current-mine/url :aboutUs]) "About us"]
+      [link @(subscribe [:current-mine/url :privacyPolicy]) "Privacy policy"]]]))

@@ -31,10 +31,15 @@
       (str/replace ">" "\\u003E")
       (str/replace "&" "\\u0026")))
 
-; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
+; A pure CSS loading animation to be displayed before the bluegenes javascript is read.
+; Values mirror less/alliance/tokens.less (the stylesheet is not loaded yet).
 (def loader-style
   [:style
-   "#wrappy{position:fixed;background-color:#f7f7f7;z-index:9999;display:flex;justify-content:center;align-items:center;height:100%;width:100%;flex-direction:column;font-family:sans-serif;font-size:2em;color:#999}#loader{display:flex;align-items:center;justify-content:center;margin-left:-20px;margin-top:60px;}.loader-organism{width:40px;height:0;display:block;border:12px solid #eee;border-radius:20px;opacity:.75;margin-right:-24px;animation-timing-function:ease-in;position:relative;animation-duration:2.8s;animation-name:pulse;animation-iteration-count:infinite}.worm{animation-delay:.2s}.zebra{animation-delay:.4s}.human{animation-delay:.6s}.yeast{animation-delay:.8s}.rat{animation-delay:1s}.mouse{animation-delay:1.2s}.fly{animation-delay:1.4s}@keyframes pulse{0%,100%{border-color:#3f51b5}15%{border-color:#9c27b0}30%{border-color:#e91e63}45%{border-color:#ff5722}60%{border-color:#ffc107}75%{border-color:#8bc34a}90%{border-color:#00bcd4}}\n    "])
+   (str "#wrappy{position:fixed;top:0;left:0;background-color:#fff;z-index:9999;display:flex;justify-content:center;align-items:center;height:100%;width:100%;flex-direction:column;font-family:Lato,Helvetica,sans-serif;font-size:16px;font-weight:700;letter-spacing:.08em;color:#6c757d}"
+        "#wrappy #loader{display:flex;align-items:flex-end;justify-content:center;gap:6px;height:32px;margin-top:24px}"
+        "#wrappy .loader-organism{width:8px;height:32px;display:block;border-radius:4px;background:#2598c5;opacity:.25;transform-origin:bottom;animation:agr-bar 1.4s ease-in-out infinite}"
+        "#wrappy .worm{animation-delay:0s}#wrappy .zebra{animation-delay:.1s}#wrappy .human{animation-delay:.2s}#wrappy .yeast{animation-delay:.3s}#wrappy .rat{animation-delay:.4s}#wrappy .mouse{animation-delay:.5s}#wrappy .fly{animation-delay:.6s}"
+        "@keyframes agr-bar{0%,60%,100%{opacity:.25;transform:scaleY(.4)}30%{opacity:1;transform:scaleY(1)}}")])
 
 (def css-compiling-style
   [:style

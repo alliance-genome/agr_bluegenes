@@ -263,40 +263,31 @@
 
 (def queries-to-show 5)
 
-(defn nav-buttons [classes & {:keys [large-screen?]}]
+(defn nav-buttons [classes]
   [:<>
-   [:li.primary-nav.hidden-xs
-    {:class (classes :home-panel large-screen?)}
+   [:li.primary-nav {:class (classes :home-panel)}
     [:a {:href (route/href ::route/home)}
      "Home"]]
-   [:li.primary-nav
-    {:class (classes :upload-panel large-screen?)}
+   [:li.primary-nav {:class (classes :upload-panel)}
     [:a {:href (route/href ::route/upload-step {:step "input"})}
      "Upload"]]
-   [:li.primary-nav
-    {:class (classes :lists-panel large-screen?)}
+   [:li.primary-nav {:class (classes :lists-panel)}
     [:a {:href (route/href ::route/lists)}
      "Lists"]]
-   [:li.primary-nav
-    {:class (classes :templates-panel large-screen?)}
+   [:li.primary-nav {:class (classes :templates-panel)}
     [:a {:href (route/href ::route/templates)}
      "Templates"]]
-   [:li.primary-nav
-    {:class (classes :regions-panel large-screen?)}
+   [:li.primary-nav {:class (classes :regions-panel)}
     [:a {:href (route/href ::route/regions)}
      "Regions"]]
-   [:li.primary-nav
-    {:class (classes :querybuilder-panel large-screen?)}
+   [:li.primary-nav {:class (classes :querybuilder-panel)}
     [:a {:href (route/href ::route/querybuilder)}
      "Query\u00A0Builder"]]
    (when @(subscribe [:results/have-been-queries?])
      [:li.queries-container.hidden-xs.hidden-sm
-      {:class (classes :results-panel large-screen?)}
+      {:class (classes :results-panel)}
       [:a.dropdown-toggle.queries-button
        {:data-toggle "dropdown" :role "button"}
-       ;; This has the same height as the *visible* icon, so it ensures the icon
-       ;; in the middle is centered.
-       [icon-comp "caret-down" :classes [:invisible]]
        [:span "Activity"]
        [icon-comp "caret-down"]]
       (into [:ul.dropdown-menu.results-dropdown.list-group
@@ -312,33 +303,24 @@
                   [:div.list-group-item-text
                    (time/format-query query)
                    (when intent
-                     (str " - " (-> intent name str/capitalize)))]]])))])
-   [:li.primary-nav.hidden-md.hidden-lg
-    {:class (classes :search-panel large-screen?)}
-    [:a {:href (route/href ::route/search)}
-     "Search"]]])
+                     (str " - " (-> intent name str/capitalize)))]]])))])])
 
-(defn main []
+(defn main
+  "Two bands: a white top band with the mine picker and search, and a primary
+  coloured menu bar with the page links, the cart and the login."
+  []
   (let [active-panel (subscribe [:active-panel])
-        main-color (subscribe [:branding/header-main])
-        text-color (subscribe [:branding/header-text])
-        classes (fn [panel-key large-screen?]
-                  [(when (= @active-panel panel-key) "active")
-                   (when large-screen? "hidden-xs")])]
+        classes (fn [panel-key]
+                  (when (= @active-panel panel-key) "active"))]
     (fn []
       [:nav#bluegenes-main-nav.main-nav
-       {:style {:background-color @main-color
-                :color @text-color
-                :fill @text-color}}
-       [:ul
-        [mine-picker]
-        ;; We want to show the nav buttons inside a container on small screens,
-        ;; so it can be scrolled. But we don't want the nav buttons inside the
-        ;; container on larger screens, so they can be placed more spaciously.
-        ;; This is how we achieve this!
-        [nav-buttons classes :large-screen? true]
-        [:div.nav-links.hidden-sm.hidden-md.hidden-lg
-         [nav-buttons classes]]
-        [:li.primary-nav.search.hidden-xs.hidden-sm [search/main]]
-        [cart/nav-item]
-        [user]]])))
+       [:div.nav-top
+        [:ul
+         [mine-picker]
+         [:li.primary-nav.search [search/main]]]]
+       [:div.nav-menu
+        [:ul
+         [nav-buttons classes]
+         [:li.nav-spacer]
+         [cart/nav-item]
+         [user]]]])))
