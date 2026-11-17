@@ -8,6 +8,8 @@
  :bluegenes-default-service-root "https://alliancemine.alliancegenome.org/alliancemine"
  :bluegenes-default-mine-name "AllianceMine"
  :bluegenes-default-namespace "alliancemine"
+ :bluegenes-default-logo "/images/mines/alliancemine-icon.png"
+ :bluegenes-default-wordmark "/images/mines/alliancemine-wordmark.png"
  :bluegenes-additional-mines [{:root "https://wormmine.alliancegenome.org/wormmine"
                               :name "WormMine"
                               :namespace "wormmine"}

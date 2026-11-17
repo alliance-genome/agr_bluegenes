@@ -3,7 +3,7 @@
             [reagent.core :as r]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon icon-comp]]
-            [bluegenes.components.navbar.nav :refer [mine-icon]]
+            [bluegenes.components.navbar.nav :refer [mine-icon mine-wordmark-src]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element
@@ -17,6 +17,8 @@
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
+        wordmark (mine-wordmark-src @(subscribe [:current-mine])
+                                    (:bluegenes-deploy-path @server-vars))
         description @(subscribe [:current-mine/description])
         notice @(subscribe [:current-mine/notice])
         release @(subscribe [:current-mine/release])]
@@ -24,7 +26,10 @@
      [:div.mine-intro-body
       (when-not @(subscribe [:home/customisation :hideMineIntro])
         [:<>
-         [:h1.mine-name mine-name]
+         [:h1.mine-name
+          (if wordmark
+            [:img.mine-wordmark {:src wordmark :alt mine-name}]
+            mine-name)]
          (when (not-empty release)
            [:div.mine-release
             [:span.agr-badge

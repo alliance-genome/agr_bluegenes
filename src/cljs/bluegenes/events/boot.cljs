@@ -123,19 +123,25 @@
 
 (defn init-configured-mine
   "Parse configured mine data passed from BlueGenes config."
-  [{:keys [root name namespace external]}]
-  {:id (keyword namespace)
-   :name name
-   :service {:root root}
-   :external? external})
+  [{:keys [root name namespace external logo wordmark]}]
+  (cond-> {:id (keyword namespace)
+           :name name
+           :service {:root root}
+           :external? external}
+    (not (str/blank? logo)) (assoc :logo logo)
+    (not (str/blank? wordmark)) (assoc :wordmark wordmark)))
 
 (defn init-mine-defaults
   "Load default mine data, as passed from a coupled InterMine or defined
   BlueGenes config."
   []
-  {:id (read-default-ns)
-   :name (:bluegenes-default-mine-name @server-vars)
-   :service {:root (:bluegenes-default-service-root @server-vars)}})
+  (let [{:keys [bluegenes-default-mine-name bluegenes-default-service-root
+                bluegenes-default-logo bluegenes-default-wordmark]} @server-vars]
+    (cond-> {:id (read-default-ns)
+             :name bluegenes-default-mine-name
+             :service {:root bluegenes-default-service-root}}
+      (not (str/blank? bluegenes-default-logo)) (assoc :logo bluegenes-default-logo)
+      (not (str/blank? bluegenes-default-wordmark)) (assoc :wordmark bluegenes-default-wordmark))))
 
 (defn init-config-mines []
   (->> (:bluegenes-additional-mines @server-vars)

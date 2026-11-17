@@ -23,6 +23,33 @@
 ;; look nice :-)
 (def ignore-logo-path "https://cdn.rawgit.com/intermine/design-materials/78a13db5/logos/intermine/squareish/45x45.png")
 
+(defn config-asset-url
+  "URL for a logo path set in config. Paths starting with `/` are served from
+  the deploy path, absolute http(s) URLs are used as is. Blank gives nil."
+  [deploy-path path]
+  (cond
+    (str/blank? path) nil
+    (re-find #"^https?://" path) path
+    :else (str deploy-path path)))
+
+(defn mine-icon-src
+  "Source of the square icon for a mine: the configured `:logo`, else the
+  mine's branding logo, else the logo under the mine's service root."
+  [details deploy-path]
+  (or (config-asset-url deploy-path (:logo details))
+      (let [branding-path (or (get-in details [:images :logo]) ; Path when it's from registry.
+                              (get-in details [:branding :images :logo])) ; Path when it's the current mine.
+            fallback-path (str (get-mine-url details) logo-path)] ; Fallback path.
+        (if (or (empty? branding-path)
+                (= branding-path ignore-logo-path))
+          fallback-path
+          branding-path))))
+
+(defn mine-wordmark-src
+  "Source of the configured wide logo for a mine, or nil when it has none."
+  [details deploy-path]
+  (config-asset-url deploy-path (:wordmark details)))
+
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
    Pass it the entire set of mine details, e.g.
@@ -30,14 +57,7 @@
   [details & {:keys [class]}]
   [:img
    {:class class
-    :src
-    (let [branding-path (or (get-in details [:images :logo]) ; Path when it's from registry.
-                            (get-in details [:branding :images :logo])) ; Path when it's the current mine.
-          fallback-path (str (get-mine-url details) logo-path)] ; Fallback path.
-      (if (or (empty? branding-path)
-              (= branding-path ignore-logo-path))
-        fallback-path
-        branding-path))}])
+    :src (mine-icon-src details (:bluegenes-deploy-path @server-vars))}])
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
@@ -210,10 +230,17 @@
         [anonymous]))))
 
 (defn active-mine-logo [current-mine]
-  (let [logo    (get-in current-mine [:branding :images :logo])
-        service (get-in current-mine [:service :root])]
-    [:img.active-mine-image
-     {:src (or logo (str service logo-path))}]))
+  (let [deploy-path (:bluegenes-deploy-path @server-vars)
+        wordmark    (mine-wordmark-src current-mine deploy-path)
+        logo        (or (config-asset-url deploy-path (:logo current-mine))
+                        (get-in current-mine [:branding :images :logo]))
+        service     (get-in current-mine [:service :root])]
+    (if wordmark
+      [:img.active-mine-wordmark
+       {:src wordmark
+        :alt (:name current-mine)}]
+      [:img.active-mine-image
+       {:src (or logo (str service logo-path))}])))
 
 (defn mine-entry
   "Output a single mine in the mine picker"
@@ -248,7 +275,8 @@
     [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [active-mine-logo current-mine]
-      [:span.hidden-xs (:name current-mine)]
+      (when-not (:wordmark current-mine)
+        [:span.hidden-xs (:name current-mine)])
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      (into [:ul.dropdown-menu.mine-picker]
            (concat (map-mines configured-mines)

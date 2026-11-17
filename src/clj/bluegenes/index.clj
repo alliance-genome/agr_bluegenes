@@ -123,6 +123,7 @@
      (str "var serverVars="
           (let [server-vars (merge (select-keys env [:google-analytics
                                                      :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
+                                                     :bluegenes-default-logo :bluegenes-default-wordmark
                                                      :bluegenes-additional-mines :hide-registry-mines :bluegenes-deploy-path
                                                      :bluegenes-alliance-api-base])
                                    {:version bundle-hash})]
