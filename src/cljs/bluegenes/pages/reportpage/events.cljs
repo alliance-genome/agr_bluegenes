@@ -6,6 +6,7 @@
             [clojure.string :as string]
             [clojure.set :as set]
             [bluegenes.pages.reportpage.utils :as utils]
+            [bluegenes.mine-ids :as mine-ids]
             [bluegenes.route :as route]
             [goog.dom :as gdom]
             [oops.core :refer [oget ocall]]
@@ -99,11 +100,13 @@
 
 (defn lookup-value
   "Takes a gene summary response and returns the values best used for a LOOKUP
-  query, as a vector of value and extraValue."
+  query, as a vector of value, extraValue and primaryIdentifier (nil when the
+  gene has none)."
   [summary]
   (let [results (first (views->results summary))]
     [(some results [:primaryIdentifier :secondaryIdentifier :symbol])
-     (some results [:organism.shortName :organism.name])]))
+     (some results [:organism.shortName :organism.name])
+     (:primaryIdentifier results)]))
 
 (reg-event-fx
  :handle-report-summary
@@ -363,18 +366,32 @@
     "phytomine" "homolog.gene"
     "homologues.homologue"))
 
+(defn homologue-constraint
+  "Constraint matching the gene's homologues in a mine. With a primaryIdentifier
+  it is a ONE OF over `mine-ids/candidates` (bare and CURIE forms), because a
+  LOOKUP on the bare identifier misses mines that store CURIEs (AllianceMine
+  SGD:S000001855, FlyMine for a yeast gene) and the organism extraValue only
+  narrows a LOOKUP. Without one, or on the phytomine shim, it is a LOOKUP."
+  [mine-ns value extraValue primary-id]
+  (let [ids (mine-ids/candidates primary-id)]
+    (if (and (seq ids) (not= mine-ns "phytomine"))
+      {:path (str (shim-homologue-path mine-ns) ".primaryIdentifier")
+       :op "ONE OF"
+       :values ids}
+      {:path (shim-homologue-path mine-ns)
+       :op "LOOKUP"
+       :value value
+       :extraValue extraValue})))
+
 (defn homologue-query
-  [[value extraValue] {mine-ns :namespace ?organisms :organisms :as _mine}]
+  [[value extraValue primary-id] {mine-ns :namespace ?organisms :organisms :as _mine}]
   {:from "Gene"
    :select ["id"
             "symbol"
             "primaryIdentifier"
             "secondaryIdentifier"
             "organism.shortName"]
-   :where (cond-> [{:path (shim-homologue-path mine-ns)
-                    :op "LOOKUP"
-                    :value value
-                    :extraValue extraValue}]
+   :where (cond-> [(homologue-constraint mine-ns value extraValue primary-id)]
             (seq ?organisms) ; Won't exist for env mines.
             (conj {:path "organism"
                    :op "LOOKUP"
