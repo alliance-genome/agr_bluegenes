@@ -192,10 +192,10 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-model-organism-picker');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -208,12 +208,19 @@
 		return s;
 	}
 
+	// Count cells shade from heat-1 (1) to heat-6 (20 or more). Zero stays unshaded.
+	function heatClass(n) {
+		if (!n) return 'num';
+		var step = n >= 20 ? 6 : n >= 10 ? 5 : n >= 5 ? 4 : n >= 3 ? 3 : n >= 2 ? 2 : 1;
+		return 'num agr-heat-' + step;
+	}
+
 	function formatScore(n) {
 		return (Math.round(n * 100) / 100).toFixed(2);
 	}
 
 	function howRanked() {
-		var details = node('details', null, 'alliance-model-organism-picker-formula');
+		var details = node('details', null, 'agr-note alliance-model-organism-picker-formula');
 		details.appendChild(node('summary', 'How is this ranked?'));
 		[
 			'score = confidence x resource',
@@ -233,43 +240,30 @@
 		var keys = RESOURCE_KEYS.filter(function (k) { return unavailable.indexOf(k) < 0; });
 		var wrap = node('div', null, 'alliance-model-organism-picker');
 		if (!orthologs.length) {
-			wrap.appendChild(node('span', 'No orthologs'));
+			wrap.appendChild(node('p', 'No orthologs for this gene', 'agr-empty'));
 			return wrap;
 		}
 		var ranked = rank(orthologs);
 		var species = {};
 		ranked.forEach(function (o) { species[o.species || 'Unknown species'] = true; });
 		var top = ranked[0];
-		wrap.appendChild(
-			node(
-				'p',
-				ranked.length + ' orthologs in ' + Object.keys(species).length + ' species. Top: ' +
-					(top.symbol || top.identifier) + ' (' + (top.species || 'Unknown species') + '), score ' +
-					formatScore(top.score) + '.',
-				'alliance-model-organism-picker-summary'
-			)
-		);
+		var summary = node('p', null, 'alliance-model-organism-picker-summary');
+		summary.appendChild(document.createTextNode(
+			ranked.length + ' orthologs in ' + Object.keys(species).length + ' species. Top: ' +
+				(top.symbol || top.identifier) + ' ('
+		));
+		summary.appendChild(node('em', top.species || 'Unknown species'));
+		summary.appendChild(document.createTextNode('), score ' + formatScore(top.score) + '.'));
+		wrap.appendChild(summary);
 		if (truncated) {
-			wrap.appendChild(node('p', 'A result set was cut at ' + MAX_ROWS + ' rows, so some counts are lower bounds.'));
+			wrap.appendChild(node('p', 'A result set was cut at ' + MAX_ROWS + ' rows, so some counts are lower bounds.', 'agr-note'));
 		}
-		if (unavailable.length) {
-			wrap.appendChild(
-				node(
-					'p',
-					'This mine has no data for: ' +
-						unavailable.map(function (k) { return RESOURCE_LABELS[k].toLowerCase(); }).join(', ') +
-						'. Those columns are left out of the score.',
-					'alliance-model-organism-picker-note'
-				)
-			);
-		}
-		wrap.appendChild(howRanked());
 
-		var table = node('table', null, 'table table-condensed table-striped');
+		var table = node('table', null, 'agr-table agr-table-sm');
 		var headRow = node('tr');
 		['Species', 'Symbol', 'Confidence']
 			.concat(keys.map(function (k) { return RESOURCE_LABELS[k]; }), ['Score'])
-			.forEach(function (h) { headRow.appendChild(node('th', h)); });
+			.forEach(function (h, i) { headRow.appendChild(node('th', h, i >= 3 ? 'num' : null)); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		table.appendChild(thead);
@@ -277,7 +271,9 @@
 		var tbody = node('tbody');
 		ranked.forEach(function (o) {
 			var tr = node('tr');
-			tr.appendChild(node('td', o.species || ''));
+			var spCell = node('td');
+			if (o.species) spCell.appendChild(node('em', o.species));
+			tr.appendChild(spCell);
 			var symCell = node('td');
 			var a = node('a', o.symbol || o.identifier || o.id);
 			a.href = '#';
@@ -289,12 +285,26 @@
 			symCell.appendChild(a);
 			tr.appendChild(symCell);
 			tr.appendChild(node('td', support(o)));
-			keys.forEach(function (k) { tr.appendChild(node('td', o[k] || 0)); });
-			tr.appendChild(node('td', formatScore(o.score)));
+			keys.forEach(function (k) { tr.appendChild(node('td', o[k] || 0, heatClass(o[k]))); });
+			tr.appendChild(node('td', formatScore(o.score), 'num'));
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		wrap.appendChild(table);
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		tableWrap.appendChild(table);
+		wrap.appendChild(tableWrap);
+		if (unavailable.length) {
+			wrap.appendChild(
+				node(
+					'p',
+					'This mine has no data for: ' +
+						unavailable.map(function (k) { return RESOURCE_LABELS[k].toLowerCase(); }).join(', ') +
+						'. Those columns are left out of the score.',
+					'agr-note alliance-model-organism-picker-note'
+				)
+			);
+		}
+		wrap.appendChild(howRanked());
 		return wrap;
 	}
 
@@ -307,7 +317,7 @@
 	function renderMany(el, genes, navigate, note) {
 		clear(el);
 		var outer = node('div', null, 'alliance-model-organism-picker-list');
-		if (note) outer.appendChild(node('p', note));
+		if (note) outer.appendChild(node('p', note, 'agr-note'));
 		genes.forEach(function (g) {
 			var section = node('div', null, 'alliance-model-organism-picker-gene');
 			section.appendChild(node('h4', g.label));
@@ -414,7 +424,7 @@
 				var note = all.length > shown.length
 					? 'Showing the first ' + shown.length + ' of ' + all.length + ' genes.'
 					: null;
-				message(el, 'Loading...');
+				message(el, 'Loading orthologs', 'agr-loading');
 				loadMany(serviceRoot(service.root), shown)
 					.then(function (genes) {
 						if (el.__agrPickerReq !== token) return;
@@ -423,17 +433,17 @@
 					.catch(function (err) {
 						console.error('Model organism picker failed', err);
 						if (el.__agrPickerReq !== token) return;
-						message(el, 'Could not load orthologs from the mine');
+						message(el, 'Could not load orthologs from the mine', 'agr-error');
 					});
 				return;
 			}
 			value = all[0];
 		}
 		if (value === undefined || value === null || value === '') {
-			message(el, 'No orthologs');
+			message(el, 'No orthologs for this gene', 'agr-empty');
 			return;
 		}
-		message(el, 'Loading...');
+		message(el, 'Loading orthologs', 'agr-loading');
 		load(serviceRoot(service.root), String(value))
 			.then(function (result) {
 				if (el.__agrPickerReq !== token) return;
@@ -442,7 +452,7 @@
 			.catch(function (err) {
 				console.error('Model organism picker failed', err);
 				if (el.__agrPickerReq !== token) return;
-				message(el, 'Could not load orthologs from the mine');
+				message(el, 'Could not load orthologs from the mine', 'agr-error');
 			});
 	}
 

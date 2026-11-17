@@ -167,16 +167,18 @@
 
 (defn organism-counts
   "For one organism, how many list genes have exactly one ortholog (:one-to-one),
-  more than one (:one-to-many) or none (:none). Orthologs count by distinct id."
+  more than one (:one-to-many) or none (:none). Orthologs count by distinct id.
+  A gene counts itself in its own organism, so every gene of the list's species
+  is at least :one-to-one there."
   [genes pairs organism]
-  (let [n-by-gene (->> pairs
-                       (filter #(= organism (:organism %)))
-                       (reduce (fn [m {:keys [gene ortholog]}]
-                                 (update m gene (fnil conj #{}) ortholog))
-                               {})
-                       (into {} (map (fn [[g s]] [g (count s)]))))]
-    (reduce (fn [acc {:keys [id]}]
-              (let [n (get n-by-gene id 0)]
+  (let [orthologs-by-gene (->> pairs
+                               (filter #(= organism (:organism %)))
+                               (reduce (fn [m {:keys [gene ortholog]}]
+                                         (update m gene (fnil conj #{}) ortholog))
+                                       {}))]
+    (reduce (fn [acc {:keys [id] gene-organism :organism}]
+              (let [found (get orthologs-by-gene id #{})
+                    n (count (cond-> found (= organism gene-organism) (conj id)))]
                 (update acc (cond (zero? n) :none (= 1 n) :one-to-one :else :one-to-many)
                         inc)))
             {:one-to-one 0 :one-to-many 0 :none 0}
@@ -352,14 +354,24 @@
 (def ^:private col-w 30)
 (def ^:private row-h 22)
 (def ^:private bar-h 140)
-(def ^:private label-w 120)
+(def ^:private min-label-w 90)
+(def ^:private label-char-w 6.6) ; average glyph width at the 11px label size
+(def ^:private label-pad 16)
+
+(defn- label-width
+  "Width of the label column: fits the longest organism name."
+  [orgs]
+  (Math/ceil (max min-label-w
+                  (+ label-pad (* label-char-w (apply max 0 (map count orgs)))))))
 (def ^:private pad 24)
 
 (defn upset-geometry
   "Pixel layout of the UpSet plot. Pure so it can be tested."
   [orgs ints]
-  (let [max-size (apply max 1 (map :size ints))]
-    {:width (+ label-w (* col-w (count ints)) 8)
+  (let [max-size (apply max 1 (map :size ints))
+        label-w (label-width orgs)]
+    {:label-w label-w
+     :width (+ label-w (* col-w (count ints)) 8)
      :height (+ pad bar-h (* row-h (count orgs)) 4)
      :bars (map-indexed
             (fn [i {:keys [size organisms]}]
@@ -376,14 +388,15 @@
                         orgs)}))
 
 (defn upset-plot [orgs ints selected]
-  (let [{:keys [width height bars rows]} (upset-geometry orgs ints)]
+  (let [{:keys [width height bars rows label-w]} (upset-geometry orgs ints)]
     [:svg.upset {:width width :height height :role "img"
                  :aria-label "Overlap of list genes by organisms with orthologs"}
      (for [{:keys [organism cy]} rows]
        ^{:key organism}
        [:g
-        [:text {:x (- label-w 8) :y (+ cy 4) :text-anchor "end" :font-size 11} organism]
-        [:line {:x1 label-w :x2 width :y1 cy :y2 cy :stroke "#ddd"}]])
+        [:text {:x (- label-w 8) :y (+ cy 4) :text-anchor "end" :font-size 11
+                :fill "var(--agr-text)"} organism]
+        [:line {:x1 label-w :x2 width :y1 cy :y2 cy :stroke "var(--agr-border)"}]])
      (for [{:keys [organisms size x w y h cx]} bars
            :let [sel? (= organisms selected)
                  members (set organisms)
@@ -395,62 +408,64 @@
             :on-click #(dispatch [::select-intersection organisms])}
         [:title (str size " genes: " (str/join ", " organisms))]
         [:rect {:x (- cx (/ col-w 2)) :y 0 :width col-w :height height
-                :fill (if sel? "#e8f0fe" "transparent")}]
-        [:rect {:x x :y y :width w :height h :fill (if sel? "#1a4f8b" "#4a7fb5")}]
-        [:text {:x cx :y (- y 3) :text-anchor "middle" :font-size 10} size]
+                :fill (if sel? "var(--agr-primary-light)" "transparent")}]
+        [:rect {:x x :y y :width w :height h :fill "var(--agr-primary)"}]
+        [:text {:x cx :y (- y 3) :text-anchor "middle" :font-size 10
+                :fill "var(--agr-text)"} size]
         (when (> (count member-ys) 1)
           [:line {:x1 cx :x2 cx :y1 (apply min member-ys) :y2 (apply max member-ys)
-                  :stroke "#333" :stroke-width 2}])
+                  :stroke "var(--agr-text)" :stroke-width 2}])
         (for [{:keys [organism cy]} rows]
           ^{:key organism}
           [:circle {:cx cx :cy cy :r 5
-                    :fill (if (members organism) "#333" "#ddd")}])])]))
+                    :fill (if (members organism) "var(--agr-text)" "var(--agr-border)")}])])]))
 
 (defn counts-table [counts gene-count]
-  [:table.table.table-condensed.ortholog-compare-counts
-   [:caption (str gene-count " genes in the list")]
-   [:thead
-    [:tr [:th "Organism"] [:th "1:1"] [:th "1:many"] [:th "No ortholog"]]]
-   [:tbody
-    (for [{:keys [organism one-to-one one-to-many none]} counts]
-      ^{:key organism}
-      [:tr [:td organism] [:td one-to-one] [:td one-to-many] [:td none]])]])
+  [:div.agr-table-wrap
+   [:table.agr-table.agr-table-sm.agr-table-striped.ortholog-compare-counts
+    [:caption.agr-note (str gene-count " genes in the list. A gene counts as 1:1 with itself in its own organism.")]
+    [:thead
+     [:tr [:th "Organism"] [:th.num "1:1"] [:th.num "1:many"] [:th.num "No ortholog"]]]
+    [:tbody
+     (for [{:keys [organism one-to-one one-to-many none]} counts]
+       ^{:key organism}
+       [:tr [:td organism] [:td.num one-to-one] [:td.num one-to-many] [:td.num none]])]]])
 
 (defn selection-panel [{:keys [genes selected list-name saving?]} ints list-source]
   (let [chosen (selected-genes genes ints selected)
         typed (if (some? list-name) list-name (default-list-name list-source selected))]
     [:div.ortholog-compare-selection
-     [:h4 (str (count chosen) " genes with orthologs in exactly " (str/join ", " selected))]
+     [:h4.ortholog-compare-selected (str (count chosen) " genes with orthologs in exactly " (str/join ", " selected))]
      [:ul.list-unstyled
       (for [{:keys [id symbol identifier]} chosen]
         ^{:key id} [:li (or symbol identifier)])]
-     [:div.form-group
-      [:label "New list name"]
-      [:input.form-control
-       {:type "text"
-        :value typed
-        :on-change #(dispatch [::set-list-name (oget % :target :value)])}]]
-     [:button.btn.btn-primary.btn-raised
-      {:type "button"
-       :disabled (or saving? (str/blank? typed))
-       :on-click #(dispatch [::save (mapv :id chosen)])}
-      (if saving? "Saving..." "Save as list")]]))
+     [:div.agr-filter-bar
+      [:label "New list name"
+       [:input.form-control
+        {:type "text"
+         :value typed
+         :on-change #(dispatch [::set-list-name (oget % :target :value)])}]]
+      [:button.agr-btn-primary
+       {:type "button"
+        :disabled (or saving? (str/blank? typed))
+        :on-click #(dispatch [::save (mapv :id chosen)])}
+       (if saving? "Saving" "Save as list")]]]))
 
 (defn compare-panel []
   (let [{:keys [loading? stringency best-only? selected list-source pairs] :as state}
         @(subscribe [::state])
         {:keys [organisms stringencies counts intersections gene-count features]}
         @(subscribe [::view-data])]
-    [:div.orthologs-compare-panel
+    [:section.agr-section.orthologs-compare-panel
+     [:h3.agr-section-title "Compare across species"]
      (cond
-       loading? [:p "Comparing orthologs..."]
-       (empty? pairs) [:p "No orthologs found for the genes in this list."]
+       loading? [:p.agr-loading "Comparing orthologs"]
+       (empty? pairs) [:p.agr-empty "No orthologs found for the genes in this list."]
        :else
        [:<>
-        [:div.form-inline
+        [:div.agr-filter-bar
          (when (and (:stringency? features) (seq stringencies))
-           [:div.form-group
-            [:label "Stringency "]
+           [:label "Stringency"
             [:select.form-control
              {:value (or stringency "")
               :on-change #(dispatch [::set-stringency (oget % :target :value)])}
@@ -458,16 +473,16 @@
              (for [s stringencies]
                ^{:key s} [:option {:value s} s])]])
          (when (:best-score? features)
-           [:label.checkbox-inline
+           [:label
             [:input {:type "checkbox"
                      :checked (boolean best-only?)
                      :on-change #(dispatch [::set-best-only (oget % :target :checked)])}]
             " Best score only"])]
         [counts-table counts gene-count]
         (if (empty? intersections)
-          [:p "No list gene has an ortholog with these settings."]
+          [:p.agr-empty "No list gene has an ortholog with these settings."]
           [:<>
-           [:p (str "Top " (count intersections) " overlaps. Click a bar for its genes.")]
+           [:p.agr-note (str "Top " (count intersections) " overlaps. Click a bar for its genes.")]
            [:div {:style {:overflow-x "auto"}}
             [upset-plot organisms intersections selected]]])
         (when selected
@@ -479,7 +494,7 @@
   [list-name]
   (when @(subscribe [::available?])
     [:div.compare-orthologs
-     [:button.btn.btn-slim
+     [:button.agr-btn
       {:type "button"
        :on-click #(dispatch [::toggle list-name])}
       "Compare across species"]

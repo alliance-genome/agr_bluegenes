@@ -116,10 +116,10 @@ test('empty tab shows its empty state with a zero count', async () => {
 	await tick();
 	const b = el.find('button');
 	assert.strictEqual(b[0].textContent, 'Alleles (0)');
-	assert.ok(el.textContent.includes('No alleles in this mine'));
+	assert.ok(el.textContent.includes('No alleles for this gene'));
 	b[1].listeners.click();
 	await tick();
-	assert.ok(el.textContent.includes('No disease models in this mine'));
+	assert.ok(el.textContent.includes('No disease models for this gene'));
 });
 
 test('failed tab logs to console.error and shows a short message', async () => {

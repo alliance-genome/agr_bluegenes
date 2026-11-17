@@ -8,20 +8,30 @@
  :bluegenes-default-service-root "https://alliancemine.alliancegenome.org/alliancemine"
  :bluegenes-default-mine-name "AllianceMine"
  :bluegenes-default-namespace "alliancemine"
+ :bluegenes-default-logo "/images/mines/alliancemine-icon.png"
+ :bluegenes-default-wordmark "/images/mines/alliancemine-wordmark.png"
  :bluegenes-additional-mines [{:root "https://wormmine.alliancegenome.org/wormmine"
                               :name "WormMine"
-                              :namespace "wormmine"}
+                              :namespace "wormmine"
+                              :logo "/images/mines/wormmine-icon.png"
+                              :wordmark "/images/mines/wormmine-wordmark.png"}
                              {:root "https://flymine.alliancegenome.org/flymine"
                               :name "FlyMine"
-                              :namespace "flymine"}
+                              :namespace "flymine"
+                              :logo "/images/mines/flymine-icon.png"
+                              :wordmark "/images/mines/flymine-wordmark.png"}
                              {:root "https://yeastmine.alliancegenome.org/yeastmine"
                               :name "YeastMine"
                               :namespace "yeastmine"
+                              :logo "/images/mines/yeastmine-icon.png"
+                              :wordmark "/images/mines/yeastmine-wordmark.png"
                               :abbrev "S. cerevisiae"
                               :default-organism "S. cerevisiae"}
                              {:root "https://mousemine.alliancegenome.org/mousemine"
                               :name "MouseMine"
                               :namespace "mousemine"
+                              :logo "/images/mines/mousemine-icon.png"
+                              :wordmark "/images/mines/mousemine-wordmark.png"
                               :external true}
                              {:root "https://www.humanmine.org/humanmine"
                               :name "HumanMine"

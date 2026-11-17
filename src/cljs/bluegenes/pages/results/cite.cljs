@@ -169,22 +169,22 @@
 ;;; Views ;;;
 
 (defn cite-button []
-  [:button.btn.btn-link.btn-results.cite-button
+  [:button.agr-btn.cite-button
    {:type "button"
     :on-click #(dispatch [::toggle])}
    "Cite / methods"])
 
 (defn- text-block [{:keys [id label text filename filetype copied]}]
   [:div.cite-block
-   [:h4 label]
+   [:h4.cite-label label]
    [:textarea.form-control
     {:id (str "cite-" (name id)) :rows (if (= id :methods) 5 10) :read-only true :value text}]
    [:div.cite-actions
-    [:button.btn.btn-default
+    [:button.agr-btn.agr-btn-sm
      {:type "button" :on-click #(dispatch [::copy id text])}
      (if (= copied id) "Copied" "Copy")]
     (when filename
-      [:button.btn.btn-default
+      [:button.agr-btn.agr-btn-sm
        {:type "button" :on-click #(dispatch [::download filename filetype text])}
        (str "Download " filename)])]])
 
@@ -200,13 +200,13 @@
   (let [{:keys [open? copied version-error?]} @(subscribe [::state])]
     (when open?
       (let [{:keys [methods bibtex ris versions-missing mine-kw]} @(subscribe [::texts])]
-        [:div.cite-panel
-         [:h3 "Cite / methods"]
+        [:section.agr-section.cite-panel
+         [:h3.agr-section-title "Cite / methods"]
          ^{:key mine-kw} [ensure-versions-on-mount]
          (when (and (seq versions-missing) (not version-error?))
-           [:p.cite-note "Fetching mine version..."])
+           [:p.agr-loading.cite-note "Fetching mine version"])
          (when version-error?
-           [:p.failure "Could not read the mine version. The text names no version."])
+           [:p.agr-error "Could not read the mine version. The text names no version."])
          [text-block {:id :methods :label "Methods paragraph" :text methods :copied copied}]
          [text-block {:id :bibtex :label "BibTeX" :text bibtex :copied copied
                       :filename "citations.bib" :filetype "x-bibtex"}]

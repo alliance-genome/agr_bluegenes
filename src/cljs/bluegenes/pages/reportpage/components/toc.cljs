@@ -29,6 +29,19 @@
                          geasing/inAndOut)
         (.play)))))
 
+(defn- link-props
+  "Props that make a TOC link a keyboard-reachable button: focusable, and
+  activated by Enter or Space as well as click."
+  [on-activate active?]
+  {:role "button"
+   :tab-index 0
+   :class (when active? :active)
+   :on-click (fn [_] (on-activate))
+   :on-key-down (fn [e]
+                  (when (#{"Enter" " "} (oget e :key))
+                    (ocall e :preventDefault)
+                    (on-activate)))})
+
 (defn parse-item-name [{:keys [type label value]}]
   (case type
     "class" (:displayName @(subscribe [::subs/a-ref+coll value]))
@@ -48,11 +61,7 @@
             active-toc @(subscribe [::subs/report-active-toc])
             filter-text @(subscribe [::subs/report-filter-text])]
         [:<>
-         [:div.toc-hide-heading]
-         [:div.toc-container
-          [:a.toc-heading {:on-click #(scroll-into-view! nil)}
-           [:h4.toc-title title
-            [:code.start {:class (str "start-" rootClass)} rootClass]]]
+         [:div.toc-container {:role "navigation" :aria-label (str title " sections")}
           (into [:ul.toc]
                 (doall
                  (for [{:keys [category children] parent-id :id}
@@ -71,8 +80,8 @@
                        :when (or (= parent-id utils/pre-section-id)
                                  (seq children))]
                    [:<>
-                    [:a {:on-click #(scroll-into-view! (str parent-id))
-                         :class (when (= active-toc (str parent-id)) :active)}
+                    [:a (link-props #(scroll-into-view! (str parent-id))
+                                    (= active-toc (str parent-id)))
                      [:li category]]
                     (when (and (seq children)
                                ;; Only show children if filter is active, or they or their parent is active.
@@ -85,8 +94,8 @@
                                   ;; specific ref/coll for this class (e.g.  Protein instead of Isoforms). For this
                                   ;; reason, we get the displayName from the ref/coll.
                                   :let [label (parse-item-name child)]]
-                              [:a {:on-click #(scroll-into-view! (str id) (str parent-id))
-                                   :class (when (= active-toc (str id)) :active)}
+                              [:a (link-props #(scroll-into-view! (str id) (str parent-id))
+                                              (= active-toc (str id)))
                                (if (not-empty filter-text)
                                  (into [:li] (highlight-substring label filter-text))
                                  [:li label])])))])))]]))))

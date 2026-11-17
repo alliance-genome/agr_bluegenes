@@ -34,11 +34,12 @@
 @import "datatype-colors";
 @import "components/icons";
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,700,300);
+// Branding colours from web properties are not used for chrome: the @extra-color-* and @branding-color-* variables are fixed to the Alliance palette (see docs/design.md).
 
 body {
   background: @body-background-color;
   color: @body-foreground-color;
-  margin-top: 50px;
+  margin-top: @annoyingscrollbars; // cancels the negative html margin below
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
 }
 
@@ -63,12 +64,9 @@ html {
 @annoyingscrollbars: 5em;
 
 html {
-  //this margin directly offsets the annoying scrollbars
+  // Offsets body's margin-top (same value), so the page starts at the top edge.
   margin-top: -@annoyingscrollbars;
-  @media (max-width: @even-tinier-screen) {
-    //fix for the html body randomly not choosing to fill the screen on small phone browsers.
-    position: absolute;
-  }
+  width: 100%;
 }
 
 main {
@@ -148,25 +146,24 @@ div.header {
   border-radius: 0;
 }
 
-footer {
-    @footer-text-color: #F9F9F9;
-
-    color: @footer-text-color;
-    fill: @footer-text-color;
-    background-color: #4C3D50;
-    height: 70px;
-
-    margin-bottom: 0;
-    padding: 10px 34px;
-
+footer.footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--agr-space-4) var(--agr-space-5);
+    min-height: 70px;
+    margin-bottom: 0;
+    padding: var(--agr-space-3) var(--agr-space-5);
+    background: var(--agr-bg-light);
+    border-top: 1px solid var(--agr-border);
+    color: var(--agr-muted);
+    fill: var(--agr-muted);
+    font-size: 13px;
+    line-height: 1.5;
 
     div.section {
-        flex-grow: 1;
-        flex-basis: 0;
-
+        flex: 1 1 0;
+        min-width: 0;
         text-align: center;
         &:first-child { text-align: left; }
         &:last-child { text-align: right; }
@@ -175,44 +172,52 @@ footer {
     div.column {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        height: 100%;
+        gap: var(--agr-space-1);
 
-        &.inner { justify-content: flex-end; }
+        &.inner { margin-top: var(--agr-space-1); }
     }
+
+    div.section:last-child.column { align-items: flex-end; }
 
     .thin {
-        font-weight: normal;
+        margin-right: var(--agr-space-2);
         font-size: 11px;
-        line-height: 120%;
-    }
-
-    span,
-    a {
-        color: @footer-text-color;
-        font-weight: bold;
-        font-size: 13px;
-        line-height: 130%;
-    }
-
-    span.version a {
-        text-decoration: underline;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
     }
 
     a {
+        color: var(--agr-primary-dark);
+        font-weight: 700;
+
         &:visited,
         &:focus,
         &:hover,
         &:active {
-            color: @footer-text-color;
-            fill: @footer-text-color;
+            color: var(--agr-primary-dark);
             text-decoration: underline;
         }
+
+        svg { fill: var(--agr-primary-dark); }
     }
+
+    // Icon links in the middle section.
+    div.section:nth-child(2) a + a { margin-left: var(--agr-space-3); }
 }
-@media (max-width:800px) {
-  footer {
-    flex-wrap: wrap;
+@media (max-width: 800px) {
+  footer.footer {
+    flex-direction: column;
+    align-items: flex-start;
+
+    div.section,
+    div.section:first-child,
+    div.section:last-child {
+      flex: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    div.section:last-child.column { align-items: flex-start; }
   }
 }
 
@@ -598,3 +603,5 @@ textarea.hidden-clipboard {
     }
 }
 
+@import "alliance/tokens";
+@import "alliance/components";

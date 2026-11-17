@@ -286,12 +286,25 @@
 	function message(el, text) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-paralog-families');
-		wrap.appendChild(node('span', text));
+		var cls = text === 'Loading...' ? 'agr-loading' : /^Could not/.test(text) ? 'agr-error' : 'agr-empty';
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
 	function label(g) {
 		return g.symbol || g.primaryIdentifier || String(g.id);
+	}
+
+	// Comma separated species in italics; none is the text shown for an empty list.
+	function appendSpecies(parent, names, none) {
+		if (!names.length) {
+			parent.appendChild(document.createTextNode(none));
+			return;
+		}
+		names.forEach(function (n, i) {
+			if (i) parent.appendChild(document.createTextNode(', '));
+			parent.appendChild(node('em', n));
+		});
 	}
 
 	function copyText(text, onDone) {
@@ -303,13 +316,28 @@
 		}
 	}
 
+	function tableOf(headers, numeric) {
+		var wrap = node('div', null, 'agr-table-wrap');
+		var table = node('table', null, 'agr-table agr-table-sm');
+		var tr = node('tr');
+		headers.forEach(function (h, i) { tr.appendChild(node('th', h, numeric.indexOf(i) !== -1 ? 'num' : null)); });
+		var thead = node('thead');
+		thead.appendChild(tr);
+		table.appendChild(thead);
+		var tbody = node('tbody');
+		table.appendChild(tbody);
+		wrap.appendChild(table);
+		return { wrap: wrap, body: tbody };
+	}
+
 	function renderClusters(wrap, clusters, navigate) {
 		clusters.forEach(function (c, i) {
 			var box = node('div', null, 'alliance-paralog-families-cluster');
 			box.appendChild(node('h5', 'Family ' + (i + 1) + ': ' + c.members.length + ' genes'));
-			var ul = node('ul');
+			var members = tableOf(['Gene', 'Identifier', 'Species'], []);
 			c.members.forEach(function (g) {
-				var li = node('li');
+				var tr = node('tr');
+				var gene = node('td');
 				var a = node('a', label(g));
 				a.href = '#';
 				a.title = g.primaryIdentifier || '';
@@ -317,20 +345,26 @@
 					if (ev && ev.preventDefault) ev.preventDefault();
 					if (typeof navigate === 'function') navigate('report', { type: 'Gene', id: g.id });
 				});
-				li.appendChild(a);
-				li.appendChild(document.createTextNode(g.organism ? ' (' + g.organism + ')' : ''));
-				ul.appendChild(li);
+				gene.appendChild(a);
+				tr.appendChild(gene);
+				tr.appendChild(node('td', g.primaryIdentifier || ''));
+				var sp = node('td');
+				if (g.organism) sp.appendChild(node('em', g.organism));
+				tr.appendChild(sp);
+				members.body.appendChild(tr);
 			});
-			box.appendChild(ul);
+			box.appendChild(members.wrap);
 			var byId = {};
 			c.members.forEach(function (g) { byId[g.id] = g; });
-			var lul = node('ul', null, 'alliance-paralog-families-links');
+			var links = tableOf(['Paralogue pair', 'Identity', 'Rank'], [1, 2]);
 			c.links.forEach(function (l) {
-				lul.appendChild(
-					node('li', label(byId[l.a]) + ' - ' + label(byId[l.b]) + ': identity ' + l.identity + (l.rank != null ? ', rank ' + l.rank : ''))
-				);
+				var tr = node('tr');
+				tr.appendChild(node('td', label(byId[l.a]) + ' - ' + label(byId[l.b])));
+				tr.appendChild(node('td', l.identity, 'num'));
+				tr.appendChild(node('td', l.rank != null ? l.rank : '', 'num'));
+				links.body.appendChild(tr);
 			});
-			box.appendChild(lul);
+			box.appendChild(links.wrap);
 			wrap.appendChild(box);
 		});
 	}
@@ -354,8 +388,8 @@
 		area.rows = Math.min(10, Math.max(2, reduced.length));
 		area.value = text;
 		out.appendChild(area);
-		var status = node('span');
-		var copy = node('button', 'Copy');
+		var status = node('span', null, 'agr-note');
+		var copy = node('button', 'Copy', 'agr-btn agr-btn-sm');
 		copy.type = 'button';
 		copy.addEventListener('click', function () {
 			copyText(text, function (ok) { status.textContent = ok ? ' Copied' : ' Copy failed, select the text above'; });
@@ -363,7 +397,7 @@
 		out.appendChild(copy);
 		out.appendChild(status);
 		if (typeof ctx.navigate === 'function') {
-			var open = node('button', 'Open reduced list as query');
+			var open = node('button', 'Open reduced list as query', 'agr-btn agr-btn-sm');
 			open.type = 'button';
 			open.addEventListener('click', function () {
 				ctx.navigate('query', {
@@ -381,7 +415,7 @@
 		var data = ctx.data;
 		var wrap = node('div', null, 'alliance-paralog-families');
 
-		var controls = node('div', null, 'alliance-paralog-families-options');
+		var controls = node('div', null, 'agr-filter-bar alliance-paralog-families-options');
 		var idLabel = node('label', 'Minimum identity (%) ');
 		var slider = node('input');
 		slider.type = 'range';
@@ -393,14 +427,13 @@
 		idLabel.appendChild(node('span', ' ' + state.minIdentity));
 		controls.appendChild(idLabel);
 		var rankLabel = node('label', ' Max rank (empty for no limit) ');
-		var rankInput = node('input');
+		var rankInput = node('input', null, 'form-control input-sm');
 		rankInput.type = 'number';
 		rankInput.min = '1';
 		rankInput.step = '1';
 		rankInput.value = state.maxRank == null ? '' : String(state.maxRank);
 		rankLabel.appendChild(rankInput);
 		controls.appendChild(rankLabel);
-		wrap.appendChild(controls);
 
 		function update() {
 			var v = parseInt(slider.value, 10);
@@ -423,16 +456,7 @@
 				'alliance-paralog-families-summary'
 			)
 		);
-		wrap.appendChild(
-			node(
-				'p',
-				'Paralogue data found for: ' + (data.paralogueOrganisms.length ? data.paralogueOrganisms.join(', ') : 'no organism') +
-					'. List organisms: ' + data.organisms.join(', ') +
-					'. Paralogue data covers only some organisms in this mine, so genes of the others stay single.',
-				'alliance-paralog-families-coverage'
-			)
-		);
-		if (data.capped) wrap.appendChild(node('p', 'Result limit reached, families may be incomplete.'));
+		if (data.capped) wrap.appendChild(node('p', 'Result limit reached, families may be incomplete.', 'agr-note'));
 		if (share > DOMINANT_SHARE) {
 			wrap.appendChild(
 				node(
@@ -440,20 +464,32 @@
 					'Warning: the largest family holds ' + clusters[0].members.length + ' of ' + data.genes.length +
 						' list genes (' + Math.round(share * 100) + '%, over ' + Math.round(DOMINANT_SHARE * 100) +
 						'%). One gene family may dominate this list.',
-					'alliance-paralog-families-warning'
+					'agr-notice-warning'
 				)
 			);
 		}
+		wrap.appendChild(controls);
+
+		function coverageNote() {
+			var sp = node('p', null, 'agr-note alliance-paralog-families-coverage');
+			sp.appendChild(document.createTextNode('Paralogue data found for: '));
+			appendSpecies(sp, data.paralogueOrganisms, 'no organism');
+			sp.appendChild(document.createTextNode('. List organisms: '));
+			appendSpecies(sp, data.organisms, 'none');
+			sp.appendChild(document.createTextNode('. Paralogue data covers only some organisms in this mine, so genes of the others stay single.'));
+			return sp;
+		}
 
 		if (!clusters.length) {
-			wrap.appendChild(node('p', 'No paralog families at this threshold'));
+			wrap.appendChild(node('p', 'No paralog families at this threshold', 'agr-empty'));
+			wrap.appendChild(coverageNote());
 			el.appendChild(wrap);
 			return;
 		}
 
 		renderClusters(wrap, clusters, ctx.navigate);
 
-		var keepBtn = node('button', 'Keep one per family');
+		var keepBtn = node('button', 'Keep one per family', 'agr-btn agr-btn-primary');
 		keepBtn.type = 'button';
 		wrap.appendChild(keepBtn);
 		var out = node('div', null, 'alliance-paralog-families-reduced');
@@ -462,7 +498,7 @@
 		keepBtn.addEventListener('click', function () {
 			var mine = ++runToken;
 			clear(out);
-			out.appendChild(node('span', 'Counting annotations...'));
+			out.appendChild(node('p', 'Counting annotations...', 'agr-loading'));
 			var ids = [];
 			clusters.forEach(function (c) { c.members.forEach(function (g) { ids.push(g.id); }); });
 			ctx.loadCounts(ids)
@@ -475,6 +511,7 @@
 				});
 		});
 
+		wrap.appendChild(coverageNote());
 		el.appendChild(wrap);
 	}
 

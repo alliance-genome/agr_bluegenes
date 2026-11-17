@@ -1,0 +1,7 @@
+.alliance-species-matrix .agr-table { width: auto; }
+.alliance-species-matrix .agr-table th.num, .alliance-species-matrix .agr-table td.num { text-align: center; min-width: 96px; }
+.alliance-species-matrix .agr-table td.num { padding: 0; }
+.alliance-species-matrix .agr-table td.num > button { margin: var(--agr-space-1, 4px); }
+.alliance-species-matrix-detail { margin: var(--agr-space-3, 12px) 0; }
+.alliance-species-matrix-detail h4 { font-size: 14px; font-weight: 700; }
+.alliance-species-matrix-detail .agr-table { width: 100%; }

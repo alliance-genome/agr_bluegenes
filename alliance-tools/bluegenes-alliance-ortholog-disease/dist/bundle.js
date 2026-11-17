@@ -165,42 +165,50 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-ortholog-disease');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
-	function termItem(t, multi) {
-		var li = node('li', null, 'alliance-ortholog-disease-term');
-		var head = node('div');
-		if (t.id && /^DOID:\d+$/.test(t.id)) {
-			var a = node('a', t.name);
-			a.href = DO_URL + t.id;
-			a.target = '_blank';
-			a.rel = 'noopener';
-			head.appendChild(a);
-		} else {
-			head.appendChild(node('strong', t.name));
-		}
-		if (t.id) head.appendChild(node('small', ' ' + t.id));
-		head.appendChild(node('small', ' ' + t.species.length + ' species: ' + t.species.join(', ')));
-		if (t.own) {
-			head.appendChild(document.createTextNode(' '));
-			head.appendChild(node('span', 'also annotated to this gene', 'label label-info alliance-ortholog-disease-own'));
-		}
-		li.appendChild(head);
-		var ul = node('ul', null, 'list-unstyled');
-		t.orthologs.forEach(function (o) {
-			var parts = [(o.symbol || o.identifier || '?') + ' (' + o.species + ')'];
-			if (multi && o.source) parts.push('ortholog of ' + o.source);
-			if (o.qualifiers.length) parts.push(o.qualifiers.join(', '));
-			if (o.codes.length) parts.push('evidence ' + o.codes.join(', '));
-			ul.appendChild(node('li', parts.join('; ')));
+	// One tbody per disease term; the term cell spans the term's ortholog rows.
+	function termBody(t, multi) {
+		var tbody = node('tbody', null, 'alliance-ortholog-disease-term');
+		t.orthologs.forEach(function (o, i) {
+			var tr = node('tr');
+			if (i === 0) {
+				var head = node('td');
+				if (t.id && /^DOID:\d+$/.test(t.id)) {
+					var a = node('a', t.name);
+					a.href = DO_URL + t.id;
+					a.className = 'agr-external';
+					a.target = '_blank';
+					a.rel = 'noopener';
+					head.appendChild(a);
+				} else {
+					head.appendChild(node('strong', t.name));
+				}
+				if (t.id) head.appendChild(node('small', ' ' + t.id, 'agr-note'));
+				head.appendChild(document.createTextNode(' '));
+				head.appendChild(node('span', t.species.length + ' species', 'agr-badge'));
+				if (t.own) {
+					head.appendChild(document.createTextNode(' '));
+					head.appendChild(node('span', 'also annotated to this gene', 'agr-badge agr-badge-primary alliance-ortholog-disease-own'));
+				}
+				head.rowSpan = t.orthologs.length;
+				tr.appendChild(head);
+			}
+			if (multi) tr.appendChild(node('td', o.source || ''));
+			tr.appendChild(node('td', o.symbol || o.identifier || '?'));
+			var sp = node('td');
+			sp.appendChild(node('em', o.species));
+			tr.appendChild(sp);
+			tr.appendChild(node('td', o.qualifiers.join(', ').replace(/_/g, ' ')));
+			tr.appendChild(node('td', o.codes.join(', ')));
+			tbody.appendChild(tr);
 		});
-		li.appendChild(ul);
-		return li;
+		return tbody;
 	}
 
 	function render(el, rows, ownSet, multi, truncated) {
@@ -208,32 +216,42 @@
 		var wrap = node('div', null, 'alliance-ortholog-disease');
 		var terms = groupRows(rows, ownSet);
 		if (!terms.length) {
-			wrap.appendChild(node('span', 'No disease annotations on orthologs'));
+			wrap.appendChild(node('p', 'No disease annotations on orthologs for this gene', 'agr-empty'));
 			el.appendChild(wrap);
 			return;
 		}
 		wrap.appendChild(node('p', terms.length + ' disease terms on orthologs.', 'alliance-ortholog-disease-summary'));
-		if (truncated) wrap.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' annotation rows.'));
-		var ul = node('ul', null, 'list-unstyled');
+		if (truncated) wrap.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' annotation rows.', 'agr-note'));
+		var table = node('table', null, 'agr-table agr-table-sm');
+		var headRow = node('tr');
+		['Disease'].concat(multi ? ['Query gene'] : [], ['Ortholog', 'Species', 'Association', 'Evidence']).forEach(function (h) {
+			headRow.appendChild(node('th', h));
+		});
+		var thead = node('thead');
+		thead.appendChild(headRow);
+		table.appendChild(thead);
 		var extra = [];
 		terms.forEach(function (t, i) {
-			var li = termItem(t, multi);
+			var body = termBody(t, multi);
 			if (i >= COLLAPSE_AFTER) {
-				li.style = li.style || {};
-				li.style.display = 'none';
-				extra.push(li);
+				body.style = body.style || {};
+				body.style.display = 'none';
+				extra.push(body);
 			}
-			ul.appendChild(li);
+			table.appendChild(body);
 		});
-		wrap.appendChild(ul);
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		tableWrap.appendChild(table);
+		wrap.appendChild(tableWrap);
 		if (extra.length) {
-			var btn = node('button', 'Show all ' + terms.length + ' terms', 'btn btn-default btn-sm');
+			var btn = node('button', 'Show all ' + terms.length + ' terms', 'agr-btn agr-btn-sm');
 			btn.addEventListener('click', function () {
-				extra.forEach(function (li) { li.style.display = ''; });
+				extra.forEach(function (b) { b.style.display = ''; });
 				if (btn.parentNode) btn.parentNode.removeChild(btn);
 			});
 			wrap.appendChild(btn);
 		}
+		wrap.appendChild(node('p', 'Disease annotations on orthologs as stored in this mine. Terms are ordered by the number of species annotated.', 'agr-note'));
 		el.appendChild(wrap);
 	}
 
@@ -283,10 +301,10 @@
 			return v !== undefined && v !== null && v !== '';
 		});
 		if (!list.length) {
-			message(el, 'No disease annotations on orthologs');
+			message(el, 'No disease annotations on orthologs for this gene', 'agr-empty');
 			return;
 		}
-		message(el, 'Loading...');
+		message(el, 'Loading', 'agr-loading');
 		var mineService = serviceRoot(service.root);
 		Promise.all([fetchRows(mineService, list), fetchOwn(mineService, list)])
 			.then(function (res) {
@@ -296,7 +314,7 @@
 			.catch(function (err) {
 				console.error('Disease via orthologs: request failed', err);
 				if (el.__agrOrthDisReq !== token) return;
-				message(el, 'Could not load disease annotations from the mine');
+				message(el, 'Could not load disease annotations from the mine', 'agr-error');
 			});
 	}
 

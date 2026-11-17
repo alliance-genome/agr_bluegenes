@@ -28,7 +28,7 @@ div.column-container {
     position: fixed;
     left: 0;
     right: 0;
-    top: 70px;
+    top: var(--agr-nav-height, 100px); // set from the navbar's height (nav.cljs); 100px is the desktop value
     bottom: 70px;
 
     .model-browser-column {

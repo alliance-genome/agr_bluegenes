@@ -3,7 +3,7 @@
             [reagent.core :as r]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon icon-comp]]
-            [bluegenes.components.navbar.nav :refer [mine-icon]]
+            [bluegenes.components.navbar.nav :refer [mine-icon mine-wordmark-src]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element
@@ -17,18 +17,25 @@
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
+        wordmark (mine-wordmark-src @(subscribe [:current-mine])
+                                    (:bluegenes-deploy-path @server-vars))
         description @(subscribe [:current-mine/description])
         notice @(subscribe [:current-mine/notice])
         release @(subscribe [:current-mine/release])]
-    [:div.row.section.mine-intro
-     [:div.col-xs-10.col-xs-offset-1
+    [:div.section.mine-intro
+     [:div.mine-intro-body
       (when-not @(subscribe [:home/customisation :hideMineIntro])
         [:<>
-         [:h1.text-center.mine-name mine-name]
-         [:div.mine-release
-          ;; Only prepend 'v' if release starts with a digit.
-          (cond->> release
-            (some->> release (re-find #"^\d")) (str "v"))]
+         [:h1.mine-name
+          (if wordmark
+            [:img.mine-wordmark {:src wordmark :alt mine-name}]
+            mine-name)]
+         (when (not-empty release)
+           [:div.mine-release
+            [:span.agr-badge
+             ;; Only prepend 'v' if release starts with a digit.
+             (cond->> release
+               (some->> release (re-find #"^\d")) (str "v"))]])
          [:div.mine-description
           (md-paragraph description)]])
       (when notice
@@ -46,16 +53,19 @@
         current-category (or @(subscribe [:home/active-template-category])
                              (first categories))
         templates @(subscribe [:templates-by-popularity/category current-category])]
-    [:div.row.section
-     [:div.col-xs-12
-      [:h2.text-center "Go by Most Popular Queries"]]
-     [:div.col-xs-12.template-preview
-      [:ul.nav.nav-tabs.template-tabs
+    [:div.section
+     [:h2.agr-section-title "Go by Most Popular Queries"]
+     [:div.template-preview
+      [:ul.agr-tabs.template-tabs {:role "tablist"}
        (doall
-        (for [category categories]
+        (for [category categories
+              :let [selected? (= category current-category)]]
           ^{:key category}
-          [:li {:class (when (= category current-category) "active")}
-           [:a {:on-click #(dispatch [:home/select-template-category category])}
+          [:li {:class (when selected? "active")}
+           [:button {:type "button"
+                     :role "tab"
+                     :aria-selected selected?
+                     :on-click #(dispatch [:home/select-template-category category])}
             (str/replace category #"^im:aspect:" "")]]))]
       [:ul.template-list
        (doall
@@ -124,19 +134,17 @@
         cta (if (seq custom-cta)
               (map convert-custom-cta custom-cta)
               (default-cta))]
-    (into [:div.row.section.grid] ;; Without grid class the 3rd row won't be on the same row.
-           ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
-          (for [[index {:keys [label props body]}] (map-indexed vector cta)]
-            [:div.col-xs-12.col-sm-5.cta-block
-             {:class (when (odd? index) :col-sm-offset-2)}
-             [:a.btn.btn-home props label]
+    (into [:div.section.cta-cards]
+          (for [{:keys [label props body]} cta]
+            [:div.cta-block
+             [:a.cta-title props label]
              body]))))
 
 (defn mine-selector-filter []
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
         current-neighbourhood (or @(subscribe [:home/active-mine-neighbourhood])
                                   (first all-neighbourhoods))]
-    (into [:div.mine-neighbourhood-filter.text-center]
+    (into [:div.mine-neighbourhood-filter]
           (for [neighbourhood all-neighbourhoods]
             [:label
              [:input {:type "radio"
@@ -145,74 +153,67 @@
                       :on-change #(dispatch [:home/select-mine-neighbourhood neighbourhood])}]
              neighbourhood]))))
 
-(defn get-fg-color [mine-details]
-  (or (get-in mine-details [:colors :header :text])
-      (get-in mine-details [:branding :colors :header :text])))
-
-(defn get-bg-color [mine-details]
-  (or (get-in mine-details [:colors :header :main])
-      (get-in mine-details [:branding :colors :header :main])))
+(defn short-description
+  "Mine description with markdown links reduced to their text, or nil when empty."
+  [description]
+  (some-> description
+          (str/replace #"\[([^\]]*)\]\([^)]*\)" "$1")
+          str/trim
+          not-empty))
 
 (defn mine-selector-entry [[mine-key details] & {:keys [active?]}]
-  (let [{:keys [name]} details]
-    [:button.btn-link.col-xs-6.col-md-4.col-lg-3.mine-entry
-     (merge
-      {:class (when active? "mine-entry-active")
-       :on-click #(dispatch [:home/select-preview-mine mine-key])}
-      (when active?
-        {:style {:color (get-fg-color details)
-                 :background-color (get-bg-color details)}}))
-     [:span (or name "default")]
-     [icon "plus" nil [:pull-right]]]))
+  (let [{:keys [name description]} details]
+    [:button.mine-card
+     {:type "button"
+      :class (when active? "mine-card-active")
+      :aria-pressed (boolean active?)
+      :on-click #(dispatch [:home/select-preview-mine mine-key])}
+     [mine-icon details :class "mine-card-logo"]
+     [:span.mine-card-text
+      [:span.mine-card-name (or name "default")]
+      (when-let [desc (short-description description)]
+        [:span.mine-card-desc desc])]]))
 
 (defn mine-selector-preview []
   (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
         mine-ns (get-mine-ns preview-mine)
         external? (or (:external? preview-mine)
                       (contains? @(subscribe [:registry-external]) mine-ns))]
-    [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-3.mine-preview
-     {:style {:color (get-fg-color preview-mine)
-              :background-color (get-bg-color preview-mine)}}
-     [:h4.text-center name]
-     (md-paragraph description)
+    [:div.mine-preview
      [:div.preview-image
       [mine-icon preview-mine :class "img-responsive"]]
+     [:h4 name]
+     (md-paragraph description)
      (if external?
        [poppable
         {:data (if (:external? preview-mine)
                  "This mine has been configured to open in a new tab."
                  "This mine will open in a new tab as it's incompatible due to either running an InterMine API version below 27 or being only available through unsecured HTTP when BlueGenes is accessed through HTTPS.")
          :options {:data-placement "bottom"}
-         :children [:a.btn.btn-block
+         :children [:a.agr-btn-primary.mine-preview-action
                     {:target "_blank"
-                     :href (get-mine-url preview-mine)
-                     :style {:fill (get-fg-color preview-mine)
-                             :color (get-fg-color preview-mine)
-                             :background-color (get-bg-color preview-mine)}}
+                     :href (get-mine-url preview-mine)}
                     (str "Open " name)
                     [icon "external"]]}]
-       [:button.btn.btn-block
-        {:on-click (fn [_]
+       [:button.agr-btn-primary.mine-preview-action
+        {:type "button"
+         :on-click (fn [_]
                      (dispatch [::route/navigate ::route/home {:mine mine-ns}])
-                     (dispatch [:scroll-to-top]))
-         :style {:color (get-fg-color preview-mine)
-                 :background-color (get-bg-color preview-mine)}}
+                     (dispatch [:scroll-to-top]))}
         (str "Switch to " name)])]))
 
 (defn mine-selector []
   (let [mines @(subscribe [:home/mines-by-neighbourhood])
         active-ns (get-mine-ns @(subscribe [:home/preview-mine]))]
-    [:div.row.section
-     [:div.col-xs-12
-      [:h2.text-center "InterMine for all"]]
-     [:div.col-xs-12.mine-selector
+    [:div.section
+     [:h2.agr-section-title "InterMine for all"]
+     [:div.mine-selector
       [mine-selector-filter]
-      [:div.row.mine-selector-body
-       [:div.col-xs-12.col-sm-9.mine-selector-entries
-        [:div.row
-         (for [mine mines]
-           ^{:key (key mine)}
-           [mine-selector-entry mine :active? (= active-ns (key mine))])]]
+      [:div.mine-selector-body
+       [:div.mine-selector-entries
+        (for [mine mines]
+          ^{:key (key mine)}
+          [mine-selector-entry mine :active? (= active-ns (key mine))])]
        [mine-selector-preview]]]]))
 
 (def credits-intermine
@@ -238,7 +239,7 @@
           (str maintainerOrgName " and its funders"))]])))
 
 (defn credits-entry [{:keys [text image url]}]
-  [:div.col-xs-12.col-sm-6.col-md-4
+  [:div.credits-col
    [:div.credits-entry
     [:a {:href url
          :target "_blank"}
@@ -251,16 +252,13 @@
   (let [mine-name @(subscribe [:current-mine-human-name])
         entries @(subscribe [:current-mine/credits])
         all-entries (concat entries credits-intermine)]
-    [:div.row.section
-     [:div.col-xs-12
-      [:h2.text-center (str mine-name " is made possible by")]]
+    [:div.section.credits
+     [:h2.agr-section-title (str mine-name " is made possible by")]
      (when (empty? entries)
-       [:div.col-xs-12.text-center
-        [credits-fallback]])
-     [:div.col-xs-10.col-xs-offset-1
-      (into [:div.row.row-center-cols.row-space-cols]
-            (for [entry all-entries]
-              [credits-entry entry]))]]))
+       [credits-fallback])
+     (into [:div.credits-list]
+           (for [entry all-entries]
+             [credits-entry entry]))]))
 
 (defn main []
   [:div.container.home

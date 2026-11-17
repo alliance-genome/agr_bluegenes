@@ -104,7 +104,7 @@ test('empty result shows the empty state', async () => {
 	const el = fakeEl();
 	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: '1' } });
 	await tick();
-	assert.strictEqual(el.textContent, 'No expression annotations');
+	assert.strictEqual(el.textContent, 'No expression annotations for this gene');
 });
 
 test('failure logs to console.error and shows a message', async () => {

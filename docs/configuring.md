@@ -14,6 +14,8 @@
 | BLUEGENES_DEFAULT_SERVICE_ROOT | Default InterMine service to run API requests against | https://www.flymine.org/flymine |
 | BLUEGENES_DEFAULT_MINE_NAME | Mine name to display for default mine | FlyMine |
 | BLUEGENES_DEFAULT_NAMESPACE | Namespace of the default mine | flymine |
+| BLUEGENES_DEFAULT_LOGO | Square icon for the default mine, used instead of the mine's `/service/branding` logo. A path starting with `/` is served from the deploy path (e.g. `/images/mines/alliancemine-icon.png`); an `http(s)://` URL is used as is. | nil |
+| BLUEGENES_DEFAULT_WORDMARK | Wide logo for the default mine that already contains its name. Shown alone in the navbar and on the home page instead of the icon and name. Same path rules as the icon. | nil |
 | BLUEGENES_ADDITIONAL_MINES | Additional mines managed by this BlueGenes instance | [] |
 | HIDE_REGISTRY_MINES | Disable acquiring and displaying mines from the public InterMine registry | false |
 
@@ -24,6 +26,10 @@ BlueGenes supports the many methods of specifying configuration keys provided by
 ### Configuration via `config.edn` files
 
 Copy and paste `config/defaults/config.edn` to `config/dev/config.edn` or `config/prod/config.edn` and tweak it to match your preferences. The correct config file will be used depending on if you start BlueGenes intended for development or for production. Note that `config/defaults/config.edn` will be used when you build an uberjar or docker image, unless you use `lein with-profile prod uberjar` to bundle `config/prod/config.edn` instead.
+
+### Mine logos
+
+Each entry in `:bluegenes-additional-mines` accepts optional `:logo` (square icon) and `:wordmark` keys, with the same meaning as `BLUEGENES_DEFAULT_LOGO` and `BLUEGENES_DEFAULT_WORDMARK`. Files for paths starting with `/` go under `resources/public/images/`. Mines without these keys keep the logo from their `/service/branding`.
 
 ### Analytics (optional)
 

@@ -1,0 +1,313 @@
+// Shared .agr-* components. Usable by app views and by tool bundles.
+
+// ---- Global defaults -------------------------------------------------
+html, body {
+  font-family: var(--agr-font);
+  font-size: var(--agr-font-size);
+  line-height: var(--agr-line-height);
+  color: var(--agr-text);
+}
+
+body, button, input, select, textarea, .btn, .form-control, .dropdown-menu,
+.navbar, .popover, .tooltip, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--agr-font);
+}
+
+code, kbd, pre, samp { font-family: var(--agr-font-mono); }
+
+h1, .h1 { font-size: var(--agr-h1-size); font-weight: 500; }
+
+// Page title: one H1-sized heading per page.
+.agr-page-title {
+  font-size: var(--agr-h1-size);
+  font-weight: 500;
+  color: var(--agr-text);
+  margin: 0 0 var(--agr-space-4);
+  @media (max-width: 767px) { font-size: 28px; }
+}
+// Sub-heading inside a tool or panel.
+.agr-subtitle {
+  font-size: var(--agr-h4-size);
+  font-weight: 700;
+  margin: 0 0 var(--agr-space-2);
+}
+h3, .h3 { font-size: var(--agr-h3-size); font-weight: 500; }
+h4, .h4 { font-size: var(--agr-h4-size); font-weight: 500; }
+
+a {
+  color: var(--agr-primary-dark);
+  text-decoration: none;
+  &:hover, &:focus { color: var(--agr-primary-dark); text-decoration: underline; }
+}
+
+// Bootstrap 3 / Material Design: primary colour for buttons, focus, form accents.
+.btn-primary, .btn-primary:focus {
+  background-color: var(--agr-primary);
+  border-color: var(--agr-primary);
+  color: #fff;
+}
+.btn-primary:hover, .btn-primary:active, .btn-primary.active {
+  background-color: var(--agr-primary-dark);
+  border-color: var(--agr-primary-dark);
+  color: #fff;
+}
+.btn-primary.btn-outline, .btn-primary.btn-outline:focus {
+  background-color: transparent;
+  color: var(--agr-primary-dark);
+  border-color: var(--agr-primary);
+}
+.btn-primary.btn-outline:hover { background-color: var(--agr-primary); color: #fff; }
+
+a:focus-visible, button:focus-visible, .btn:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--agr-primary);
+  outline-offset: 2px;
+}
+.form-control:focus {
+  border-color: var(--agr-primary);
+  box-shadow: 0 0 0 2px var(--agr-primary-light);
+}
+.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+  background-color: var(--agr-primary);
+  color: #fff;
+}
+.text-primary { color: var(--agr-primary-dark); }
+
+// ---- .agr-section ----------------------------------------------------
+.agr-section { margin-bottom: var(--agr-space-5); }
+.agr-section-title {
+  font-size: var(--agr-h3-size);
+  font-weight: 500;
+  margin: 0 0 var(--agr-space-4);
+  padding-bottom: var(--agr-space-2);
+  border-bottom: 1px solid var(--agr-border);
+}
+.agr-help {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: var(--agr-space-2);
+  border-radius: 50%;
+  background: var(--agr-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: help;
+}
+
+// ---- .agr-attrs ------------------------------------------------------
+.agr-attrs {
+  display: grid;
+  grid-template-columns: minmax(100px, 30%) 1fr;
+  gap: var(--agr-space-2) var(--agr-space-4);
+  margin: 0 0 var(--agr-space-4);
+  dt { font-weight: 700; margin: 0; }
+  dd { font-weight: 400; margin: 0; word-break: break-word; }
+  .agr-na { font-style: italic; color: var(--agr-muted); }
+  // Label over value on narrow screens.
+  @media (max-width: 575px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+    dt { margin-top: var(--agr-space-2); }
+    dt:first-child { margin-top: 0; }
+  }
+}
+
+// ---- .agr-table ------------------------------------------------------
+.agr-table {
+  width: 100%;
+  border-collapse: collapse;
+  th { font-weight: 700; text-align: left; padding: var(--agr-space-2) var(--agr-space-3); border-bottom: 2px solid var(--agr-border); }
+  td { padding: var(--agr-space-2) var(--agr-space-3); border-top: 1px solid var(--agr-border); vertical-align: top; }
+  // Row groups: a rule between consecutive tbody elements.
+  tbody + tbody { border-top: 1px solid var(--agr-border); }
+  tbody tr:hover { background: var(--agr-bg-hover); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+}
+.agr-table-striped tbody tr:nth-child(odd) { background: var(--agr-bg-light); }
+.agr-table-sm { th, td { padding: var(--agr-space-1) var(--agr-space-2); } }
+// Wrap wide tables so they scroll inside their own container.
+.agr-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-bottom: var(--agr-space-4);
+  // A button directly after a table sits clear of it.
+  + .agr-btn, + .agr-btn-primary, + .agr-btn-danger { margin-top: var(--agr-space-2); }
+}
+
+// ---- .agr-tabs -------------------------------------------------------
+.agr-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 var(--agr-space-4);
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--agr-border);
+  > li { margin-bottom: -1px; }
+  > li > a, > li > button, > button {
+    display: block;
+    padding: var(--agr-space-2) var(--agr-space-4);
+    background: var(--agr-bg-light);
+    border: 1px solid var(--agr-border);
+    border-radius: var(--agr-radius) var(--agr-radius) 0 0;
+    color: #495057;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover { background: var(--agr-bg-hover); text-decoration: none; }
+  }
+  > button { margin-bottom: -1px; }
+  > li + li > a, > li + li > button, > button + button { margin-left: 2px; }
+  > li.active > a, > li.active > button, > li > [aria-selected="true"],
+  > button.active, > button[aria-selected="true"] {
+    background: var(--agr-bg);
+    color: var(--agr-text);
+    border-bottom-color: var(--agr-bg);
+  }
+}
+// Count next to a label, in tabs or elsewhere.
+.agr-count { margin-left: var(--agr-space-1); color: var(--agr-muted); }
+
+// ---- Buttons ---------------------------------------------------------
+.agr-btn, .agr-btn-primary {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--agr-secondary);
+  border-radius: var(--agr-radius);
+  background: var(--agr-bg);
+  color: var(--agr-muted);
+  font: inherit;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  cursor: pointer;
+  &:hover { background: var(--agr-bg-hover); color: var(--agr-text); text-decoration: none; }
+  &:disabled, &.disabled { opacity: 0.6; cursor: not-allowed; }
+}
+.agr-btn-primary {
+  background: var(--agr-primary);
+  border-color: var(--agr-primary);
+  color: #fff;
+  &:hover { background: var(--agr-primary-dark); border-color: var(--agr-primary-dark); color: #fff; }
+}
+.agr-btn-sm { padding: 2px 8px; font-size: 12.5px; }
+.agr-btn-danger {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--agr-danger);
+  border-radius: var(--agr-radius);
+  background: var(--agr-bg);
+  color: var(--agr-danger);
+  font: inherit;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  cursor: pointer;
+  &:hover { background: var(--agr-danger); border-color: var(--agr-danger); color: #fff; text-decoration: none; }
+  &:disabled, &.disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ---- .agr-badge ------------------------------------------------------
+.agr-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--agr-border);
+  border-radius: 10px;
+  background: var(--agr-bg-light);
+  color: var(--agr-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+// Long badge text is cut with an ellipsis (set the width limit with max-width if needed).
+.agr-badge-truncate {
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.agr-badge-primary { background: var(--agr-primary); border-color: var(--agr-primary); color: #fff; }
+
+// ---- Status messages -------------------------------------------------
+.agr-empty { font-style: italic; color: var(--agr-muted); }
+.agr-loading {
+  color: var(--agr-muted);
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: var(--agr-space-2);
+    border: 2px solid var(--agr-border-strong);
+    border-top-color: var(--agr-primary);
+    border-radius: 50%;
+    vertical-align: -2px;
+    animation: agr-spin 0.8s linear infinite;
+  }
+}
+.agr-error { color: var(--agr-danger); }
+.agr-note { font-size: 12px; color: var(--agr-muted); overflow-wrap: anywhere; }
+.agr-notice-warning {
+  padding: var(--agr-space-2) var(--agr-space-3);
+  border-left: 4px solid var(--agr-warning);
+  background: var(--agr-bg-light);
+}
+@keyframes agr-spin { to { transform: rotate(360deg); } }
+
+// ---- .agr-filter-bar -------------------------------------------------
+.agr-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--agr-space-2);
+  margin-bottom: var(--agr-space-4);
+  label { font-weight: 700; margin: 0; }
+  // Checkbox and radio labels are plain text.
+  label:has(input[type="checkbox"]), label:has(input[type="radio"]) {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--agr-space-1);
+    font-weight: 400;
+  }
+  // Undo Bootstrap and Material form-control sizing inside the bar.
+  .form-control {
+    display: inline-block;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    padding: 6px 12px;
+    background-color: var(--agr-bg);
+    border: 1px solid var(--agr-border-strong);
+    border-radius: var(--agr-radius);
+    box-shadow: none;
+  }
+  input[type="number"].form-control { width: 6em; }
+}
+
+// ---- Links -----------------------------------------------------------
+.agr-link { color: var(--agr-primary-dark); }
+a.agr-external::after {
+  content: "\f08e"; // fa-external-link
+  font-family: FontAwesome;
+  font-size: 0.8em;
+  margin-left: var(--agr-space-1);
+}
+// Icon only, for dense columns: the link text is hidden but stays in the title.
+a.agr-external.agr-external-icon {
+  font-size: 0;
+  &::after { font-size: 14px; margin-left: 0; }
+}
+
+// ---- Heat scale ------------------------------------------------------
+.agr-heat-1 { background: var(--agr-heat-1); }
+.agr-heat-2 { background: var(--agr-heat-2); }
+.agr-heat-3 { background: var(--agr-heat-3); }
+.agr-heat-4 { background: var(--agr-heat-4); color: #fff; }
+.agr-heat-5 { background: var(--agr-heat-5); color: #fff; }
+.agr-heat-6 { background: var(--agr-heat-6); color: #fff; }

@@ -23,6 +23,33 @@
 ;; look nice :-)
 (def ignore-logo-path "https://cdn.rawgit.com/intermine/design-materials/78a13db5/logos/intermine/squareish/45x45.png")
 
+(defn config-asset-url
+  "URL for a logo path set in config. Paths starting with `/` are served from
+  the deploy path, absolute http(s) URLs are used as is. Blank gives nil."
+  [deploy-path path]
+  (cond
+    (str/blank? path) nil
+    (re-find #"^https?://" path) path
+    :else (str deploy-path path)))
+
+(defn mine-icon-src
+  "Source of the square icon for a mine: the configured `:logo`, else the
+  mine's branding logo, else the logo under the mine's service root."
+  [details deploy-path]
+  (or (config-asset-url deploy-path (:logo details))
+      (let [branding-path (or (get-in details [:images :logo]) ; Path when it's from registry.
+                              (get-in details [:branding :images :logo])) ; Path when it's the current mine.
+            fallback-path (str (get-mine-url details) logo-path)] ; Fallback path.
+        (if (or (empty? branding-path)
+                (= branding-path ignore-logo-path))
+          fallback-path
+          branding-path))))
+
+(defn mine-wordmark-src
+  "Source of the configured wide logo for a mine, or nil when it has none."
+  [details deploy-path]
+  (config-asset-url deploy-path (:wordmark details)))
+
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
    Pass it the entire set of mine details, e.g.
@@ -30,14 +57,7 @@
   [details & {:keys [class]}]
   [:img
    {:class class
-    :src
-    (let [branding-path (or (get-in details [:images :logo]) ; Path when it's from registry.
-                            (get-in details [:branding :images :logo])) ; Path when it's the current mine.
-          fallback-path (str (get-mine-url details) logo-path)] ; Fallback path.
-      (if (or (empty? branding-path)
-              (= branding-path ignore-logo-path))
-        fallback-path
-        branding-path))}])
+    :src (mine-icon-src details (:bluegenes-deploy-path @server-vars))}])
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
@@ -210,10 +230,17 @@
         [anonymous]))))
 
 (defn active-mine-logo [current-mine]
-  (let [logo    (get-in current-mine [:branding :images :logo])
-        service (get-in current-mine [:service :root])]
-    [:img.active-mine-image
-     {:src (or logo (str service logo-path))}]))
+  (let [deploy-path (:bluegenes-deploy-path @server-vars)
+        wordmark    (mine-wordmark-src current-mine deploy-path)
+        logo        (or (config-asset-url deploy-path (:logo current-mine))
+                        (get-in current-mine [:branding :images :logo]))
+        service     (get-in current-mine [:service :root])]
+    (if wordmark
+      [:img.active-mine-wordmark
+       {:src wordmark
+        :alt (:name current-mine)}]
+      [:img.active-mine-image
+       {:src (or logo (str service logo-path))}])))
 
 (defn mine-entry
   "Output a single mine in the mine picker"
@@ -248,7 +275,8 @@
     [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [active-mine-logo current-mine]
-      [:span.hidden-xs (:name current-mine)]
+      (when-not (:wordmark current-mine)
+        [:span.hidden-xs (:name current-mine)])
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      (into [:ul.dropdown-menu.mine-picker]
            (concat (map-mines configured-mines)
@@ -263,40 +291,31 @@
 
 (def queries-to-show 5)
 
-(defn nav-buttons [classes & {:keys [large-screen?]}]
+(defn nav-buttons [classes]
   [:<>
-   [:li.primary-nav.hidden-xs
-    {:class (classes :home-panel large-screen?)}
+   [:li.primary-nav {:class (classes :home-panel)}
     [:a {:href (route/href ::route/home)}
      "Home"]]
-   [:li.primary-nav
-    {:class (classes :upload-panel large-screen?)}
+   [:li.primary-nav {:class (classes :upload-panel)}
     [:a {:href (route/href ::route/upload-step {:step "input"})}
      "Upload"]]
-   [:li.primary-nav
-    {:class (classes :lists-panel large-screen?)}
+   [:li.primary-nav {:class (classes :lists-panel)}
     [:a {:href (route/href ::route/lists)}
      "Lists"]]
-   [:li.primary-nav
-    {:class (classes :templates-panel large-screen?)}
+   [:li.primary-nav {:class (classes :templates-panel)}
     [:a {:href (route/href ::route/templates)}
      "Templates"]]
-   [:li.primary-nav
-    {:class (classes :regions-panel large-screen?)}
+   [:li.primary-nav {:class (classes :regions-panel)}
     [:a {:href (route/href ::route/regions)}
      "Regions"]]
-   [:li.primary-nav
-    {:class (classes :querybuilder-panel large-screen?)}
+   [:li.primary-nav {:class (classes :querybuilder-panel)}
     [:a {:href (route/href ::route/querybuilder)}
      "Query\u00A0Builder"]]
    (when @(subscribe [:results/have-been-queries?])
      [:li.queries-container.hidden-xs.hidden-sm
-      {:class (classes :results-panel large-screen?)}
+      {:class (classes :results-panel)}
       [:a.dropdown-toggle.queries-button
        {:data-toggle "dropdown" :role "button"}
-       ;; This has the same height as the *visible* icon, so it ensures the icon
-       ;; in the middle is centered.
-       [icon-comp "caret-down" :classes [:invisible]]
        [:span "Activity"]
        [icon-comp "caret-down"]]
       (into [:ul.dropdown-menu.results-dropdown.list-group
@@ -312,33 +331,43 @@
                   [:div.list-group-item-text
                    (time/format-query query)
                    (when intent
-                     (str " - " (-> intent name str/capitalize)))]]])))])
-   [:li.primary-nav.hidden-md.hidden-lg
-    {:class (classes :search-panel large-screen?)}
-    [:a {:href (route/href ::route/search)}
-     "Search"]]])
+                     (str " - " (-> intent name str/capitalize)))]]])))])])
 
-(defn main []
+(defonce ^:private height-observer (atom nil))
+
+(defn- set-nav-height! []
+  (when-let [el (.getElementById js/document "bluegenes-main-nav")]
+    (.setProperty (.-style js/document.documentElement)
+                  "--agr-nav-height"
+                  (str (.-offsetHeight el) "px"))))
+
+(defn- publish-nav-height!
+  "Ref callback: sets --agr-nav-height on <html> to the navbar's height and
+  keeps it current on resize, so fixed-position pages (query builder) start
+  below the navbar."
+  [el]
+  (when el
+    (set-nav-height!)
+    (when (and (exists? js/ResizeObserver) (nil? @height-observer))
+      (reset! height-observer (js/ResizeObserver. set-nav-height!)))
+    (some-> @height-observer (.observe el))))
+
+(defn main
+  "Two bands: a white top band with the mine picker and search, and a primary
+  coloured menu bar with the page links, the cart and the login."
+  []
   (let [active-panel (subscribe [:active-panel])
-        main-color (subscribe [:branding/header-main])
-        text-color (subscribe [:branding/header-text])
-        classes (fn [panel-key large-screen?]
-                  [(when (= @active-panel panel-key) "active")
-                   (when large-screen? "hidden-xs")])]
+        classes (fn [panel-key]
+                  (when (= @active-panel panel-key) "active"))]
     (fn []
-      [:nav#bluegenes-main-nav.main-nav
-       {:style {:background-color @main-color
-                :color @text-color
-                :fill @text-color}}
-       [:ul
-        [mine-picker]
-        ;; We want to show the nav buttons inside a container on small screens,
-        ;; so it can be scrolled. But we don't want the nav buttons inside the
-        ;; container on larger screens, so they can be placed more spaciously.
-        ;; This is how we achieve this!
-        [nav-buttons classes :large-screen? true]
-        [:div.nav-links.hidden-sm.hidden-md.hidden-lg
-         [nav-buttons classes]]
-        [:li.primary-nav.search.hidden-xs.hidden-sm [search/main]]
-        [cart/nav-item]
-        [user]]])))
+      [:nav#bluegenes-main-nav.main-nav {:ref publish-nav-height!}
+       [:div.nav-top
+        [:ul
+         [mine-picker]
+         [:li.primary-nav.search [search/main]]]]
+       [:div.nav-menu
+        [:ul
+         [nav-buttons classes]
+         [:li.nav-spacer]
+         [cart/nav-item]
+         [user]]]])))

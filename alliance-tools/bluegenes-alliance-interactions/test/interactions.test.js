@@ -253,7 +253,7 @@ test('main: Genetic tab loads on click and omits the empty detection method colu
 	const el = fakeEl();
 	tool.main(el, { root: ROOT }, { Gene: { value: 8000268 } }, {}, {}, () => {});
 	await tick();
-	assert.ok(el.textContent.includes('No molecular interactions in the Alliance'));
+	assert.ok(el.textContent.includes('No molecular interactions for this gene'));
 	assert.ok(log.api[0].includes('/gene/MGI:104537/'));
 	el.find('button')[1].listeners.click();
 	await tick();
@@ -270,7 +270,7 @@ test('main: 404 means no data, no error', async () => {
 	const el = fakeEl();
 	tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
 	await tick();
-	assert.ok(el.textContent.includes('No molecular interactions in the Alliance'));
+	assert.ok(el.textContent.includes('No molecular interactions for this gene'));
 	assert.ok(el.textContent.includes('Molecular (0)'));
 });
 

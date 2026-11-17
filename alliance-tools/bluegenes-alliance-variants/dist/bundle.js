@@ -14,7 +14,7 @@
 	var PAGE_SIZE = 50;
 	var TIMEOUT_MS = 20000;
 	var GENE_PAGE = 'https://www.alliancegenome.org/gene/';
-	var EMPTY_TEXT = 'No variants in the Alliance for this gene';
+	var EMPTY_TEXT = 'No variants for this gene';
 
 	// BlueGenes passes the mine root (for example https://host/mine); the web
 	// services live under /service. Accept either form.
@@ -208,7 +208,7 @@
 	}
 
 	function attribution(curie) {
-		var p = node('p', null, 'alliance-variants-source');
+		var p = node('p', null, 'agr-note alliance-variants-source');
 		p.appendChild(node('span', 'Data from the Alliance of Genome Resources API'));
 		if (curie) {
 			p.appendChild(node('span', ' ('));
@@ -216,6 +216,7 @@
 			a.setAttribute('href', GENE_PAGE + curie);
 			a.setAttribute('target', '_blank');
 			a.setAttribute('rel', 'noopener noreferrer');
+			a.className = 'agr-external';
 			p.appendChild(a);
 			p.appendChild(node('span', ')'));
 		}
@@ -223,7 +224,9 @@
 	}
 
 	function table(rows) {
-		var t = node('table', null, 'table table-striped table-condensed');
+		var wrap = node('div', null, 'agr-table-wrap');
+		var t = node('table', null, 'agr-table agr-table-sm');
+		wrap.appendChild(t);
 		var head = node('tr');
 		['Variant', 'Type', 'Molecular consequence', 'Amino acid change', 'Position', 'Allele'].forEach(function (h) {
 			head.appendChild(node('th', h));
@@ -240,12 +243,12 @@
 			tbody.appendChild(tr);
 		});
 		t.appendChild(tbody);
-		return t;
+		return wrap;
 	}
 
 	function select(label, values, current, onChange) {
 		var wrap = node('label', label + ' ', 'alliance-variants-filter');
-		var s = node('select');
+		var s = node('select', null, 'form-control input-sm');
 		var all = node('option', 'All');
 		all.setAttribute('value', '');
 		s.appendChild(all);
@@ -261,7 +264,7 @@
 	}
 
 	function button(label, disabled, onClick) {
-		var b = node('button', label, 'btn btn-default');
+		var b = node('button', label, 'agr-btn agr-btn-sm');
 		b.setAttribute('type', 'button');
 		if (disabled) b.setAttribute('disabled', 'disabled');
 		b.addEventListener('click', onClick);
@@ -284,20 +287,20 @@
 		var wrap = node('div', null, 'alliance-variants');
 		el.appendChild(wrap);
 		if (!list.length) {
-			wrap.appendChild(node('span', EMPTY_TEXT));
+			wrap.appendChild(node('p', EMPTY_TEXT, 'agr-empty'));
 			return;
 		}
 		var base = apiBase(config);
 		var body = node('div', null, 'alliance-variants-body');
 		wrap.appendChild(body);
-		body.appendChild(node('span', 'Loading...'));
+		body.appendChild(node('p', 'Loading...', 'agr-loading'));
 
 		fetchGenes(serviceRoot(service.root), list)
 			.then(function (genes) {
 				if (stale()) return;
 				clear(body);
 				if (!genes.length) {
-					body.appendChild(node('span', EMPTY_TEXT));
+					body.appendChild(node('p', EMPTY_TEXT, 'agr-empty'));
 					return;
 				}
 				showGenes(genes);
@@ -306,7 +309,7 @@
 				if (stale()) return;
 				console.error('variants: gene lookup in the mine failed', err);
 				clear(body);
-				body.appendChild(node('span', 'Could not load the gene from the mine'));
+				body.appendChild(node('p', 'Could not load the gene from the mine', 'agr-error'));
 			});
 
 		function showGenes(genes) {
@@ -315,7 +318,7 @@
 			var geneBar = node('div', null, 'alliance-variants-genes');
 			var panel = node('div', null, 'alliance-variants-panel');
 			if (genes.length > 1) {
-				var sel = node('select');
+				var sel = node('select', null, 'form-control input-sm');
 				genes.forEach(function (g, i) {
 					var o = node('option', (g.symbol || g.identifier) + (g.organism ? ' (' + g.organism + ')' : ''));
 					o.setAttribute('value', String(i));
@@ -343,12 +346,12 @@
 				var curie = toAllianceCurie(cur.identifier, cur.taxonId || cur.organism);
 				if (!curie) {
 					clear(panel);
-					panel.appendChild(node('span', 'No Alliance identifier for ' + cur.identifier));
+					panel.appendChild(node('p', 'No Alliance identifier for ' + cur.identifier, 'agr-empty'));
 					return;
 				}
 				if (!v.types.length) {
 					clear(panel);
-					panel.appendChild(node('span', 'Loading...'));
+					panel.appendChild(node('p', 'Loading...', 'agr-loading'));
 				}
 				var current = function () { return !stale() && view === v && v.req === myReq; };
 				fetchVariants(base, curie, v.page, { type: v.type, consequence: v.consequence })
@@ -369,7 +372,7 @@
 							return;
 						}
 						clear(panel);
-						panel.appendChild(node('span', msg));
+						panel.appendChild(node('p', msg, 'agr-error'));
 						panel.appendChild(attribution(curie));
 					});
 			}
@@ -383,16 +386,14 @@
 				clear(panel);
 				var filtered = !!(v.type || v.consequence);
 				if (!total && !filtered) {
-					panel.appendChild(node('span', EMPTY_TEXT));
+					panel.appendChild(node('p', EMPTY_TEXT, 'agr-empty'));
 					panel.appendChild(attribution(curie));
 					return;
 				}
 				var prevOf = function () { return { page: v.page, type: v.type, consequence: v.consequence }; };
-				var bar = node('div', null, 'alliance-variants-filters');
+				var bar = node('div', null, 'agr-filter-bar alliance-variants-filters');
 				bar.appendChild(select('Type', v.types, v.type, function (x) { var p = prevOf(); v.type = x; v.page = 1; load(p); }));
 				bar.appendChild(select('Consequence', v.consequences, v.consequence, function (x) { var p = prevOf(); v.consequence = x; v.page = 1; load(p); }));
-				panel.appendChild(bar);
-				if (errMsg) panel.appendChild(node('p', errMsg, 'alliance-variants-error'));
 				var rows = [];
 				results.forEach(function (r) {
 					toVariantRows(r).forEach(function (x) { rows.push(x); });
@@ -400,10 +401,12 @@
 				var first = (v.page - 1) * PAGE_SIZE + 1;
 				var last = (v.page - 1) * PAGE_SIZE + results.length;
 				var count = total ? first + '-' + last + ' of ' + total + ' records (alleles and variants), ' + rows.length + ' variant rows on this page' : 'No variants match the filters';
-				panel.appendChild(node('p', count, 'alliance-variants-count'));
+				panel.appendChild(node('p', count, total ? 'alliance-variants-count' : 'agr-empty alliance-variants-count'));
+				panel.appendChild(bar);
+				if (errMsg) panel.appendChild(node('p', errMsg, 'agr-error alliance-variants-error'));
 				if (rows.length) panel.appendChild(table(rows));
-				else if (total) panel.appendChild(node('p', 'No variants on this page'));
-				var pager = node('div', null, 'alliance-variants-pager');
+				else if (total) panel.appendChild(node('p', 'No variants on this page', 'agr-empty'));
+				var pager = node('div', null, 'alliance-variants-pager agr-filter-bar');
 				pager.appendChild(button('Previous', v.page <= 1, function () { if (v.page > 1) { var p = prevOf(); v.page -= 1; load(p); } }));
 				pager.appendChild(button('Next', last >= total, function () { if (last < total) { var p = prevOf(); v.page += 1; load(p); } }));
 				panel.appendChild(pager);

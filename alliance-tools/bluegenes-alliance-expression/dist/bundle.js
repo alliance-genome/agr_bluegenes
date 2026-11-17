@@ -159,10 +159,10 @@
 		while (el.firstChild) el.removeChild(el.firstChild);
 	}
 
-	function message(el, text) {
+	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-expression');
-		wrap.appendChild(node('span', text));
+		wrap.appendChild(node('p', text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -176,7 +176,7 @@
 			return a.anatomy === anatomy && (stage === ANY_STAGE || a.stage === stage);
 		});
 		box.appendChild(node('h4', anatomy + ', ' + stage + ': ' + plural(picked.length, 'annotation')));
-		var table = node('table', null, 'table table-condensed table-striped');
+		var table = node('table', null, 'agr-table agr-table-sm');
 		var headRow = node('tr');
 		var heads = ['Anatomy', 'Stage', 'Assay', 'Source', 'Publication'];
 		if (multi) heads.unshift('Gene');
@@ -197,6 +197,7 @@
 				if (i) pubCell.appendChild(document.createTextNode(', '));
 				var link = node('a', 'PMID ' + p);
 				link.href = PUBMED_URL + encodeURIComponent(p) + '/';
+				link.className = 'agr-external';
 				link.target = '_blank';
 				link.rel = 'noopener';
 				pubCell.appendChild(link);
@@ -205,14 +206,16 @@
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
-		box.appendChild(table);
+		var tableWrap = node('div', null, 'agr-table-wrap');
+		tableWrap.appendChild(table);
+		box.appendChild(tableWrap);
 	}
 
 	function render(el, annotations, multi, truncated) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-expression');
 		if (!annotations.length) {
-			wrap.appendChild(node('span', 'No expression annotations'));
+			wrap.appendChild(node('p', 'No expression annotations for this gene', 'agr-empty'));
 			el.appendChild(wrap);
 			return;
 		}
@@ -228,9 +231,9 @@
 				'alliance-expression-summary'
 			)
 		);
-		if (truncated) wrap.appendChild(node('p', 'Showing annotations from the first ' + MAX_ROWS + ' result rows.'));
+		if (truncated) wrap.appendChild(node('p', 'Showing annotations from the first ' + MAX_ROWS + ' result rows.', 'agr-note'));
 
-		var gridBox = node('div');
+		var gridBox = node('div', null, 'agr-table-wrap');
 		var details = node('div', null, 'alliance-expression-details');
 
 		function select(btn, anatomy, stage) {
@@ -277,7 +280,7 @@
 				var more = node(
 					'button',
 					showAll ? 'Show top ' + TOP_ROWS : 'Show all ' + grid.anatomies.length + ' anatomy terms',
-					'btn btn-default btn-sm alliance-expression-more'
+					'agr-btn agr-btn-sm alliance-expression-more'
 				);
 				more.type = 'button';
 				more.addEventListener('click', function () {
@@ -292,6 +295,7 @@
 		drawGrid();
 		wrap.appendChild(gridBox);
 		wrap.appendChild(details);
+		wrap.appendChild(node('p', 'Expression annotations as stored in this mine. Cell colour scales with the annotation count; select a cell for details.', 'agr-note'));
 		el.appendChild(wrap);
 	}
 
@@ -322,10 +326,10 @@
 			return v !== undefined && v !== null && v !== '';
 		});
 		if (!list.length) {
-			message(el, 'No expression annotations');
+			message(el, 'No expression annotations for this gene', 'agr-empty');
 			return;
 		}
-		message(el, 'Loading...');
+		message(el, 'Loading expression', 'agr-loading');
 		fetchRows(serviceRoot(service.root), list)
 			.then(function (rows) {
 				if (el.__agrExprReq !== token) return;
@@ -334,7 +338,7 @@
 			.catch(function (err) {
 				console.error('bluegenes-alliance-expression: request failed', err);
 				if (el.__agrExprReq !== token) return;
-				message(el, 'Could not load expression annotations from the mine');
+				message(el, 'Could not load expression annotations from the mine', 'agr-error');
 			});
 	}
 

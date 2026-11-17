@@ -2,13 +2,19 @@
 @import "../datatype-colors";
 
 .lists {
-    // You can adjust the sizing and spacing by only changing this, as they're
-    // all relative. The original font size in the design was 18px.
-    font-size: 12px;
-
     width: 100%;
     max-width: 1600px;
-    padding: @spacer*3.4 @spacer*4.7;
+    padding: var(--agr-space-5) var(--agr-space-4);
+    min-width: 0;
+    max-width: 1600px;
+
+    // On phones the table scrolls inside its own box, not the page.
+    @media (max-width: 767px) {
+        .lists-table.lists-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
 
     @visible-gray: #CCCCCC;
     @dark-gray: #505050;
@@ -18,9 +24,10 @@
     @wider-letter-spacing: 0.08em;
 
     code.tag {
-        background-color: #DFE6ED;
-        color: #4B5C6B;
-        margin-right: @spacer/2;
+        background-color: var(--agr-bg-light);
+        border: 1px solid var(--agr-border);
+        color: var(--agr-muted);
+        margin-right: var(--agr-space-1);
         overflow-wrap: break-word;
     }
 
@@ -59,84 +66,81 @@
 
     .filter-lists {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-        margin-bottom: @spacer*4;
+        justify-content: space-between;
+        gap: var(--agr-space-3);
+        margin-bottom: var(--agr-space-4);
 
         h2 {
-            font-size: 2.4em;
             margin: 0;
-            margin-right: @spacer*0.5;
 
             .icon {
-                font-size: 0.5em;
+                font-size: 0.4em;
+                margin-left: var(--agr-space-2);
+                fill: var(--agr-primary-dark);
             }
         }
 
         .filter-input {
             position: relative;
-            width: 30%;
-            min-width: 200px;
+            flex: 0 1 360px;
+            margin: 0;
 
             input {
                 width: 100%;
-                font-size: 1.4em;
-                padding-right: 1.4em;
+                height: auto;
+                padding: 6px 32px 6px 12px;
+                background-color: var(--agr-bg);
+                background-image: none;
+                border: 1px solid var(--agr-border-strong);
+                border-radius: var(--agr-radius);
+                box-shadow: none;
             }
 
             .icon {
-                font-size: 1.5em;
-                cursor: pointer;
                 position: absolute;
-                right: -4px;
-                top: 4px;
+                right: 10px;
+                top: 9px;
+                margin: 0;
+                fill: var(--agr-muted);
+                pointer-events: none;
             }
         }
     }
 
+    // Set operations: one row of buttons above the table.
     .top-controls {
-        display: flex;
+        margin-bottom: var(--agr-space-3);
 
-        background-color: @body-background-color;
-        border-bottom: 1px solid @visible-gray;
+        .agr-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--agr-space-1);
+            margin: 0;
 
-        // Stick to top when scrolling past it.
-        position: sticky;
-        top: -10px;
-        z-index: 10;
-
-        button.btn.btn-raised {
-            flex-grow: 1;
-            font-size: 1.5em;
-            text-transform: none;
-            fill: #fff;
-            color: #fff;
-            background-color: @dark-gray;
-            margin-bottom: 0;
-
-            &:focus,
-            &:hover,
-            &:active {
-                background-color: lighten(@dark-gray, 13%);
+            .icon {
+                margin: 0;
+                fill: currentColor;
             }
 
             &:disabled {
-                color: @dark-gray;
-                fill: @dark-gray;
-                background-color: transparent;
-            }
-
-            .icon {
-                font-size: @icon-size;
+                background: var(--agr-bg-light);
+                border-color: var(--agr-border-strong);
             }
         }
     }
 
     .bottom-controls {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
-
-        background-color: @dark-gray;
+        align-items: center;
+        gap: var(--agr-space-2);
+        padding: var(--agr-space-2) var(--agr-space-4);
+        background-color: var(--agr-bg-light);
+        border-top: 1px solid var(--agr-border);
+        box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.06);
 
         // Stick to bottom.
         position: sticky;
@@ -144,98 +148,92 @@
         z-index: 10;
 
         .selected-indicator {
-            color: white;
-            font-size: 1.2em;
-            font-weight: 400;
-            margin-left: @spacer*2;
-            margin-right: @spacer*1.5;
+            font-weight: 700;
+            margin-right: var(--agr-space-3);
         }
 
-        button.btn {
-            fill: white;
-            padding: @spacer/2 @spacer*2;
-            margin: @spacer/2;
+        .agr-btn {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--agr-space-1);
 
-            &.btn-info {
-                margin-right: 0;
+            .icon {
+                margin: 0;
+                fill: currentColor;
             }
         }
 
         & > div {
             display: flex;
-            align-items: baseline;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--agr-space-2);
         }
     }
 
     .pagination-controls {
         display: flex;
         align-items: center;
-
-        font-size: 1.2em;
-
-        padding: @spacer/3 @spacer*0.8;
-        background-color: @content-color-background;
-        border: 1px solid @visible-gray;
+        gap: var(--agr-space-3);
+        padding: var(--agr-space-2) var(--agr-space-3);
+        background-color: var(--agr-bg);
+        border: 1px solid var(--agr-border);
 
         &.pagination-bottom {
             justify-content: flex-end;
-        }
-
-        & > * {
-            margin: @spacer/3 @spacer @spacer/3 0;
+            border-top: none;
         }
 
         span {
             font-weight: 400;
+            color: var(--agr-muted);
         }
 
-        button.rows-per-page {
+        .pagination {
             margin: 0;
-            padding: @spacer*0.5 @spacer*1;
-            padding-right: @spacer*0.2;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-            box-shadow: none;
+            user-select: none;
 
-            &:focus,
-            &:active,
-            &:hover {
-                background-color: @body-background-color;
-                box-shadow: none !important;
+            li > a {
+                color: var(--agr-primary-dark);
+                cursor: pointer;
+                border-color: var(--agr-border);
             }
 
-            .icon {
-                margin-right: 0;
+            li.active > a {
+                background-color: var(--agr-primary);
+                border-color: var(--agr-primary);
+                color: #fff;
+            }
+
+            li.disabled > a {
+                background-color: var(--agr-bg-light);
+                color: var(--agr-muted);
+                cursor: default;
             }
         }
 
         .dropdown-menu {
             min-width: 50px;
+
+            > .active > a {
+                background-color: var(--agr-primary);
+                color: #fff;
+            }
         }
 
-        .pagination {
-            user-select: none;
-
-            li > a {
-                color: @body-foreground-color;
-            }
-
-            li.active > a,
-            li.disabled > a {
-                background-color: @body-background-color;
-                border-color: #ddd;
-            }
+        button.rows-per-page .icon {
+            margin: 0 0 0 var(--agr-space-1);
+            fill: currentColor;
         }
     }
 
-    // height: @spacer*8;
+    // Div-based table with the .agr-table look.
     .lists-table {
         display: table;
-        font-size: 1.3em;
-        background-color: @content-color-background;
+        background-color: var(--agr-bg);
         border-collapse: collapse;
-        border: 1px solid @visible-gray;
+        border: 1px solid var(--agr-border);
         width: 100%;
         position: relative;
 
@@ -253,24 +251,23 @@
 
         .lists-headers {
             white-space: nowrap;
-            border-bottom: 4px solid @visible-gray;
+            border-bottom: 2px solid var(--agr-border);
 
             .lists-col {
-                padding: @spacer*1.5 @spacer*0.8;
+                padding: var(--agr-space-2) var(--agr-space-3);
 
                 .list-header {
                     display: flex;
                     align-items: center;
 
                     & > span {
-                        font-weight: bold;
-                        text-transform: uppercase;
-                        letter-spacing: @wider-letter-spacing;
+                        font-weight: 700;
                     }
 
                     .dropdown-menu > .active > a {
                         &, &:hover, &:focus {
-                            background-color: @highlight-blue;
+                            background-color: var(--agr-primary);
+                            color: #fff;
                         }
                     }
 
@@ -280,18 +277,18 @@
 
                         .icon {
                             margin: 0;
-                            font-size: 2.2em;
+                            font-size: 2em;
 
                             &.active-selection {
-                                fill: @highlight-blue;
+                                fill: var(--agr-primary);
                             }
 
                             &.active-asc-sort {
-                                --top-color: @highlight-blue;
+                                --top-color: var(--agr-primary);
                             }
 
                             &.active-desc-sort {
-                                --bottom-color: @highlight-blue;
+                                --bottom-color: var(--agr-primary);
                             }
                         }
                     }
@@ -331,7 +328,7 @@
                 right: 0;
                 transform: translateY(-1px);
 
-                background-color: fadeout(@highlight-color, 40%);
+                background-color: var(--agr-primary-dark);
                 font-weight: 400;
 
                 &, a {
@@ -344,23 +341,26 @@
             }
 
             &-alert, &-dummy {
-                padding: @spacer/4 @spacer/2;
-                border-bottom: 1px solid @visible-gray;
+                padding: var(--agr-space-1) var(--agr-space-2);
+                border-bottom: 1px solid var(--agr-border);
             }
         }
 
         .lists-item {
             position: relative;
             transform: scale(1); // Hack to allow relative positioning within table-row.
-            border-bottom: 1px solid @visible-gray;
+            border-top: 1px solid var(--agr-border);
 
             &:nth-child(2n) {
-                background-color: @body-background-color;
+                background-color: var(--agr-bg-light);
+            }
+
+            &:hover {
+                background-color: var(--agr-bg-hover);
             }
 
             &.separator {
-                border-bottom-width: 4px;
-                border-bottom-color: fadeout(@highlight-color, 70%);
+                border-bottom: 2px solid var(--agr-primary-light);
             }
 
             button.btn {
@@ -369,7 +369,7 @@
             }
 
             .lists-col {
-                padding: @spacer*0.9 @spacer*0.8;
+                padding: var(--agr-space-2) var(--agr-space-3);
             }
 
             .lists-col:nth-child(1) {
@@ -423,15 +423,18 @@
 
                 .list-title {
                     font-size: 1em;
-                    color: @body-foreground-color;
+                    color: var(--agr-primary-dark);
                     text-transform: none;
                     margin-right: auto;
-                    font-weight: bold;
-                    text-decoration: underline;
+                    font-weight: 700;
                     overflow-wrap: anywhere;
 
+                    &:hover {
+                        text-decoration: underline;
+                    }
+
                     &.disabled {
-                        color: fadeout(@body-foreground-color, 35%);
+                        color: var(--agr-muted);
                         text-decoration: none;
                         cursor: default;
                     }
@@ -446,13 +449,14 @@
                     margin-right: 0.2em;
 
                     &.authorized {
-                        fill: @authorized-color;
+                        fill: var(--agr-muted);
                     }
                 }
             }
 
             .list-description {
-                font-size: 0.8em;
+                font-size: 12.5px;
+                color: var(--agr-muted);
                 overflow-wrap: anywhere;
             }
 
@@ -486,10 +490,10 @@
                     &.icon-list-copy,
                     &.icon-list-edit,
                     &.icon-list-more {
-                        fill: @highlight-blue;
+                        fill: var(--agr-primary-dark);
                     }
                     &.icon-list-delete {
-                        fill: @danger-red;
+                        fill: var(--agr-danger);
                     }
                 }
             }
@@ -506,21 +510,22 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(31, 179, 251, 0.27);
+                background-color: rgba(37, 152, 197, 0.2);
                 pointer-events: none;
             }
         }
     }
 
     .no-lists {
-        font-size: 1.5em;
-        display: flex;
-        flex-direction: column;
         text-align: center;
-        background-color: @content-color-background;
-        border: 1px solid @visible-gray;
+        background-color: var(--agr-bg);
+        border: 1px solid var(--agr-border);
         border-top: none;
-        padding: @spacer*2 @spacer*2 @spacer*3 @spacer*2;
+        padding: var(--agr-space-5);
+
+        p {
+            margin: 0 0 var(--agr-space-2);
+        }
     }
 
     .fade.modal-backdrop {

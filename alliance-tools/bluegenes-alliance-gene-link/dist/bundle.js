@@ -80,21 +80,23 @@
 			});
 	}
 
-	function show(el, text, curie) {
+	function show(el, text, curie, cls) {
 		while (el.firstChild) el.removeChild(el.firstChild);
 		var wrap = document.createElement('div');
 		wrap.className = 'alliance-gene-link';
 		if (curie) {
 			var a = document.createElement('a');
 			a.href = geneUrl(curie);
+			a.className = 'agr-external';
 			a.target = '_blank';
 			a.rel = 'noopener';
 			a.textContent = text;
 			wrap.appendChild(a);
 		} else {
-			var span = document.createElement('span');
-			span.textContent = text;
-			wrap.appendChild(span);
+			var p = document.createElement('p');
+			p.className = cls || '';
+			p.textContent = text;
+			wrap.appendChild(p);
 		}
 		el.appendChild(wrap);
 	}
@@ -109,10 +111,10 @@
 		var id = gene && gene.value;
 		if (Array.isArray(id)) id = id[0];
 		if (id === undefined || id === null || id === '') {
-			show(el, 'No Alliance page for this gene');
+			show(el, 'No Alliance page for this gene', null, 'agr-empty');
 			return;
 		}
-		show(el, 'Loading...');
+		show(el, 'Loading', null, 'agr-loading');
 		fetchGene(serviceRoot(service.root), id)
 			.then(function (row) {
 				if (el.__agrReq !== token) return;
@@ -120,12 +122,12 @@
 				if (curie) {
 					show(el, 'View ' + row.primaryIdentifier + ' on the Alliance of Genome Resources', curie);
 				} else {
-					show(el, 'No Alliance page for this gene');
+					show(el, 'No Alliance page for this gene', null, 'agr-empty');
 				}
 			})
 			.catch(function () {
 				if (el.__agrReq !== token) return;
-				show(el, 'Could not load the gene from the mine');
+				show(el, 'Could not load the gene from the mine', null, 'agr-error');
 			});
 	}
 

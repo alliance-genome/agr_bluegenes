@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-sgd-protein",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Protein half-life and gene neighbourhood from SGD for budding yeast Gene report pages, through the BlueGenes backend proxy.",
   "main": "dist/bundle.js",
   "scripts": {

@@ -145,9 +145,14 @@
                                     [{:gene 1 :ortholog 10 :organism "M. musculus"}
                                      {:gene 1 :ortholog 10 :organism "M. musculus"}]
                                     "M. musculus"))))
-  (testing "the list's own organism has all genes with none"
-    (is (= {:one-to-one 0 :one-to-many 0 :none 4}
-           (compare/organism-counts genes pairs "H. sapiens")))))
+  (testing "each gene counts as 1:1 with itself in the list's own organism"
+    (is (= {:one-to-one 4 :one-to-many 0 :none 0}
+           (compare/organism-counts genes pairs "H. sapiens")))
+    (is (= {:one-to-one 0 :one-to-many 1 :none 0}
+           (compare/organism-counts [{:id 1 :organism "M. musculus"}]
+                                    [{:gene 1 :ortholog 9 :organism "M. musculus"}]
+                                    "M. musculus"))
+        "an ortholog in the same organism makes it 1:many")))
 
 (deftest intersection-groups
   (let [sets (compare/organism-sets genes pairs)
@@ -179,7 +184,10 @@
     (is (= 140 (:h (first bars))) "largest bar fills the height")
     (is (= 70 (:h (second bars))))
     (is (< (:cx (first bars)) (:cx (second bars))))
-    (is (pos? width))))
+    (is (pos? width))
+    (is (> (:label-w (compare/upset-geometry ["M. musculus/domesticus" "A"] ints))
+           (* 6 (count "M. musculus/domesticus")))
+        "label column fits the longest organism name")))
 
 (rf/reg-event-db ::seed (fn [_ [_ db]] db))
 (rf/reg-sub ::compare #(get-in % [:results :orthologs-compare]))

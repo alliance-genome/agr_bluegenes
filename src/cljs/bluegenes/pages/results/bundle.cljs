@@ -144,13 +144,13 @@
     (let [{:keys [downloading? error]} @(subscribe [::state name])
           too-large (too-large? size)]
       [:div.download-bundle
-       [:button.btn.btn-slim
+       [:button.agr-btn
         {:type "button"
          :disabled (or downloading? too-large)
          :title (if too-large
                   (str "Bundles are limited to " max-genes " genes.")
                   "Genes, orthologs, disease and phenotype annotations as TSV files in a zip")
          :on-click #(dispatch [::download name])}
-        (if downloading? "Preparing bundle..." "Download bundle")]
+        (if downloading? "Preparing bundle" "Download bundle")]
        (when error
-         [:p.text-danger.bundle-error error])])))
+         [:p.agr-error.bundle-error error])])))

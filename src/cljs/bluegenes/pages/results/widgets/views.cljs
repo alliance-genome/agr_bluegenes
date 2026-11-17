@@ -26,8 +26,8 @@
          {:class (-> []
                      (into (when-not full-width? [:col-lg-6 :col-xl-4-workaround]))
                      (into (when loading? [:is-loading])))}
-         [:h4 title]
-         [:p {:dangerouslySetInnerHTML {:__html (sanitize-html description)}}]
+         [:h4.widget-title title]
+         [:p.widget-description {:dangerouslySetInnerHTML {:__html (sanitize-html description)}}]
          (if (pos? notAnalysed)
            [:p (str "Number of " (plural type) " in the table not analysed in this widget: ")
             [:strong notAnalysed]]
@@ -40,7 +40,7 @@
             :filterLabel filterLabel])]
         (if (seq values)
           child
-          [:p.failure (str "No results.")])))
+          [:p.agr-empty "No results."])))
 
 (defn build-bar-query [query category series]
   (-> query
@@ -232,7 +232,7 @@
          :values values
          :child
          [:div
-          [:button.btn.btn-default.btn-raised.btn-xs
+          [:button.agr-btn.agr-btn-sm
            {:on-click #(view-items! {:current-mine current-mine
                                      :pathQuery pathQuery
                                      :pathConstraint pathConstraint
@@ -242,7 +242,7 @@
                                      :title (table-query-title title columnTitle)})}
            (if (empty? @selected) "View All" "View Selected")]
           [:div.table-widget
-           [:table.table.table-condensed.table-striped
+           [:table.agr-table.agr-table-sm.agr-table-striped
             [:thead
              (into [:tr
                     (let [all-identifiers-set (set all-identifiers)
@@ -283,7 +283,7 @@
                          (filter val widgets))]
     (when (seq widgets)
       [:div
-       [:h3.widget-heading "Widgets"]
+       [:h3.widget-heading.agr-section-title "Widgets"]
        [:div.widgets
         ;; Uncomment me to test the PieChart!
         #_[piechart :test-piechart {:chartType "PieChart",

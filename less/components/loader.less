@@ -1,127 +1,36 @@
 @import "../variables";
 
+// Small inline loader: the primary bars of the mine loader at text size.
 .mini-loader {
-    overflow: hidden;
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 20px;
+    vertical-align: middle;
 
-    &.tiny {
-        font-size: 40%;
-        display: inline-block;
+    &.tiny { height: 14px; gap: 2px; }
+
+    .mini-loader-bar {
+        display: block;
+        width: 4px;
+        height: 100%;
+        border-radius: 2px;
+        background: var(--agr-primary);
+        opacity: 0.25;
+        transform-origin: bottom;
+        animation: agr-bar 1.2s ease-in-out infinite;
+
+        &:nth-child(2) { animation-delay: 0.15s; }
+        &:nth-child(3) { animation-delay: 0.3s; }
+        &:nth-child(4) { animation-delay: 0.45s; }
     }
 
-    .middle {
-        padding: 0;
-        margin: 0;
-        display: flex;
-        align-items: center;
-    }
+    &.tiny .mini-loader-bar { width: 3px; }
+}
 
-    .dot {
-        width: 0;
-        height: 0;
-    }
-
-    .mini-loader-content {
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        animation-name: spin;
-        animation-timing-function: linear;
-        animation-duration: @delay*8;
-        animation-iteration-count: infinite;
-    }
-    @delay: 0.2s;
-
-    .loader-organism {
-        box-sizing: border-box;
-        min-width: 1em;
-        min-height: 1em;
-        display: inline-block;
-        border: solid 0.6em #eee;
-        border-radius: 4em;
-        padding: 0;
-        margin: 0.1em;
-        opacity: 0.75;
-        font-size: 60%;
-        animation-timing-function: ease-in;
-        animation-duration: @delay*14;
-        animation-name: pulse;
-        animation-iteration-count: infinite;
-        background-color: rgba(0, 0, 0, 0.08);
-    }
-
-    .one {
-        animation-delay: @delay*2;
-        width: 1em;
-        height: 2em;
-    }
-
-    .two {
-        width: 2em;
-        height: 1em;
-        animation-delay: @delay*2;
-    }
-
-    .three {
-        animation-delay: @delay*3;
-        width: 2em;
-        height: 1em;
-    }
-
-    .four {
-        width: 1em;
-        height: 2em;
-        animation-delay: @delay*4;
-    }
-    //.one {border:solid 1px transparent}
-    @zebracolor: #FF5722;
-    @yeastcolor: #FFC107;
-    @humancolor: #8BC34A;
-    @wormcolor: #3F51B5;
-    @mousecolor: #00BCD4;
-    @ratcolor: #E91E63;
-    @flycolor: #9C27B0;
-    @keyframes pulse {
-         @fadeby: 0;
-
-        0% {
-            border-color: fadeout(@wormcolor, @fadeby);
-        }
-
-        15% {
-            border-color: fadeout(@flycolor, @fadeby);
-        }
-
-        30% {
-            border-color: fadeout(@ratcolor, @fadeby);
-        }
-
-        45% {
-            border-color: fadeout(@zebracolor, @fadeby);
-        }
-
-        60% {
-            border-color: fadeout(@yeastcolor, @fadeby);
-        }
-
-        75% {
-            border-color: fadeout(@humancolor, @fadeby);
-        }
-
-        90% {
-            border-color: fadeout(@mousecolor, @fadeby);
-        }
-
-        100% {
-            border-color: fadeout(@wormcolor, @fadeby);
-        }
-    }
-    @keyframes spin {
-        100% {
-            transform: rotate(360deg);
-        }
-    }
+@keyframes agr-bar {
+    0%, 60%, 100% { opacity: 0.25; transform: scaleY(0.4); }
+    30% { opacity: 1; transform: scaleY(1); }
 }
 
 .mine-loader {
@@ -136,9 +45,10 @@
     .mine-loader-dialog {
         z-index: 40; // Above inputs but below mine switcher dropdown.
 
-        background-color: #E6E6E6;
-        padding: @spacer*2;
-        border: 2px solid #A7A7A7;
+        background-color: var(--agr-bg-light);
+        padding: var(--agr-space-6);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
 
         & > img {
             max-height: @spacer*10;
@@ -146,22 +56,48 @@
         }
 
         & > img, & > svg {
-            margin-bottom: @spacer;
+            margin-bottom: var(--agr-space-4);
         }
 
         .loading {
-            margin-bottom: @spacer/2;
-            color: #656464;
+            margin-bottom: var(--agr-space-2);
+            color: var(--agr-muted);
+            font-weight: 700;
+            letter-spacing: 0.08em;
         }
 
         #loader {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 6px;
+            height: 32px;
             margin-top: 0;
-            margin-bottom: @spacer*2;
+            margin-bottom: var(--agr-space-5);
+
+            .loader-organism {
+                display: block;
+                width: 8px;
+                height: 32px;
+                border: 0;
+                border-radius: 4px;
+                background: var(--agr-primary);
+                opacity: 0.25;
+                transform-origin: bottom;
+                animation: agr-bar 1.4s ease-in-out infinite;
+            }
+            .worm { animation-delay: 0s; }
+            .zebra { animation-delay: 0.1s; }
+            .human { animation-delay: 0.2s; }
+            .yeast { animation-delay: 0.3s; }
+            .rat { animation-delay: 0.4s; }
+            .mouse { animation-delay: 0.5s; }
+            .fly { animation-delay: 0.6s; }
         }
 
         p {
             font-size: 16px;
-            color: #656464;
+            color: var(--agr-muted);
         }
     }
 }

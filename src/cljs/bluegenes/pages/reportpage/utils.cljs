@@ -4,7 +4,7 @@
             [bluegenes.pages.admin.events :refer [new-category new-child]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [md-element]]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon icon-comp]]))
 
 ;; We have a special section that we prepend to all report pages. To keep
 ;; things consistent and easy to change, we only define its properties below.
@@ -131,3 +131,23 @@
     [:form {:on-submit #(.preventDefault %)
             :on-click #(.stopPropagation %)}
      (md-element text)]]])
+
+(defn toggle-props
+  "Props that make a report item heading a keyboard-operable toggle: button
+  role, focusable, Enter and Space call `on-toggle`."
+  [on-toggle expanded?]
+  {:role "button"
+   :tab-index 0
+   :aria-expanded (boolean expanded?)
+   :on-click (fn [_] (on-toggle))
+   :on-key-down (fn [e]
+                  (when (and (#{"Enter" " "} (.-key e))
+                             (= (.-target e) (.-currentTarget e)))
+                    (.preventDefault e)
+                    (on-toggle)))})
+
+(defn chevron
+  "Expand/collapse chevron for report item headings."
+  [collapsed?]
+  [:span.report-item-toggle
+   [icon-comp "chevron-up" :classes [(when collapsed? "collapsed")]]])

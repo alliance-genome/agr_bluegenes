@@ -96,7 +96,7 @@ test('empty state', async () => {
 	const el = fakeEl();
 	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
 	await tick();
-	assert.strictEqual(el.textContent, 'No orthologs in this mine');
+	assert.strictEqual(el.textContent, 'No orthologs for this gene');
 });
 
 test('error shows a short message', async () => {
@@ -148,4 +148,21 @@ test('500 ids go in a POST body, not the URL', async () => {
 	assert.strictEqual(params.get('format'), 'json');
 	assert.strictEqual(params.get('size'), '2000');
 	assert.strictEqual((params.get('query').match(/<value>/g) || []).length, 500);
+});
+
+test('dedupeRows merges repeated homologue rows: max counts, any best flag', () => {
+	const rows = [
+		['r1', 7, 'HGNC:1100', 'BRCA1', 'H. sapiens', 5, 12, false, false],
+		['r1', 7, 'HGNC:1100', 'BRCA1', 'H. sapiens', 9, 12, true, false],
+		['r1', 7, 'HGNC:1100', 'BRCA1', 'H. sapiens', 3, 10, false, true],
+		['r1', 8, 'MGI:1', 'Brca1', 'M. musculus', 4, 12, false, false],
+		['r2', 7, 'HGNC:1100', 'BRCA1', 'H. sapiens', 2, 12, false, false]
+	].map((r) => tool.toRow(r));
+	const out = tool.dedupeRows(rows);
+	assert.strictEqual(out.length, 3);
+	assert.deepStrictEqual(
+		[out[0].match, out[0].attempted, out[0].best, out[0].bestReverse],
+		[9, 12, true, true]
+	);
+	assert.strictEqual(out[2].source, 'r2');
 });
