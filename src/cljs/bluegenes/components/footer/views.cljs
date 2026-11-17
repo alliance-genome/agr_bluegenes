@@ -3,7 +3,7 @@
             [bluegenes.version :as version]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [bluegenes.utils :refer [version-string->vec]]
+            [bluegenes.utils :refer [version-string->vec height-publisher]]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.route :as route]))
 
@@ -13,6 +13,9 @@
 (defn pretty-version [vstring]
   (->> vstring version-string->vec (str/join ".")))
 
+;; The query builder's fixed panel ends above the footer.
+(defonce ^:private publish-footer-height! (height-publisher "--agr-footer-height"))
+
 (defn main []
   (let [short-version     (nth (re-matches #"v?([0-9\.]+)(?:-.*)?" version/release) 1 "dev")
         ;; Note that the following versions can be nil when switching mines.
@@ -20,7 +23,7 @@
         api-version       @(subscribe [:api-version])
         release-version   (when-let [v @(subscribe [:release-version])]
                             (nth (re-find #"\"(.*)\"" v) 1 (str/trim v)))]
-    [:footer.footer
+    [:footer.footer {:ref publish-footer-height!}
      [:div.section.column
       [:span.version
        "BlueGenes "

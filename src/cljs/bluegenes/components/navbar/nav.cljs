@@ -13,7 +13,7 @@
             [bluegenes.config :refer [read-default-ns server-vars]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.components.icons :refer [icon]]
-            [bluegenes.utils :refer [get-mine-url]]))
+            [bluegenes.utils :refer [get-mine-url height-publisher]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -333,24 +333,8 @@
                    (when intent
                      (str " - " (-> intent name str/capitalize)))]]])))])])
 
-(defonce ^:private height-observer (atom nil))
-
-(defn- set-nav-height! []
-  (when-let [el (.getElementById js/document "bluegenes-main-nav")]
-    (.setProperty (.-style js/document.documentElement)
-                  "--agr-nav-height"
-                  (str (.-offsetHeight el) "px"))))
-
-(defn- publish-nav-height!
-  "Ref callback: sets --agr-nav-height on <html> to the navbar's height and
-  keeps it current on resize, so fixed-position pages (query builder) start
-  below the navbar."
-  [el]
-  (when el
-    (set-nav-height!)
-    (when (and (exists? js/ResizeObserver) (nil? @height-observer))
-      (reset! height-observer (js/ResizeObserver. set-nav-height!)))
-    (some-> @height-observer (.observe el))))
+;; Fixed-position pages (query builder) start below the navbar.
+(defonce ^:private publish-nav-height! (height-publisher "--agr-nav-height"))
 
 (defn main
   "Two bands: a white top band with the mine picker and search, and a primary

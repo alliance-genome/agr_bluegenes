@@ -218,7 +218,6 @@
   "list upload guidance text. no functional / interactive bits."
   []
   [:div.guidance-and-title
-   [:h2 "Create a new list"]
    [:div.list-upload-guidance
     [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
     [:div
@@ -353,5 +352,6 @@
 (defn main []
   (attach-body-events)
   (fn []
-    [:div.container.idresolverupload
+    [:div.agr-page.idresolverupload
+     [:h2.agr-page-title "Create a new list"]
      [wizard]]))

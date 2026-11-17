@@ -17,6 +17,19 @@ code, kbd, pre, samp { font-family: var(--agr-font-mono); }
 
 h1, .h1 { font-size: var(--agr-h1-size); font-weight: 500; }
 
+// Centred page body for form and landing pages: content 1108px wide at most.
+// Data-heavy pages (lists, results, report, query builder) stay full width.
+.agr-page {
+  width: 100%; // Some page wrappers are flex rows, where auto would shrink to content.
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: var(--agr-space-5) var(--agr-space-4) var(--agr-space-6);
+  @media (max-width: 767px) { padding: var(--agr-space-4) var(--agr-space-3); }
+}
+
+// Title strip above a full-width band (templates filter bar).
+.agr-page.agr-page-head { padding-bottom: 0; }
+
 // Page title: one H1-sized heading per page.
 .agr-page-title {
   font-size: var(--agr-h1-size);

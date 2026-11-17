@@ -7,7 +7,7 @@
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.route :as route]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.components.navbar.nav :refer [logo-path]]
+            [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.utils :refer [compatible-version?]]
             [oops.core :refer [ocall]]
             [clojure.string :as str]))
@@ -149,8 +149,7 @@
                             (let [remaining (- (count homologues) entries-to-show)]
                               (str "Show " remaining " more organism" (when (> remaining 1) "s")))])))
 
-               [:img {:src (or (get-in mine [:images :logo]) ; Only available for registry mines.
-                               (str (:url mine) logo-path))}]]))])))))
+               [mine-icon mine]]))])))))
 
 (defn data-sources []
   (let [sources @(subscribe [::subs/report-sources])

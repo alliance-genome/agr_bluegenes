@@ -324,6 +324,7 @@
        [checkboxes to-search]])))
 
 (defn main []
-  [:div.container.regionsearch
+  [:div.agr-page.regionsearch
+   [:h2.agr-page-title "Region Search"]
    [input-section]
    [results-section]])

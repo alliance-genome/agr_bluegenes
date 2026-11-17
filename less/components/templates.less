@@ -95,16 +95,20 @@
         top: 0;
 
         .template-filter {
-            margin: @spacer/2;
+            margin: var(--agr-space-2) 0;
             flex-grow: 1;
 
+            // Same left edge as the template cards below.
             &-container {
                 display: flex;
-                justify-content: center;
+                flex-wrap: wrap; // Category filter drops below the text filter on phones.
+                gap: 0 var(--agr-space-5);
+                padding-top: 0;
+                padding-bottom: 0;
             }
 
             &.text-filter {
-                padding-left: @spacer/2;
+                flex-grow: 0;
 
                 .filter-input {
                     display: flex;
@@ -127,6 +131,7 @@
 
             .form-control {
                 width: 350px;
+                max-width: 100%;
             }
         }
     }
@@ -178,8 +183,11 @@
         display: flex;
         flex-direction: column;
 
+        // Cards line up with the page title and the filter bar.
         .grid-1 {
             flex-grow: 1;
+            margin-left: 0;
+            margin-right: 0;
         }
     }
 
@@ -342,7 +350,7 @@
 
     .template {
         background-color: white;
-        margin: 5px 20px;
+        margin: 5px 0;
         padding: @spacer @spacer 0;
         border: 1px solid #ecebeb;
         border-bottom: solid 3px #ecebeb;
