@@ -130,7 +130,9 @@
   ; Javascript:
     ;; This favicon is dynamically served; see routes.clj.
     [:link {:href (use-deployment-path "/favicon.ico") :type "image/x-icon" :rel "shortcut icon"}]
-    ;; [:script {:src "https://cdn.intermine.org/js/intermine/imjs/latest/im.min.js"}]
+    ;; imjs global used by many BlueGenes tools (e.g. the Cytoscape network).
+    ;; cdn.intermine.org no longer responds, so it is loaded from jsdelivr.
+    [:script {:src "https://cdn.jsdelivr.net/npm/imjs@3.18.1/dist/im.min.js"}]
     [:script {:crossorigin "anonymous"
               :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
               :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
