@@ -306,14 +306,21 @@
             }
         }
 
+        // Same height as the mine grid, contents centred.
         .mine-preview {
-            padding: var(--agr-space-4);
+            align-self: stretch;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--agr-space-3) var(--agr-space-4);
             background: var(--agr-bg-light);
             border: 1px solid var(--agr-border);
             border-radius: var(--agr-radius);
 
             h4 {
-                margin: var(--agr-space-2) 0;
+                margin: var(--agr-space-1) 0 var(--agr-space-2);
                 color: var(--agr-primary-dark);
                 font-weight: 700;
             }
@@ -324,13 +331,15 @@
             }
 
             .preview-image .img-responsive {
-                max-width: 64px;
-                max-height: 64px;
+                width: 48px;
+                height: 48px;
+                object-fit: contain;
             }
 
             .mine-preview-action {
                 display: block;
                 width: 100%;
+                font-weight: 700;
             }
         }
     }
