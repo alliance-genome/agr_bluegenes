@@ -226,7 +226,7 @@
     .report-species { font-style: italic; margin-top: var(--agr-space-1); }
     .report-primary-id { color: var(--agr-muted); }
 
-    .report-header-actions { padding-top: var(--agr-space-4); }
+    .report-header-actions { padding-top: 0; }
 }
 
 .report-page .report-nav { position: relative; }
@@ -302,8 +302,9 @@
 // ---- Sidebar cards ---------------------------------------------------
 .report-page .sidebar {
 
+    // All three report columns start at the top of the row.
     &-container {
-        margin-top: @spacer*2;
+        margin-top: 0;
 
         // Stick to top when scrolling past it.
         position: sticky;
@@ -314,7 +315,7 @@
     }
 
     &-collapsed {
-        margin-top: @spacer*2;
+        margin-top: 0;
     }
 
     .sidebar-entry {

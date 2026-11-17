@@ -483,3 +483,21 @@
                    {:path "Gene.goAnnotation.ontologyTerm.parents", :type "GOTerm"}],
                   :sortOrder [{:path "Gene.secondaryIdentifier", :direction "ASC"}],
                   :joins []}))
+
+(defn height-publisher
+  "Returns a ref callback that sets the CSS variable `css-var` on <html> to the
+  element's height in px, and keeps it current while the element resizes."
+  [css-var]
+  (let [publish! (fn [el]
+                   (.setProperty (.-style js/document.documentElement)
+                                 css-var
+                                 (str (.-offsetHeight el) "px")))
+        observer (when (exists? js/ResizeObserver)
+                   (js/ResizeObserver.
+                    (fn [entries]
+                      (doseq [entry entries]
+                        (publish! (.-target entry))))))]
+    (fn [el]
+      (when el
+        (publish! el)
+        (some-> observer (.observe el))))))

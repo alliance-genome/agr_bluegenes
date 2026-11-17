@@ -1,9 +1,5 @@
 // Mine home page, Alliance style. Spacing uses --agr-space-* (4 to 32px).
 .home {
-    max-width: 1140px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 0 var(--agr-space-4);
     font-size: var(--agr-font-size);
 
     h1, h2, h3, h4 {
@@ -41,6 +37,7 @@
         .mine-wordmark {
             display: block;
             width: ~"min(432px, 100%)";
+            margin: 0 auto;
             height: auto;
         }
 
@@ -355,12 +352,19 @@
         color: var(--agr-muted);
         font-size: 13px;
 
+        // Fixed-height logo slot so every entry's text starts on the same line.
+        > a {
+            display: flex;
+            align-items: center;
+            height: 56px;
+            margin-bottom: var(--agr-space-2);
+        }
+
         a img,
         a svg {
             display: block;
-            max-width: 200px;
+            max-width: 240px;
             max-height: 56px;
-            margin-bottom: var(--agr-space-2);
         }
     }
 
@@ -382,8 +386,6 @@
 
 @media (max-width: 767px) {
     .home {
-        padding: 0 var(--agr-space-3);
-
         .mine-intro {
             padding: var(--agr-space-5) var(--agr-space-3);
 

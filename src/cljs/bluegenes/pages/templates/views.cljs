@@ -315,7 +315,7 @@
 
 (defn filters []
   [:div.template-filters
-   [:div.template-filter-container.container
+   [:div.template-filter-container.agr-page
     [:div.template-filter.text-filter
      [:label.control-label
       {:for "template-text-filter"}
@@ -331,10 +331,11 @@
   (let [im-templates (subscribe [:templates-by-category])]
     (fn []
       [:div.template-component-container
+       [:div.agr-page.agr-page-head
+        [:h2.agr-page-title "Templates"]]
        [filters]
-       [:div.container.template-container
-        [:div.row
-         [:div.col-xs-12.templates
-          [:div.template-list
-           [templates @im-templates]]]]]
+       [:div.agr-page.template-container
+        [:div.templates
+         [:div.template-list
+          [templates @im-templates]]]]
        [top-scroll/main]])))

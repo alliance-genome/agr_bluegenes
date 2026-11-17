@@ -261,7 +261,7 @@
              [credits-entry entry]))]))
 
 (defn main []
-  [:div.container.home
+  [:div.agr-page.home
    [mine-intro]
    (when-not @(subscribe [:home/customisation :hideTemplateQueries]) [template-queries])
    (when-not @(subscribe [:home/customisation :hideCTA]) [call-to-action])

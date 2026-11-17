@@ -60,6 +60,7 @@ nav.main-nav {
             align-items: center;
             gap: var(--agr-space-2);
             padding: var(--agr-space-1) var(--agr-space-2);
+            margin-left: ~"calc(-1 * var(--agr-space-2))"; // Logo on the 24px gutter.
             border-radius: var(--agr-radius);
             color: var(--agr-text);
             font-size: var(--agr-h4-size);
@@ -223,7 +224,8 @@ nav.main-nav {
             flex-wrap: wrap;
             align-items: stretch;
             min-height: @nav-menu-height;
-            padding: 0 var(--agr-space-4);
+            // Link text starts 24px in, the same gutter as the top band and footer.
+            padding: 0 var(--agr-space-3);
         }
 
         li {
