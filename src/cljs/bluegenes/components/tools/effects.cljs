@@ -33,11 +33,30 @@
   [target data mine]
   (navigate target data mine))
 
+(defn save-list!
+  "The `context.saveList` function given to tools. Returns a Promise that
+  resolves with the saved list name, see docs/tool-api.md."
+  [args]
+  (js/Promise.
+   (fn [resolve reject]
+     (dispatch [::events/save-list (js->clj args :keywordize-keys true) resolve reject]))))
+
+(defn context->js
+  "Converts the context map to the JS object tools receive and adds `saveList`."
+  [context]
+  (doto (clj->js context)
+    (oset! "saveList" save-list!)))
+
+(reg-fx
+ :settle-promise
+ (fn [{:keys [f value]}]
+   (f value)))
+
 (defn run-script!
   "Executes a tool-api compliant main method to initialise a tool"
-  [tool tool-id & {:keys [service entity tries]}]
+  [tool tool-id & {:keys [service entity context tries]}]
   ;;the default method signature is
-  ;;package-name(el, service, package, state, config, navigate)
+  ;;package-name(el, service, package, state, config, navigate, context)
   (let [el (.getElementById js/document tool-id)
         ;; We are passing the model as well here in `service`, which is quite
         ;; large, but could probably be useful?
@@ -45,19 +64,21 @@
         package (clj->js entity)
         state (clj->js {})
         config (clj->js (:config tool))
+        context (context->js context)
         main (str (get-in tool [:names :cljs]) ".main")]
     ;; It may occur that the element isn't mounted in the DOM when this runs.
     ;; In this case, try again later!
     (when (and (nil? el) (< (or tries 0) 5))
       (.setTimeout js/window
                    #(run-script! tool tool-id :service service :entity entity
+                                 :context context
                                  :tries ((fnil inc 0) tries))
                    1000))
     (when el
       ;; If we don't wrap in a try-catch, errors thrown from tools can cause
       ;; Bluegenes to halt execution.
       (try
-        (ocall+ js/window main el service package state config navigate!)
+        (ocall+ js/window main el service package state config navigate! context)
         (catch js/Error e
           (.error js/console e))))))
 
@@ -65,12 +86,12 @@
   ;; inspired by https://stackoverflow.com/a/31374433/1542891
   "Dynamically inserts the tool api script into the head of the document.
   If the script element is already present, re-run the tool's main function."
-  [tool tool-id & {:keys [service entity]}]
+  [tool tool-id & {:keys [service entity context]}]
   (let [script-id (str "script-" (get-in tool [:names :cljs]))
         script-elem (.getElementById js/document script-id)]
     ;; Script has been loaded before; re-run the main function.
     (when script-elem
-      (run-script! tool tool-id :service service :entity entity))
+      (run-script! tool tool-id :service service :entity entity :context context))
     ;; Do not add the script tag if it's already there.
     (when-not script-elem
       (let [script-tag (.createElement js/document "script")
@@ -88,7 +109,8 @@
           ;;run-script will automatically be triggered when the script loads
           (oset! script-tag "onload" #(run-script! tool tool-id
                                                    :service service
-                                                   :entity entity))
+                                                   :entity entity
+                                                   :context context))
           ;;remove the tag on a failed load, so the next call fetches it again
           (oset! script-tag "onerror" (fn []
                                         (.error js/console "Tool API: Failed to load script for" (get-in tool [:names :npm]))
@@ -125,9 +147,9 @@
 ;; In the latter case, it will merely call the tool's main function.
 (reg-fx
  :load-tool
- (fn [{:keys [tool tool-id service]}]
+ (fn [{:keys [tool tool-id service context]}]
    ;; `entity` is nil if tool is not suitable to be displayed.
    ;; Although this shouldn't be called if that's the case.
    (when-let [entity (:entity tool)]
-     (fetch-script! tool tool-id :service service :entity entity)
+     (fetch-script! tool tool-id :service service :entity entity :context context)
      (fetch-styles! tool tool-id))))

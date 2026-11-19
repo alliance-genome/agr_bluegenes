@@ -1,7 +1,10 @@
 (ns bluegenes.components.tools.events
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.effects :as fx]
-            [bluegenes.crud.tools :as crud]))
+            [bluegenes.crud.tools :as crud]
+            [bluegenes.components.tools.utils :as utils]
+            [imcljs.fetch :as fetch]
+            [imcljs.save :as save]))
 
 (reg-event-fx
  ::fetch-tools
@@ -82,7 +85,8 @@
          service  (get mine :service)]
      {:load-tool {:tool tool-details
                   :tool-id tool-id
-                  :service service}})))
+                  :service service
+                  :context (utils/build-context db)}})))
 
 (reg-event-db
  ::collapse-tool
@@ -93,3 +97,64 @@
  ::expand-tool
  (fn [db [_ tool-name-cljs]]
    (update-in db [:tools :collapsed] (fnil disj #{}) tool-name-cljs)))
+
+(reg-event-db
+ ::collapse-group
+ (fn [db [_ group]]
+   (update-in db [:tools :collapsed-groups] (fnil conj #{}) group)))
+
+(reg-event-db
+ ::expand-group
+ (fn [db [_ group]]
+   (update-in db [:tools :collapsed-groups] (fnil disj #{}) group)))
+
+;;; context.saveList ;;;
+
+(defn- settle
+  "Effect that calls the resolve or reject function of a tool's saveList promise."
+  [f value]
+  {:settle-promise {:f f :value value}})
+
+(defn- failure-error [res]
+  (js/Error. (or (get-in res [:body :error]) "Failed to save list")))
+
+(reg-event-fx
+ ::save-list
+ (fn [{db :db} [_ args resolve reject]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         problem (if (:token service)
+                   (utils/validate-save-args args)
+                   utils/login-required-message)]
+     (if problem
+       (settle reject (js/Error. problem))
+       {:im-chan {:chan (fetch/lists service)
+                  :on-success [::save-list-lists service args resolve reject]
+                  :on-failure [::save-list-failure reject]
+                  :on-unauthorised [::save-list-unauthorised reject]}}))))
+
+(reg-event-fx
+ ::save-list-lists
+ (fn [_ [_ service {list-name :name :keys [class ids tags]} resolve reject lists]]
+   {:im-chan {:chan (save/im-list-from-query service
+                                             (utils/unique-list-name lists list-name)
+                                             (utils/ids-query class ids)
+                                             (utils/save-options tags))
+              :on-success [::save-list-success resolve]
+              :on-failure [::save-list-failure reject]
+              :on-unauthorised [::save-list-unauthorised reject]}}))
+
+(reg-event-fx
+ ::save-list-success
+ (fn [_ [_ resolve {:keys [listName]}]]
+   (assoc (settle resolve listName)
+          :dispatch [:assets/fetch-lists])))
+
+(reg-event-fx
+ ::save-list-failure
+ (fn [_ [_ reject res]]
+   (settle reject (failure-error res))))
+
+(reg-event-fx
+ ::save-list-unauthorised
+ (fn [_ [_ reject _res]]
+   (settle reject (js/Error. utils/login-required-message))))
