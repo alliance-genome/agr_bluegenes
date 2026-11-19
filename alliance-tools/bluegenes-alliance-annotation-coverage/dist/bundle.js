@@ -239,7 +239,7 @@
 		return track;
 	}
 
-	function renderCoverage(rows, types) {
+	function renderCoverage(rows, types, partial) {
 		var wrap = node('div', null, 'agr-table-wrap');
 		var table = node('table', null, 'agr-table agr-table-sm alliance-annotation-coverage-bars');
 		var headRow = node('tr');
@@ -258,6 +258,11 @@
 			tr.appendChild(node('td', o.genes));
 			types.forEach(function (t) {
 				var td = node('td');
+				if (partial[t.key]) {
+					td.appendChild(node('small', 'incomplete', 'agr-note'));
+					tr.appendChild(td);
+					return;
+				}
 				var text = o.covered[t.key] + ' of ' + o.genes + ' (' + percent(o.share[t.key]) + ')';
 				td.appendChild(bar(o.share[t.key], t.label + ': ' + text));
 				td.appendChild(node('small', text, 'agr-note'));
@@ -321,7 +326,7 @@
 	}
 
 	// Offers a list of the genes lacking the chosen type when the host passes saveList.
-	function saveControls(genes, types, context) {
+	function saveControls(genes, types, context, partial) {
 		if (!context || typeof context.saveList !== 'function') return null;
 		var controls = node('div', null, 'agr-filter-bar alliance-annotation-coverage-save');
 		var select = node('select', null, 'form-control');
@@ -340,8 +345,11 @@
 		}
 		function refresh() {
 			var n = withoutType(genes, chosen().key).length;
-			button.textContent = 'Save ' + n + ' genes without ' + chosen().label + ' as list';
-			button.disabled = n === 0;
+			var incomplete = partial[chosen().key];
+			button.textContent = incomplete
+				? 'Cannot save: ' + chosen().label + ' counts are incomplete'
+				: 'Save ' + n + ' genes without ' + chosen().label + ' as list';
+			button.disabled = incomplete || n === 0;
 		}
 		select.addEventListener('change', function () {
 			status.textContent = '';
@@ -349,6 +357,7 @@
 		});
 		button.addEventListener('click', function () {
 			var type = chosen();
+			if (partial[type.key]) return;
 			var ids = withoutType(genes, type.key).map(function (g) { return g.id; });
 			button.disabled = true;
 			status.textContent = 'Saving...';
@@ -373,21 +382,25 @@
 		el.appendChild(wrap);
 		var genes = data.genes;
 		var types = data.types;
+		var partial = data.partial || {};
 		if (!genes.length || !types.length) {
 			wrap.appendChild(node('p', 'No annotation coverage to show for these genes', 'agr-empty'));
 			if (data.note) wrap.appendChild(node('p', data.note, 'agr-note'));
 			return;
 		}
 		wrap.appendChild(node('p', genes.length + ' genes. Bars show the share of genes with at least one annotation of each type.', 'agr-note'));
-		wrap.appendChild(renderCoverage(coverage(genes, types), types));
+		wrap.appendChild(renderCoverage(coverage(genes, types), types, partial));
 		var tools = node('div', null, 'agr-filter-bar');
 		tools.appendChild(csvButton(genes, types));
 		wrap.appendChild(tools);
-		var save = saveControls(genes, types, context);
+		var save = saveControls(genes, types, context, partial);
 		if (save) wrap.appendChild(save);
 		wrap.appendChild(renderGeneTable(genes, types, navigate));
 		if (data.note) wrap.appendChild(node('p', data.note, 'agr-note'));
-		if (data.truncated) wrap.appendChild(node('p', 'Partial result: a query stopped after ' + PAGE_SIZE * MAX_PAGES + ' rows, so counts are incomplete.', 'agr-note'));
+		var cut = types.filter(function (t) { return partial[t.key]; });
+		if (cut.length) {
+			wrap.appendChild(node('p', 'Incomplete: a single gene exceeds ' + PAGE_SIZE * MAX_PAGES + ' rows for ' + cut.map(function (t) { return t.label; }).join(', ') + ', so those counts are not shown and cannot be saved.', 'agr-note'));
+		}
 	}
 
 	function fetchPage(root, query, start) {
@@ -432,13 +445,29 @@
 			.then(function () { return out; });
 	}
 
+	function mergeParts(parts) {
+		var rows = [];
+		parts.forEach(function (p) { rows = rows.concat(p.rows); });
+		return { rows: rows, full: parts.some(function (p) { return p.full; }) };
+	}
+	
+	// A full result may be cut off, so the id set is halved and re-queried; only a single gene stays full.
+	function fetchChunk(root, type, ids) {
+		return fetchRows(root, countQuery(type, ids)).then(function (part) {
+			if (!part.full || ids.length < 2) return part;
+			var mid = Math.ceil(ids.length / 2);
+			return sequence([ids.slice(0, mid), ids.slice(mid)], function (half) {
+				return fetchChunk(root, type, half);
+			}).then(mergeParts);
+		});
+	}
+	
 	function fetchCounts(root, type, ids) {
 		return sequence(chunks(ids, CHUNK), function (part) {
-			return fetchRows(root, countQuery(type, part));
+			return fetchChunk(root, type, part);
 		}).then(function (parts) {
-			var rows = [];
-			parts.forEach(function (p) { rows = rows.concat(p.rows); });
-			return { counts: countRows(rows), full: parts.some(function (p) { return p.full; }) };
+			var all = mergeParts(parts);
+			return { counts: countRows(all.rows), full: all.full };
 		});
 	}
 
@@ -460,12 +489,16 @@
 			Promise.all(types.map(function (t) { return fetchCounts(root, t, ids); }))
 		]).then(function (res) {
 			var countsByType = {};
-			types.forEach(function (t, i) { countsByType[t.key] = res[1][i].counts; });
+			var partial = {};
+			types.forEach(function (t, i) {
+				countsByType[t.key] = res[1][i].counts;
+				partial[t.key] = res[1][i].full;
+			});
 			return {
 				genes: buildGenes(res[0], types, countsByType),
 				types: types,
 				note: missingNote(types),
-				truncated: res[1].some(function (c) { return c.full; })
+				partial: partial
 			};
 		});
 	}
