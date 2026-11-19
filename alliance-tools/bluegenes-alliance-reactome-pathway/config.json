@@ -1,0 +1,12 @@
+{
+  "accepts": ["id"],
+  "classes": ["Pathway"],
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Reactome pathway diagram",
+    "cljs": "bluegenesAllianceReactomePathway"
+  },
+  "version": 2
+}

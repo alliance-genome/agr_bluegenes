@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-reactome-pathway",
+  "version": "0.1.0",
+  "description": "Reactome pathway diagram with the pathway's genes highlighted, for Pathway report pages.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
