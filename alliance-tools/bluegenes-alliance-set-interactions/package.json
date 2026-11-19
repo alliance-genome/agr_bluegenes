@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-set-interactions",
+  "version": "0.1.0",
+  "description": "Interaction network among the genes of a list or results set: edge table, degree ranking, SIF and TSV export, hub list saving.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
