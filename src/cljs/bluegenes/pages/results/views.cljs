@@ -8,6 +8,7 @@
             [bluegenes.pages.results.orthologs-compare :as orthologs-compare]
             [bluegenes.pages.results.send-to-mine :as send-to-mine]
             [bluegenes.pages.results.bundle :as bundle]
+            [bluegenes.pages.results.track-export :as track-export]
             [bluegenes.pages.results.cite :as cite]
             [bluegenes.pages.results.enrichment.views :as enrichment]
             [bluegenes.pages.results.widgets.views :as widgets]
@@ -203,7 +204,8 @@
      [orthologs/convert-button (:name list)]
      [orthologs-compare/compare-button (:name list)]
      [send-to-mine/send-button (:name list)]
-     [bundle/download-button list]]))
+     [bundle/download-button list]
+     [track-export/track-button]]))
 
 (defn main
   "Result page for a list or query."
@@ -222,8 +224,9 @@
              [back-button]
              [query-history]
              [cite/cite-button]
-             (when (= @intent :list)
-               [list-actions])]
+             (if (= @intent :list)
+               [list-actions]
+               [track-export/track-button])]
             [cite/cite-panel]
             ;; Query details is only interesting if it's a saved list.
             (when (= @intent :list)

@@ -78,7 +78,9 @@
   (or (when (map? body) (not-empty (:error body)))
       (str "The download failed (status " status ").")))
 
-(defn- save-blob! [blob filename]
+(defn save-blob!
+  "Hands `blob` to the browser as a file download named `filename`."
+  [blob filename]
   (let [url (ocall js/URL "createObjectURL" blob)
         a (ocall js/document "createElement" "a")]
     (set! (.-href a) url)
