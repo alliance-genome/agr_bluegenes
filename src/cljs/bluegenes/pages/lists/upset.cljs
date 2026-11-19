@@ -152,26 +152,36 @@
                                      :loading? true
                                      :type type
                                      :lists (mapv #(select-keys % [:name :title]) lists)})
-        :im-chan {:chans (map #(fetch/rows (service db) (ids-query type (:name %))
-                                           {:format "json" :size max-ids})
-                              lists)
-                  :on-success [::loaded]
-                  :on-failure [::failure]}}))))
+        :dispatch-n (mapv (fn [{:keys [name]}] [::fetch-list type name]) lists)}))))
+
+(reg-event-fx
+ ::fetch-list
+ (fn [{db :db} [_ type list-name]]
+   {:im-chan {:chan (fetch/rows (service db) (ids-query type list-name)
+                                {:format "json" :size max-ids})
+              :on-success [::loaded list-name]
+              :on-failure [::failure]}}))
 
 (defn- parse-ids [rows]
   (mapv first rows))
 
+(defn assign-ids
+  "Sets the ids of the list named list-name from a fetch response and
+  clears :loading? once every list has ids."
+  [state list-name response]
+  (let [state (update state :lists
+                      (fn [lists]
+                        (mapv #(cond-> %
+                                 (= list-name (:name %))
+                                 (assoc :ids (parse-ids (:results response))))
+                              lists)))]
+    (assoc state :loading? (not-every? :ids (:lists state)))))
+
 (reg-event-db
  ::loaded
- (fn [db [_ responses]]
+ (fn [db [_ list-name response]]
    (if (get-in db (conj state-path :open?))
-     (update-in db state-path
-                (fn [state]
-                  (-> state
-                      (assoc :loading? false)
-                      (update :lists
-                              (fn [lists]
-                                (mapv #(assoc %1 :ids (parse-ids (:results %2))) lists responses))))))
+     (update-in db state-path assign-ids list-name response)
      db)))
 
 (reg-event-fx

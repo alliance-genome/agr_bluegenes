@@ -99,3 +99,12 @@
     (testing "every drawn element stays inside the canvas"
       (is (every? #(<= (+ (:x %) (:w %)) width) bars))
       (is (every? #(<= (:cy %) height) rows)))))
+
+(deftest assign-ids-by-list-name
+  (let [state {:loading? true :lists [{:name "a"} {:name "b"}]}
+        after-b (upset/assign-ids state "b" {:results [[7] [8]]})
+        after-a (upset/assign-ids after-b "a" {:results [[1]]})]
+    (is (= [{:name "a"} {:name "b" :ids [7 8]}] (:lists after-b)))
+    (is (true? (:loading? after-b)))
+    (is (= [{:name "a" :ids [1]} {:name "b" :ids [7 8]}] (:lists after-a)))
+    (is (false? (:loading? after-a)))))
