@@ -7,7 +7,7 @@
 (function (root) {
 	'use strict';
 
-	var VIEWER_URL = 'https://www.reactome.org/DiagramJs/diagram/diagram.js';
+	var VIEWER_URL = 'https://reactome.org/DiagramJs/diagram/diagram.nocache.js';
 	var IMAGE_URL = 'https://reactome.org/ContentService/exporter/diagram/';
 	var BROWSER_URL = 'https://reactome.org/PathwayBrowser/#/';
 	var REACTOME_ID = /^R-(HSA|MMU|RNO|DRE|DME|CEL|SCE)-\d+$/;

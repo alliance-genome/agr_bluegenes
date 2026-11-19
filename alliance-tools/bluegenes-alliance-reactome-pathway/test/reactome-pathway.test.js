@@ -77,7 +77,7 @@ test('main falls back to the static image when the viewer script fails', async (
 	await tick();
 	const scripts = head.find('script');
 	assert.strictEqual(scripts.length, 1);
-	assert.ok(scripts[0].src.includes('reactome.org/DiagramJs/diagram/diagram.js'));
+	assert.ok(scripts[0].src.includes('reactome.org/DiagramJs/diagram/diagram.nocache.js'));
 	scripts[0].onerror();
 	const imgs = el.find('img');
 	assert.strictEqual(imgs.length, 1);
