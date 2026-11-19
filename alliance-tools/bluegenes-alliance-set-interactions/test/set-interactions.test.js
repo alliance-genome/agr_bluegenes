@@ -88,6 +88,14 @@ test('buildSetQuery constrains both ends to the set and escapes values', () => {
 	assert.strictEqual((q.match(/<value>3<\/value>/g) || []).length, 2);
 });
 
+test('buildSetQuery uses OUTER joins so edges without method or publication are kept', () => {
+	const q = tool.buildSetQuery([1]);
+	['Gene.interactions.detectionMethod', 'Gene.interactions.details',
+		'Gene.interactions.details.experiment', 'Gene.interactions.details.experiment.publication']
+		.forEach((p) => assert.ok(q.indexOf('<join path="' + p + '" style="OUTER"/>') > -1, p));
+	assert.ok(q.indexOf('<join') < q.indexOf('<constraint'));
+});
+
 test('hubIds returns the top-degree gene ids', () => {
 	const ids = tool.hubIds(tool.degreeRanking(tool.buildEdges(ROWS)), 2);
 	assert.deepStrictEqual(ids, [1, 3]);

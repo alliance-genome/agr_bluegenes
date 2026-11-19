@@ -45,8 +45,16 @@
 			'</constraint>';
 	}
 
+	var OUTER_JOINS = [
+		'Gene.interactions.detectionMethod',
+		'Gene.interactions.details',
+		'Gene.interactions.details.experiment',
+		'Gene.interactions.details.experiment.publication'
+	].map(function (path) { return '<join path="' + path + '" style="OUTER"/>'; }).join('');
+
 	function buildSetQuery(ids) {
 		return '<query model="genomic" view="' + VIEW.join(' ') + '">' +
+			OUTER_JOINS +
 			oneOf('Gene.id', ids) +
 			oneOf('Gene.interactions.participant2.id', ids) +
 			'</query>';
