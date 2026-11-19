@@ -21,8 +21,8 @@ function stub(heavy, queries, perGene) {
 			return { ok: true, json: async () => ({ results: ids.map((i) => [i, 'G' + i, 's' + i, 'Fly']) }) };
 		}
 		if (!q.includes(GO)) return { ok: true, json: async () => ({ results: [] }) };
-		queries.push(ids);
 		const start = Number(init.body.match(/start=(\d+)/)[1]);
+		if (start === 0) queries.push(ids);
 		const rows = [];
 		ids.forEach((id) => {
 			const n = id <= heavy ? (perGene || 200000) : 1;
