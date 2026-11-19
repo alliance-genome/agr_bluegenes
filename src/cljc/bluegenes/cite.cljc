@@ -309,7 +309,7 @@
 ;;; Code snippets ;;;
 
 (defn service-base
-  "Mine URL without a trailing slash or /service suffix, the form InterMineR takes."
+  "Mine URL without a trailing slash or /service suffix, the form the snippets build service paths from."
   [url]
   (-> (str url) (str/replace #"/+$" "") (str/replace #"/service$" "")))
 
@@ -346,14 +346,17 @@
        "    print(row)\n"))
 
 (defn r-snippet
-  "R using InterMineR: initInterMine, then runQuery with the query XML."
+  "R using httr: sends the query XML to the mine's query/results service as CSV."
   [{:keys [url xml] :as mine}]
   (str (comment-block "#" (stamp-lines mine)) "\n"
-       "# install.packages(\"BiocManager\"); BiocManager::install(\"InterMineR\")\n"
-       "library(InterMineR)\n\n"
-       "im <- initInterMine(mine = \"" (service-base url) "\")\n"
+       "# install.packages(\"httr\")\n"
+       "library(httr)\n\n"
+       "mine <- \"" (service-base url) "\"\n"
        "query <- r\"---(" xml ")---\"\n"
-       "result <- runQuery(im, query)\n"
+       "response <- GET(paste0(mine, \"/service/query/results\"),\n"
+       "                query = list(query = query, format = \"csv\"))\n"
+       "stop_for_status(response)\n"
+       "result <- read.csv(text = content(response, \"text\", encoding = \"UTF-8\"))\n"
        "head(result)\n"))
 
 (defn xml-snippet

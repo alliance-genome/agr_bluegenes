@@ -243,9 +243,12 @@
 (deftest r-snippet-content
   (let [r (cite/r-snippet (assoc code-mine :xml sample-xml))]
     (is (str/includes? r "# Alliance of Genome Resources data release 9.2.0 (2026-10-28)"))
-    (is (str/includes? r "im <- initInterMine(mine = \"http://localhost:9999/alliancetestmine\")"))
+    (is (str/includes? r "library(httr)"))
+    (is (str/includes? r "mine <- \"http://localhost:9999/alliancetestmine\""))
     (is (str/includes? r (str "query <- r\"---(" sample-xml ")---\"")))
-    (is (str/includes? r "runQuery(im, query)"))))
+    (is (str/includes? r "/service/query/results"))
+    (is (str/includes? r "format = \"csv\""))
+    (is (not (str/includes? r "runQuery")))))
 
 (deftest xml-snippet-is-unchanged
   (is (= sample-xml (cite/xml-snippet {:xml sample-xml}))))

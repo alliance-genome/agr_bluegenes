@@ -251,7 +251,7 @@
     [:div
      [text-block {:id :python :label "Python (intermine)" :text python :copied copied
                   :filename "query.py" :filetype "x-python"}]
-     [text-block {:id :r :label "R (InterMineR)" :text r :copied copied
+     [text-block {:id :r :label "R (httr)" :text r :copied copied
                   :filename "query.R" :filetype "x-r"}]
      [text-block {:id :xml :label "PathQuery XML" :text xml :copied copied
                   :filename "query.xml" :filetype "xml"}]]
