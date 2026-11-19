@@ -1,0 +1,29 @@
+{
+  "accepts": ["id", "ids"],
+  "classes": ["Gene"],
+  "threshold": 1000,
+  "depends": [
+    "Gene.id",
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.organism.shortName",
+    "Gene.goAnnotation.id",
+    "Gene.diseaseAnnotation.id",
+    "Gene.phenotypeAnnotations.id",
+    "Gene.publications.id",
+    "Gene.alleles.id"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Annotation coverage",
+    "cljs": "bluegenesAllianceAnnotationCoverage"
+  },
+  "version": 2
+}
