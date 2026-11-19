@@ -1,0 +1,28 @@
+{
+  "accepts": ["id", "ids"],
+  "classes": ["Gene"],
+  "threshold": 20,
+  "depends": [
+    "Gene.id",
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.expressionAnnotations.id",
+    "Gene.expressionAnnotations.anatomy.name",
+    "Gene.expressionAnnotations.anatomy.identifier",
+    "Gene.expressionAnnotations.stageTerm"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js",
+    "css": "dist/style.css"
+  },
+  "toolName": {
+    "human": "Expression heatmap",
+    "cljs": "bluegenesAllianceExpressionHeatmap"
+  },
+  "version": 2
+}
