@@ -305,3 +305,58 @@
                            (map ris-paper intermine-papers)
                            (when (alliance-release-text alliance)
                              [(ris-paper alliance-paper)]))))
+
+;;; Code snippets ;;;
+
+(defn service-base
+  "Mine URL without a trailing slash or /service suffix, the form InterMineR takes."
+  [url]
+  (-> (str url) (str/replace #"/+$" "") (str/replace #"/service$" "")))
+
+(defn stamp-lines
+  "Lines naming the mine, its release and InterMine version, the Alliance
+  release and the access date. Missing parts are left out."
+  [{:keys [mine-name url release intermine-version date alliance]}]
+  (let [versions (remove str/blank? [(when-not (str/blank? release) (str "release " release))
+                                     (when-not (str/blank? intermine-version)
+                                       (str "InterMine " intermine-version))])]
+    (vec (remove nil?
+                 [(str mine-name " (" (service-base url) ")"
+                       (when (seq versions) (str ", " (str/join ", " versions))))
+                  (alliance-release-text alliance)
+                  (when-not (str/blank? date) (str "Accessed " date))]))))
+
+(defn- comment-block [prefix lines]
+  (str/join "\n" (map #(str prefix " " %) lines)))
+
+(defn- python-literal [xml]
+  (-> xml
+      (str/replace "\\" "\\\\")
+      (str/replace "\"\"\"" "\\\"\\\"\\\"")))
+
+(defn python-snippet
+  "Python using the intermine package: loads the query XML from the mine's service."
+  [{:keys [url xml] :as mine}]
+  (str (comment-block "#" (stamp-lines mine)) "\n"
+       "# pip install intermine\n"
+       "from intermine.webservice import Service\n\n"
+       "service = Service(\"" (service-base url) "/service\")\n"
+       "query = service.load_query(\"\"\"" (python-literal xml) "\"\"\")\n\n"
+       "for row in query.rows():\n"
+       "    print(row)\n"))
+
+(defn r-snippet
+  "R using InterMineR: initInterMine, then runQuery with the query XML."
+  [{:keys [url xml] :as mine}]
+  (str (comment-block "#" (stamp-lines mine)) "\n"
+       "# install.packages(\"BiocManager\"); BiocManager::install(\"InterMineR\")\n"
+       "library(InterMineR)\n\n"
+       "im <- initInterMine(mine = \"" (service-base url) "\")\n"
+       "query <- r\"---(" xml ")---\"\n"
+       "result <- runQuery(im, query)\n"
+       "head(result)\n"))
+
+(defn xml-snippet
+  "The raw PathQuery XML, unchanged, for import in the query builder or the web service."
+  [{:keys [xml]}]
+  (str xml))

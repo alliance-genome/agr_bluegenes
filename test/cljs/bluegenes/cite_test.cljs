@@ -209,3 +209,56 @@
         (is (str/includes? (:bibtex txt) (str "@misc{" nom "2026,")))))
     (is (= "WS294" (:release (page/mine-info db :wormmine))))
     (is (nil? (:release (page/mine-info db :flymine))) "no cached version, none named")))
+
+;;; Code snippets ;;;
+
+(def code-mine
+  (assoc mine :alliance {:version "9.2.0" :date "2026-10-28"}))
+
+(def sample-xml "<query model=\"genomic\" view=\"Gene.symbol\">\n</query>")
+
+(deftest service-base-strips-suffix
+  (is (= "https://x.org/alliancemine" (cite/service-base "https://x.org/alliancemine/service/")))
+  (is (= "https://x.org/alliancemine" (cite/service-base "https://x.org/alliancemine/"))))
+
+(deftest stamp-has-release-and-alliance
+  (is (= ["Test Mine (http://localhost:9999/alliancetestmine), release test, InterMine 5.1.0"
+          "Alliance of Genome Resources data release 9.2.0 (2026-10-28)"
+          "Accessed 2026-11-10"]
+         (cite/stamp-lines code-mine)))
+  (is (= ["Test Mine (http://localhost:9999/alliancetestmine)"]
+         (cite/stamp-lines {:mine-name "Test Mine" :url "http://localhost:9999/alliancetestmine/"}))))
+
+(deftest python-snippet-content
+  (let [py (cite/python-snippet (assoc code-mine :xml sample-xml))]
+    (is (str/includes? py "# Test Mine (http://localhost:9999/alliancetestmine), release test, InterMine 5.1.0"))
+    (is (str/includes? py "# Alliance of Genome Resources data release 9.2.0 (2026-10-28)"))
+    (is (str/includes? py "service = Service(\"http://localhost:9999/alliancetestmine/service\")"))
+    (is (str/includes? py (str "service.load_query(\"\"\"" sample-xml "\"\"\")")))))
+
+(deftest python-snippet-escapes-xml
+  (let [py (cite/python-snippet (assoc code-mine :xml "a\\b \"\"\" c"))]
+    (is (str/includes? py "a\\\\b \\\"\\\"\\\" c"))))
+
+(deftest r-snippet-content
+  (let [r (cite/r-snippet (assoc code-mine :xml sample-xml))]
+    (is (str/includes? r "# Alliance of Genome Resources data release 9.2.0 (2026-10-28)"))
+    (is (str/includes? r "im <- initInterMine(mine = \"http://localhost:9999/alliancetestmine\")"))
+    (is (str/includes? r (str "query <- r\"---(" sample-xml ")---\"")))
+    (is (str/includes? r "runQuery(im, query)"))))
+
+(deftest xml-snippet-is-unchanged
+  (is (= sample-xml (cite/xml-snippet {:xml sample-xml}))))
+
+(deftest code-snippets-need-xml
+  (is (nil? (page/code-snippets code-mine nil)))
+  (is (= #{:python :r :xml} (set (keys (page/code-snippets code-mine sample-xml)))))
+  (is (nil? (page/query-xml nil {:from "Gene"})))
+  (is (nil? (page/query-xml {:name "genomic"} nil))))
+
+(deftest query-xml-from-imcljs
+  (let [xml (page/query-xml {:name "genomic"}
+                            {:from "Gene" :select ["Gene.symbol"]
+                             :where [{:path "Gene.symbol" :op "=" :value "a"}]})]
+    (is (str/includes? xml "<query model=\"genomic\" view=\"Gene.symbol\">"))
+    (is (str/includes? xml "<constraint path=\"Gene.symbol\""))))
