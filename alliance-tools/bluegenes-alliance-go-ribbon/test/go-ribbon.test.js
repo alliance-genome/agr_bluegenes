@@ -420,3 +420,212 @@ test('apiBase from config is used for requests', async () => {
 test('main throws without arguments', () => {
 	assert.throws(() => tool.main(), /correct signature/);
 });
+
+// Gene sets: lists and results pages.
+const setRows = (n) => Array.from({ length: n }, (_, i) => [`HGNC:${1000 + i}`, `G${i}`, 'H. sapiens', '9606', 5000 + i]);
+
+// The ribbon API answers every requested subject with TP53's counts, except
+// odd-numbered genes, which get the MGI gene's counts.
+function setNet({ rows, log = [], ribbonStatus = 200 } = {}) {
+	return async (url, init) => {
+		log.push({ url: String(url), init });
+		if (String(url).startsWith(ROOT + '/service/query/results')) return json({ results: rows });
+		if (String(url).includes('/ontology/ribbon/')) {
+			if (ribbonStatus !== 200) return json({}, ribbonStatus);
+			const subjects = new URL(url).searchParams.getAll('subject').map((id) => {
+				const src = Number(id.split(':')[1]) % 2 ? RIBBON.subjects[1] : RIBBON.subjects[0];
+				return Object.assign({}, src, { id });
+			});
+			return json({ categories: RIBBON.categories, subjects });
+		}
+		throw new Error('unexpected ' + url);
+	};
+}
+
+const ctx = (extra) => Object.assign({ mine: 'alliancemine', list: null, query: null, intent: '', page: 'list' }, extra);
+const mineCalls = (log) => log.filter((l) => l.url.startsWith(ROOT + '/service/query/results'));
+const ribbonCalls = (log) => log.filter((l) => l.url.includes('/ontology/ribbon/'));
+const termButton = (el, label) => el.find('button').find((b) => b.getAttribute('aria-label') === label);
+
+test('buildSetQuery lists every id in one ONE OF constraint', () => {
+	const q = tool.buildSetQuery([1, 2, 3]);
+	assert.ok(q.includes('op="ONE OF"'));
+	assert.ok(q.includes('<value>1</value><value>2</value><value>3</value>'));
+	assert.ok(q.includes('Gene.id'));
+});
+
+test('toSetGenes keeps curie genes once and carries the internal id', () => {
+	const genes = tool.toSetGenes([...setRows(2), setRows(1)[0], ['12345', 'X', 'H. sapiens', '9606', 9]]);
+	assert.deepStrictEqual(genes.map((g) => [g.curie, g.id]), [['HGNC:1000', 5000], ['HGNC:1001', 5001]]);
+});
+
+test('toCsv quotes commas, quotes and line breaks', () => {
+	assert.strictEqual(tool.toCsv([['a', 'b,c', 'd"e']]), 'a,"b,c","d""e"\r\n');
+});
+
+test('a list of 120 genes is fetched in 3 sequential requests of at most 50 subjects', async () => {
+	const log = [];
+	globalThis.fetch = setNet({ rows: setRows(120), log });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(setRows(120).map((r) => r[4])), {}, {}, null, ctx());
+	await tick();
+	await tick();
+	assert.strictEqual(mineCalls(log).length, 1);
+	const calls = ribbonCalls(log);
+	assert.deepStrictEqual(calls.map((c) => new URL(c.url).searchParams.getAll('subject').length), [50, 50, 20]);
+	assert.ok(calls.every((c) => c.url.includes('subset=goslim_agr')));
+	assert.ok(el.textContent.includes('Download summary as CSV'));
+});
+
+test('slim term table counts genes per term', async () => {
+	globalThis.fetch = setNet({ rows: setRows(4) });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity([5000, 5001, 5002, 5003]), {}, {}, null, ctx());
+	await tick();
+	await tick();
+	const text = el.textContent;
+	assert.ok(text.includes('biological process'));
+	assert.ok(text.includes('molecular function'));
+	assert.ok(text.includes('cellular component'));
+	assert.ok(termButton(el, 'all molecular function, 4 genes'));
+	assert.ok(termButton(el, 'catalytic activity, 4 genes'));
+	assert.ok(termButton(el, 'signaling receptor binding, 2 genes'), 'only the two even genes carry it');
+});
+
+test('progress line shows chunk progress while the ribbon loads', async () => {
+	const seen = [];
+	const net = setNet({ rows: setRows(60) });
+	const el = fakeEl();
+	globalThis.fetch = async (url, init) => {
+		seen.push(el.textContent);
+		return net(url, init);
+	};
+	tool.main(el, { root: ROOT }, entity(setRows(60).map((r) => r[4])), {}, {}, null, ctx());
+	await tick();
+	await tick();
+	assert.ok(seen.some((t) => t.includes('Loading GO annotations: 50 of 60 genes')));
+});
+
+test('more than 300 genes are cut to the first 300 with a message', async () => {
+	const log = [];
+	globalThis.fetch = setNet({ rows: setRows(300), log });
+	const el = fakeEl();
+	const ids = Array.from({ length: 450 }, (_, i) => 5000 + i);
+	tool.main(el, { root: ROOT }, entity(ids), {}, {}, null, ctx());
+	await tick();
+	await tick();
+	const q = new URLSearchParams(mineCalls(log)[0].init.body).get('query');
+	assert.strictEqual(q.split('<value>').length - 1, 300);
+	assert.ok(el.textContent.includes('This list has 450 genes. The ribbon covers the first 300'));
+});
+
+test('clicking a term lists its genes with Alliance links', async () => {
+	globalThis.fetch = setNet({ rows: setRows(4) });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity([5000, 5001, 5002, 5003]), {}, {}, null, ctx());
+	await tick();
+	await tick();
+	termButton(el, 'signaling receptor binding, 2 genes').listeners.click();
+	const text = el.textContent;
+	assert.ok(text.includes('signaling receptor binding: 2 genes'));
+	const hrefs = el.find('a').map((a) => a.href);
+	assert.ok(hrefs.includes('https://www.alliancegenome.org/gene/HGNC%3A1000'));
+	assert.ok(hrefs.includes('https://www.alliancegenome.org/gene/HGNC%3A1002'));
+	assert.ok(!hrefs.includes('https://www.alliancegenome.org/gene/HGNC%3A1001'));
+});
+
+test('CSV buttons download the summary and the term genes', async () => {
+	globalThis.fetch = setNet({ rows: setRows(4) });
+	const blobs = [];
+	const clicks = [];
+	const realCreate = URL.createObjectURL;
+	URL.createObjectURL = (b) => { blobs.push(b); return 'blob:x'; };
+	URL.revokeObjectURL = () => {};
+	const Node = install();
+	document.body = new Node('body');
+	Node.prototype.click = function () { clicks.push(this.download); };
+	try {
+		const el = fakeEl();
+		tool.main(el, { root: ROOT }, entity([5000, 5001, 5002, 5003]), {}, {}, null, ctx());
+		await tick();
+		await tick();
+		el.find('button').find((b) => b.textContent === 'Download summary as CSV').listeners.click();
+		termButton(el, 'signaling receptor binding, 2 genes').listeners.click();
+		el.find('button').find((b) => b.textContent === 'Download genes as CSV').listeners.click();
+		assert.deepStrictEqual(clicks, ['go-ribbon-summary.csv', 'go-ribbon-GO-0005102.csv']);
+		const summary = await blobs[0].text();
+		assert.ok(summary.startsWith('Aspect,GO ID,Term,Genes,Gene symbols\r\n'));
+		assert.ok(summary.includes('molecular function,GO:0005102,signaling receptor binding,2,G0; G2'));
+		const genes = await blobs[1].text();
+		assert.ok(genes.includes('G0,HGNC:1000,H. sapiens,1'));
+	} finally {
+		URL.createObjectURL = realCreate;
+	}
+});
+
+test('the save button appears only when context.saveList exists and saves the term ids', async () => {
+	globalThis.fetch = setNet({ rows: setRows(4) });
+	const saved = [];
+	const run = async (context) => {
+		const el = fakeEl();
+		tool.main(el, { root: ROOT }, entity([5000, 5001, 5002, 5003]), {}, {}, null, context);
+		await tick();
+		await tick();
+		termButton(el, 'signaling receptor binding, 2 genes').listeners.click();
+		return el;
+	};
+	const without = await run(ctx());
+	assert.ok(!without.textContent.includes('Save genes in this term as a list'));
+	const withSave = await run(ctx({ saveList: async (req) => { saved.push(req); return 'My list'; } }));
+	const btn = withSave.find('button').find((b) => b.textContent === 'Save genes in this term as a list');
+	btn.listeners.click();
+	await tick();
+	assert.deepStrictEqual(saved[0].ids, [5000, 5002]);
+	assert.strictEqual(saved[0].class, 'Gene');
+	assert.ok(withSave.textContent.includes('Saved list My list (2 genes)'));
+});
+
+test('an anonymous user gets a login message when saving', async () => {
+	globalThis.fetch = setNet({ rows: setRows(2) });
+	const el = fakeEl();
+	const saveList = () => Promise.reject(new Error('login required'));
+	tool.main(el, { root: ROOT }, entity([5000, 5001]), {}, {}, null, ctx({ saveList }));
+	await tick();
+	await tick();
+	termButton(el, 'all molecular function, 2 genes').listeners.click();
+	el.find('button').find((b) => b.textContent === 'Save genes in this term as a list').listeners.click();
+	await tick();
+	assert.ok(el.textContent.includes('Log in to save a list'));
+});
+
+test('a set ribbon failure logs console.error and shows a short message', async () => {
+	globalThis.fetch = setNet({ rows: setRows(2), ribbonStatus: 500 });
+	const errors = [];
+	const realError = console.error;
+	console.error = (...a) => errors.push(a);
+	try {
+		const el = fakeEl();
+		tool.main(el, { root: ROOT }, entity([5000, 5001]), {}, {}, null, ctx());
+		await tick();
+		await tick();
+		assert.ok(el.textContent.includes('Could not load the GO ribbon from the API'));
+		assert.strictEqual(errors.length, 1);
+	} finally {
+		console.error = realError;
+	}
+});
+
+test('a results page with one id still runs the set view, a report page does not', async () => {
+	globalThis.fetch = setNet({ rows: setRows(1) });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity([5000]), {}, {}, null, ctx({ page: 'results' }));
+	await tick();
+	await tick();
+	assert.ok(el.textContent.includes('Download summary as CSV'));
+	const report = fakeEl();
+	globalThis.fetch = fakeNet({ gene: TP53 });
+	tool.main(report, { root: ROOT }, entity(8000038), {}, {}, null, ctx({ page: 'report' }));
+	await tick();
+	assert.strictEqual(report.find('button').length, 59);
+	assert.ok(!report.textContent.includes('Download summary'));
+});

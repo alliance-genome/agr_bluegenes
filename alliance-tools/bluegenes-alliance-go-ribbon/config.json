@@ -1,5 +1,5 @@
 {
-  "accepts": ["id"],
+  "accepts": ["id", "ids"],
   "apiBase": "https://api.geneontology.org/api",
   "classes": ["Gene"],
   "columnMapping": {
