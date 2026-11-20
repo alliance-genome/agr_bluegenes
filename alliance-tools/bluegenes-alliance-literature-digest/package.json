@@ -1,0 +1,12 @@
+{
+  "name": "@alliance/bluegenes-alliance-literature-digest",
+  "version": "0.1.0",
+  "description": "Papers that cover the most genes of a list, ranked by gene coverage, for list and results pages.",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": ["bluegenes-intermine-tool"],
+  "license": "MIT",
+  "dependencies": {}
+}
