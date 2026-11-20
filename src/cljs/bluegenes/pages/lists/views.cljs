@@ -4,6 +4,7 @@
             [bluegenes.components.icons :refer [icon icon-comp]]
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
+            [bluegenes.pages.lists.upset :as upset]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
             [oops.core :refer [oget oset!]]
@@ -58,14 +59,15 @@
 
 (defn top-controls []
   (let [insufficient-selected (not @(subscribe [:lists/selected-operation?]))]
-    (into [:div.top-controls.agr-filter-bar]
-          (for [set-op set-operations]
-            [:button.agr-btn
-             {:type "button"
-              :disabled insufficient-selected
-              :on-click #(dispatch [:lists/open-modal set-op])}
-             (get-in set-operations->assets [set-op :text])
-             (get-in set-operations->assets [set-op :icon])]))))
+    (conj (into [:div.top-controls.agr-filter-bar]
+                (for [set-op set-operations]
+                  [:button.agr-btn
+                   {:type "button"
+                    :disabled insufficient-selected
+                    :on-click #(dispatch [:lists/open-modal set-op])}
+                   (get-in set-operations->assets [set-op :text])
+                   (get-in set-operations->assets [set-op :icon])]))
+          [upset/button])))
 
 (defn bottom-controls []
   (let [list-count (count @(subscribe [:lists/selected-lists]))]
@@ -719,6 +721,7 @@
   [:div.container-fluid.lists
    [filter-lists]
    [top-controls]
+   [upset/panel]
    [pagination]
    [lists]
    [no-lists]
