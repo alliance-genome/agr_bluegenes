@@ -71,6 +71,8 @@
 
    :support-email (get-in web-properties [:project :supportEmail])
 
+   :jbrowse-url (get-in web-properties [:jbrowse :install :url])
+
    :customisation (-> (clojure.walk/postwalk #(case % "true" true "false" false %)
                                              (:bluegenes web-properties))
                       (update-in [:homepage :cta] parse-numbered-properties

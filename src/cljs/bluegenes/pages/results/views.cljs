@@ -8,6 +8,7 @@
             [bluegenes.pages.results.orthologs-compare :as orthologs-compare]
             [bluegenes.pages.results.send-to-mine :as send-to-mine]
             [bluegenes.pages.results.bundle :as bundle]
+            [bluegenes.pages.results.track-export :as track-export]
             [bluegenes.pages.results.linkout :as linkout]
             [bluegenes.pages.results.cite :as cite]
             [bluegenes.pages.results.enrichment.views :as enrichment]
@@ -205,15 +206,18 @@
      [orthologs-compare/compare-button (:name list)]
      [send-to-mine/send-button (:name list)]
      [bundle/download-button list]
+     [track-export/track-button]
      (when (= "Gene" (:type list))
        [linkout/send-button {:list (:name list)}])]))
 
 (defn results-actions
-  "Send control for Gene results that are not a saved list."
+  "Track export and, for Gene results that are not a saved list, the Send control."
   []
   (let [query @(subscribe [:results/query])]
-    (when (= "Gene" (:from query))
-      [linkout/send-button {:query query}])))
+    [:<>
+     [track-export/track-button]
+     (when (= "Gene" (:from query))
+       [linkout/send-button {:query query}])]))
 
 (defn main
   "Result page for a list or query."
