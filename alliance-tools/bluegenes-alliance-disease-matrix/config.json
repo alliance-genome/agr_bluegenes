@@ -1,0 +1,29 @@
+{
+  "accepts": ["id", "ids"],
+  "classes": ["Gene"],
+  "depends": [
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.diseaseAnnotation.id",
+    "Gene.diseaseAnnotation.ontologyTerm.name",
+    "Gene.diseaseAnnotation.slimTerms.name",
+    "Gene.diseaseAnnotation.evidenceType",
+    "Gene.diseaseAnnotation.viaOrthologyOrder",
+    "Gene.diseaseAnnotation.qualifier",
+    "Gene.diseaseAnnotation.evidence.code.code",
+    "Gene.diseaseAnnotation.evidence.publications.pubMedId"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js"
+  },
+  "toolName": {
+    "human": "Disease slim matrix",
+    "cljs": "bluegenesAllianceDiseaseMatrix"
+  },
+  "version": 2
+}
