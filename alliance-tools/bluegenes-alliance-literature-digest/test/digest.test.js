@@ -167,6 +167,20 @@ test('main offers saving the genes of a paper when context.saveList exists', asy
 	assert.ok(Array.isArray(saved.tags));
 });
 
+test('main labels the save button in the singular for one gene', async () => {
+	globalThis.fetch = async () => ({
+		ok: true,
+		json: async () => ({ results: rowsToArrays([row(1, 'a', 5, 2020)]) })
+	});
+	const context = { saveList: (x) => Promise.resolve(x.name) };
+	const el = document.createElement('div');
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1'] } }, {}, {}, () => {}, context);
+	await tick();
+	const btn = el.find('button').find((b) => /Save/.test(b.textContent));
+	assert.strictEqual(btn.textContent, 'Save 1 gene as list');
+	assert.ok(el.textContent.includes('1 paper cites 1 gene.'));
+});
+
 test('main reports an empty list', () => {
 	const el = document.createElement('div');
 	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [] } }, {}, {}, () => {});

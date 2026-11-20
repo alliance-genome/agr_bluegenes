@@ -66,7 +66,7 @@ test('without context the save controls are absent, with it they are shown', asy
 	const withCtx = await run({ root: 'http://h/mine' }, { saveList: async () => 'x' });
 	assert.strictEqual(withCtx.find('select').length, 1);
 	const button = withCtx.find('button').find((b) => /^Save /.test(b.textContent));
-	assert.strictEqual(button.textContent, 'Save 1 genes without GO as list');
+	assert.strictEqual(button.textContent, 'Save 1 gene without GO as list');
 });
 
 test('save sends the ids of genes without the chosen type', async () => {

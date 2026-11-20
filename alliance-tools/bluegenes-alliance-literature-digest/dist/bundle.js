@@ -253,6 +253,10 @@
 			.then(function () { return all; });
 	}
 
+	function count(n, word) {
+		return n + ' ' + word + (n === 1 ? '' : 's');
+	}
+
 	function node(tag, text, className) {
 		var e = document.createElement(tag);
 		if (text !== undefined && text !== null) e.textContent = String(text);
@@ -303,7 +307,7 @@
 
 	function saveButton(paper, ui) {
 		var status = node('span', null, 'agr-note');
-		var b = button('Save ' + paper.genes.length + ' genes as list', function () {
+		var b = button('Save ' + count(paper.genes.length, 'gene') + ' as list', function () {
 			var ids = paper.genes.map(function (g) { return g.id; });
 			status.textContent = 'Saving';
 			ui.saveList({ name: 'PMID ' + paper.pmid + ' genes', class: 'Gene', ids: ids, tags: ['alliance-literature-digest'] })
@@ -395,7 +399,7 @@
 		bar.appendChild(document.createTextNode(' '));
 		bar.appendChild(button('Download PMID CSV', function () { download('pmids.csv', pmidCsv(shown), 'text/csv'); }));
 		bar.appendChild(document.createTextNode(' '));
-		bar.appendChild(button('Download all ' + matching.length + ' papers as TSV', function () {
+		bar.appendChild(button('Download ' + count(matching.length, 'paper') + ' as TSV', function () {
 			download('literature-digest.tsv', papersTsv(matching), 'text/tab-separated-values');
 		}));
 		return bar;
@@ -415,7 +419,7 @@
 		var shown = parts.focused.slice(0, TOP_N).concat(parts.large.slice(0, TOP_N));
 		clear(el);
 		var wrap = node('div', null, 'alliance-literature-digest');
-		wrap.appendChild(node('p', data.papers.length + ' papers cite ' + data.geneCount + ' genes. ' + matching.length + ' match the filters.', 'alliance-literature-digest-summary'));
+		wrap.appendChild(node('p', count(data.papers.length, 'paper') + (data.papers.length === 1 ? ' cites ' : ' cite ') + count(data.geneCount, 'gene') + '. ' + matching.length + ' match the filters.', 'alliance-literature-digest-summary'));
 		if (data.truncated) wrap.appendChild(node('p', 'The mine returned more rows than the tool reads. Results are partial.', 'agr-note'));
 		wrap.appendChild(filterBar(data.papers, filters, offerTopics, function (change) {
 			ui.filters = Object.assign({}, filters, change);
@@ -442,7 +446,7 @@
 			message(el, 'No genes to summarise', 'agr-empty');
 			return;
 		}
-		message(el, 'Loading papers for ' + ids.length + ' genes', 'agr-loading');
+		message(el, 'Loading papers for ' + count(ids.length, 'gene'), 'agr-loading');
 		var ui = { navigate: navigate, saveList: context && typeof context.saveList === 'function' ? context.saveList : null, filters: {} };
 		fetchAll(service.root, ids, viewFor(service))
 			.then(function (res) {
