@@ -1,0 +1,16 @@
+/* Heatmap cell colours come from the Alliance tokens; the fallbacks keep it readable without them. */
+.alliance-expression-heatmap { overflow-x: auto; }
+.alliance-expression-heatmap-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 8px; }
+.alliance-expression-heatmap-summary { margin: 0 0 8px; }
+.alliance-expression-heatmap-grid { border-collapse: collapse; font-size: 12px; }
+.alliance-expression-heatmap-grid th,
+.alliance-expression-heatmap-grid td { border: 1px solid var(--agr-bg, #fff); padding: 0 4px; text-align: center; min-width: 34px; height: 26px; }
+.alliance-expression-heatmap-grid thead th { vertical-align: bottom; white-space: nowrap; }
+.alliance-expression-heatmap-grid tbody th { padding: 2px 8px; text-align: left; font-weight: 400; white-space: nowrap; }
+.alliance-expression-heatmap-sort { font-weight: 700; }
+.alliance-expression-heatmap-open { margin-left: 4px; text-decoration: none; }
+.alliance-expression-heatmap-l0 { background: var(--agr-bg-light, #f8f9fa); }
+.alliance-expression-heatmap-l1 { background: var(--agr-heat-2, #c6dbef); color: var(--agr-text, #212529); }
+.alliance-expression-heatmap-l2 { background: var(--agr-heat-3, #9ecae1); color: var(--agr-text, #212529); }
+.alliance-expression-heatmap-l3 { background: var(--agr-heat-5, #3182bd); color: #fff; }
+.alliance-expression-heatmap-l4 { background: var(--agr-heat-6, #08519c); color: #fff; }
