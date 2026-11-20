@@ -6,20 +6,8 @@
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [clean-tool-name]]
+            [bluegenes.components.tools.utils :refer [above-threshold? group-tools]]
             [bluegenes.pages.reportpage.utils :refer [description-dropdown toggle-props chevron]]))
-
-(def global-threshold 1000)
-
-(defn greatest-count
-  "Returns the greatest count of IDs across all entities."
-  [entities]
-  (apply max (map (comp #(if (coll? %) (count %) 1) :value val) entities)))
-
-(defn above-threshold?
-  "Returns whether a tool has surpassed its config's specified threshold, or
-  the global threshold, for automatic initialisation."
-  [{:keys [entity config] :as _tool-details}]
-  (> (greatest-count entity) (:threshold config global-threshold)))
 
 ;; The following component may be used by itself to display one tool.
 (defn tool [{{:keys [cljs]} :names :as tool-details} & {:keys [collapse id]}]
@@ -73,9 +61,26 @@
           [:div {:class cljs
                  :id tool-id}]]]))))
 
+(defn- group-heading [group collapsed?]
+  [:h3.report-item-heading.tool-group-heading
+   (toggle-props
+    #(dispatch [(if collapsed? ::events/expand-group ::events/collapse-group) group])
+    (not collapsed?))
+   [:span.report-item-title group]
+   [chevron collapsed?]])
+
+(defn- tool-group [group tools]
+  (let [collapsed? @(subscribe [::subs/collapsed-group? group])]
+    [:div.tool-group
+     [group-heading group collapsed?]
+     (when-not collapsed?
+       (for [tool-details tools]
+         ^{:key (get-in tool-details [:names :cljs])}
+         [tool tool-details]))]))
+
 (defn main []
   (let [suitable-tools @(subscribe [::subs/suitable-tools])]
     [:div
-     (for [tool-details suitable-tools]
-       ^{:key (get-in tool-details [:names :cljs])}
-       [tool tool-details])]))
+     (for [[group tools] (group-tools suitable-tools)]
+       ^{:key group}
+       [tool-group group tools])]))

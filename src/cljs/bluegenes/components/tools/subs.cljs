@@ -58,3 +58,8 @@
  ::collapsed-tool?
  (fn [db [_ tool-name-cljs]]
    (contains? (get-in db [:tools :collapsed]) tool-name-cljs)))
+
+(reg-sub
+ ::collapsed-group?
+ (fn [db [_ group]]
+   (contains? (get-in db [:tools :collapsed-groups]) group)))

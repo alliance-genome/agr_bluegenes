@@ -6,6 +6,7 @@
             [re-frame.core :refer [reg-event-db reg-event-fx reg-fx reg-sub subscribe dispatch]]
             [oops.core :refer [oget ocall]]
             [imcljs.fetch :as fetch]
+            [imcljs.query :as im-query]
             [bluegenes.cite :as cite]
             [bluegenes.alliance-release :as alliance-release]
             [bluegenes.utils :refer [encode-file]]))
@@ -46,6 +47,22 @@
     {:methods (cite/methods-paragraph (assoc m :subject subj))
      :bibtex (cite/bibtex m)
      :ris (cite/ris m)}))
+
+(defn query-xml
+  "PathQuery XML for a query map and mine model, or nil without both."
+  [model query]
+  (when (and (seq model) (seq query))
+    (im-query/->xml model query)))
+
+(defn code-snippets
+  "Python, R and XML snippets for a mine map (with :alliance and :date) and the
+  query XML. Empty when there is no XML."
+  [mine xml]
+  (when xml
+    (let [m (assoc mine :xml xml)]
+      {:python (cite/python-snippet m)
+       :r (cite/r-snippet m)
+       :xml (cite/xml-snippet m)})))
 
 ;;; Events ;;;
 
@@ -104,6 +121,11 @@
    (assoc-in db [:results :cite :version-error?] true)))
 
 (reg-event-db
+ ::set-tab
+ (fn [db [_ tab]]
+   (assoc-in db [:results :cite :tab] tab)))
+
+(reg-event-db
  ::set-feedback
  (fn [db [_ what]]
    (assoc-in db [:results :cite :copied] what)))
@@ -148,6 +170,13 @@
 
 (reg-sub ::state (fn [db] (get-in db [:results :cite])))
 
+(defn mine-with-alliance
+  "Mine info plus the Alliance release when the source is an Alliance mine."
+  [db mine-kw]
+  (cond-> (mine-info db mine-kw)
+    (alliance-source? db mine-kw)
+    (assoc :alliance (alliance-release/release db))))
+
 (reg-sub
  ::texts
  (fn [db]
@@ -157,11 +186,14 @@
                                    (filter #(= (get-in db [:results :query :title]) (:title %)))
                                    first)
                         :query (get-in db [:results :query])})]
-     (assoc (texts (cond-> (mine-info db mine-kw)
-                     (alliance-source? db mine-kw)
-                     (assoc :alliance (alliance-release/release db)))
+     (assoc (texts (mine-with-alliance db mine-kw)
                    (or (get-in db [:results :cite :date]) (today))
                    subj)
+            :code (code-snippets
+                   (assoc (mine-with-alliance db mine-kw)
+                          :date (or (get-in db [:results :cite :date]) (today)))
+                   (query-xml (get-in db [:mines mine-kw :service :model])
+                              (get-in db [:results :query])))
             :mine-kw mine-kw
             :mine-ready? (some? (get-in db [:mines mine-kw :service :root]))
             :versions-missing (missing-versions db mine-kw)))))
@@ -178,7 +210,7 @@
   [:div.cite-block
    [:h4.cite-label label]
    [:textarea.form-control
-    {:id (str "cite-" (name id)) :rows (if (= id :methods) 5 10) :read-only true :value text}]
+    {:id (str "cite-" (name id)) :rows (case id :methods 5 :xml 12 :python 12 :r 10 10) :read-only true :value text}]
    [:div.cite-actions
     [:button.agr-btn.agr-btn-sm
      {:type "button" :on-click #(dispatch [::copy id text])}
@@ -196,19 +228,47 @@
    {:component-did-mount #(dispatch [::ensure-versions])
     :reagent-render (fn [] [:span.hidden])}))
 
+(defn- tab-bar [tab]
+  [:ul.nav.nav-tabs.cite-tabs
+   (for [[id label] [[:citation "Citation"] [:code "Code"]]]
+     ^{:key id}
+     [:li {:class (when (= id tab) "active")}
+      [:a {:href "#" :on-click (fn [e]
+                                 (.preventDefault e)
+                                 (dispatch [::set-tab id]))}
+       label]])])
+
+(defn- citation-tab [{:keys [methods bibtex ris]} copied]
+  [:div
+   [text-block {:id :methods :label "Methods paragraph" :text methods :copied copied}]
+   [text-block {:id :bibtex :label "BibTeX" :text bibtex :copied copied
+                :filename "citations.bib" :filetype "x-bibtex"}]
+   [text-block {:id :ris :label "RIS" :text ris :copied copied
+                :filename "citations.ris" :filetype "x-research-info-systems"}]])
+
+(defn- code-tab [{:keys [python r xml]} copied]
+  (if python
+    [:div
+     [text-block {:id :python :label "Python (intermine)" :text python :copied copied
+                  :filename "query.py" :filetype "x-python"}]
+     [text-block {:id :r :label "R (httr)" :text r :copied copied
+                  :filename "query.R" :filetype "x-r"}]
+     [text-block {:id :xml :label "PathQuery XML" :text xml :copied copied
+                  :filename "query.xml" :filetype "xml"}]]
+    [:p.cite-note "No query is loaded, so there is no code to show."]))
+
 (defn cite-panel []
-  (let [{:keys [open? copied version-error?]} @(subscribe [::state])]
+  (let [{:keys [open? copied version-error? tab]} @(subscribe [::state])]
     (when open?
-      (let [{:keys [methods bibtex ris versions-missing mine-kw]} @(subscribe [::texts])]
+      (let [{:keys [code versions-missing mine-kw] :as all} @(subscribe [::texts])]
         [:section.agr-section.cite-panel
          [:h3.agr-section-title "Cite / methods"]
          ^{:key mine-kw} [ensure-versions-on-mount]
+         [tab-bar (or tab :citation)]
          (when (and (seq versions-missing) (not version-error?))
            [:p.agr-loading.cite-note "Fetching mine version"])
          (when version-error?
            [:p.agr-error "Could not read the mine version. The text names no version."])
-         [text-block {:id :methods :label "Methods paragraph" :text methods :copied copied}]
-         [text-block {:id :bibtex :label "BibTeX" :text bibtex :copied copied
-                      :filename "citations.bib" :filetype "x-bibtex"}]
-         [text-block {:id :ris :label "RIS" :text ris :copied copied
-                      :filename "citations.ris" :filetype "x-research-info-systems"}]]))))
+         (if (= tab :code)
+           [code-tab code copied]
+           [citation-tab all copied])]))))

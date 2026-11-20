@@ -5,7 +5,8 @@
             [day8.re-frame.test :refer-macros [run-test-sync run-test-async wait-for]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
-            [bluegenes.pages.results.orthologs :as orthologs]))
+            [bluegenes.pages.results.orthologs :as orthologs]
+            [bluegenes.pages.results.orthologs-preview :as preview]))
 
 (use-fixtures :each utils/fixtures)
 
@@ -119,9 +120,18 @@
          (let [state @(rf/subscribe [::orthologs])]
            (is (= 3 (:count state)))
            (is (false? (:loading-count? state))))
-         (is (= [(orthologs/organisms-query "L")
-                 (orthologs/orthologs-query "L" "M. musculus")]
-                (map first @fetch-calls))))))))
+         (wait-for [::orthologs/list-genes-success]
+           (is (= [(orthologs/organisms-query "L")
+                   (orthologs/orthologs-query "L" "M. musculus")]
+                  (keep (fn [[query options]] (when (:summaryPath options) query))
+                        @fetch-calls)))
+           (is (some #(= (preview/preview-query "L" "M. musculus"
+                                                (:features @(rf/subscribe [::orthologs])))
+                         (first %))
+                     @fetch-calls)
+               "the mapping preview is fetched for the organism")
+           (is (some #(= (orthologs/list-genes-query "L") (first %)) @fetch-calls)
+               "the list genes are fetched once the rows are in")))))))
 
 (deftest save-chain
   (run-test-async
@@ -174,3 +184,68 @@
    (rf/dispatch [::orthologs/save])
    (is (not (:saving? @(rf/subscribe [::orthologs])))
        "no organism selected, nothing saved")))
+
+(deftest filtered-query
+  (let [all {:methods? true :best? true}]
+    (is (= (orthologs/orthologs-query "L" "M. musculus")
+           (orthologs/orthologs-query "L" "M. musculus" {:min-methods 0 :best-only? false} all)))
+    (is (= [{:path "Gene" :op "IN" :value "L"}
+            {:path "Gene.homologues.homologue.organism.shortName" :op "=" :value "M. musculus"}
+            {:path "Gene.homologues.algorithmsMatch" :op ">=" :value "5"}
+            {:path "Gene.homologues.isBestScore" :op "=" :value "true"}]
+           (:where (orthologs/orthologs-query "L" "M. musculus"
+                                              {:min-methods 5 :best-only? true} all))))))
+
+(deftest model-features
+  (let [classes {:Gene {:collections {:homologues {:referencedType "Homologue"}}}
+                 :Homologue {:attributes {:type {} :isBestScore {}}
+                             :references {:homologue {:referencedType "Gene"}}}}]
+    (is (= {:type? true :methods? false :best? true :best-reverse? false}
+           (orthologs/model-features classes)))
+    (is (every? true? (vals (orthologs/model-features nil))) "unknown model offers all")))
+
+(deftest shown-targets
+  (let [rows (preview/parse-rows [[1 "G1" "g1" 10 "T10" "t10" "orthologue" 9 10 true false]
+                                  [2 "G2" "g2" 11 "T11" "t11" "orthologue" 2 10 false false]]
+                                 {:methods? true :best? true :best-reverse? true :type? true})]
+    (is (= 7 (orthologs/shown-targets {:count 7})) "server count without rows")
+    (is (= 2 (orthologs/shown-targets {:count 7 :rows rows})))
+    (is (= 1 (orthologs/shown-targets {:count 7 :rows rows :min-methods 5})))
+    (is (= 1 (orthologs/shown-targets {:count 7 :rows rows :best-only? true})))
+    (is (= 0 (orthologs/shown-targets {:count 7 :rows rows :min-methods 10 :best-only? true})))))
+
+(def preview-features {:methods? true :best? true})
+
+(deftest preview-events
+  (run-test-sync
+   (rf/dispatch [::seed (assoc seeded-db :results
+                               {:orthologs {:open? true :list-source "L" :organism "M. musculus"
+                                            :features preview-features :loading-preview? true}})])
+   (testing "rows for another organism are dropped"
+     (rf/dispatch [::orthologs/preview-success "L" "D. rerio" {:results [[1 "G1" "g1" 10 "T10" "t10" 9 10 true]]}])
+     (is (nil? (:rows @(rf/subscribe [::orthologs])))))
+   (testing "min-methods and best-only? are stored"
+     (rf/dispatch [::orthologs/set-min-methods "6"])
+     (rf/dispatch [::orthologs/set-best-only true])
+     (is (= 6 (:min-methods @(rf/subscribe [::orthologs]))))
+     (is (true? (:best-only? @(rf/subscribe [::orthologs])))))
+   (testing "a non-numeric slider value means no cutoff"
+     (rf/dispatch [::orthologs/set-min-methods ""])
+     (is (= 0 (:min-methods @(rf/subscribe [::orthologs])))))))
+
+(deftest preview-data-sub
+  (run-test-sync
+   (let [rows (preview/parse-rows [[1 "G1" "g1" 10 "T10" "t10" 9 10 true]
+                                   [2 "G2" "g2" 10 "T10" "t10" 3 10 false]]
+                                  preview-features)]
+     (rf/dispatch [::seed (assoc seeded-db :results
+                                 {:orthologs {:rows rows
+                                              :genes (preview/parse-genes [[1 "G1" "g1"] [2 "G2" "g2"] [3 "G3" "g3"]])}})])
+     (let [data @(rf/subscribe [::orthologs/preview-data])]
+       (is (= [:many-to-one :many-to-one] (map :relation (:rows data))))
+       (is (= ["g3"] (map :label (:unmapped data))))
+       (is (= 10 (:max-methods data))))
+     (rf/dispatch [::orthologs/set-min-methods "5"])
+     (let [data @(rf/subscribe [::orthologs/preview-data])]
+       (is (= [:one-to-one] (map :relation (:rows data))))
+       (is (= ["g2" "g3"] (map :label (:unmapped data))))))))
