@@ -131,6 +131,8 @@ BlueGenes has a Dockerfile which you can build with a fresh uberjar.
     lein uberjar
     docker build -t bluegenes .
 
+The build reads `config/prod/config.edn`, so create it first. It also bakes a tools directory into the image at `/tools` (`BLUEGENES_TOOL_PATH`). That directory holds the `@intermine` tools pinned in `docker/intermine-tools.txt`, downloaded from npm, plus every package in `alliance-tools/`. To build the same directory outside docker, run `scripts/build-tools-dir.sh <tool-path>`. To change an `@intermine` tool version, edit `docker/intermine-tools.txt` and rebuild.
+
 Run it and the web server should default to port 5000.
 
     docker run -p 5000:5000 -it --rm bluegenes
@@ -152,6 +154,8 @@ Once you have added all your environment variables, start the docker container.
     docker run -p 5000:5000 --env-file bluegenes.env -v "$(pwd)"/tools:/tools -d --restart unless-stopped bluegenes
 
 This will create a `tools` folder in the current directory mounted as a docker bind mount. This is so your tools can be persisted when changing BlueGenes versions and to facilitate manual modification of tools.
+
+A bind mount on `/tools` hides the tools baked into the image. Leave out the `-v` argument to serve the baked tools, so each new image ships its own tool set.
 
 ### Dokku
 
