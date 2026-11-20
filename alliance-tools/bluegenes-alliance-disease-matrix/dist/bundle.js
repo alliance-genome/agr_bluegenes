@@ -34,6 +34,10 @@
 
 	// BlueGenes passes the mine root (for example https://host/mine); the web
 	// services live under /service. Accept either form.
+	function count(n, word) {
+		return n + ' ' + word + (n === 1 ? '' : 's');
+	}
+
 	function serviceRoot(rootUrl) {
 		var r = String(rootUrl || '').replace(/\/+$/, '');
 		return /\/service$/.test(r) ? r : r + '/service';
@@ -298,7 +302,7 @@
 
 	function saveColumn(col, context, ui) {
 		var ids = col.genes.map(function (g) { return g.id; });
-		ui.status('Saving ' + ids.length + ' genes');
+		ui.status('Saving ' + count(ids.length, 'gene'));
 		context
 			.saveList({ name: 'Disease slim ' + col.slim + ' genes', class: 'Gene', ids: ids, tags: ['alliance', 'disease-matrix'] })
 			.then(function (name) { ui.status('Saved list ' + name); })

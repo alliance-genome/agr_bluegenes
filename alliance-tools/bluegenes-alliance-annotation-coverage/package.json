@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-annotation-coverage",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Per-organism coverage of GO, disease, phenotype, publication and allele annotations for a list of genes.",
   "main": "dist/bundle.js",
   "scripts": {

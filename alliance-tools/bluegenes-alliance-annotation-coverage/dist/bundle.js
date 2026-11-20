@@ -21,6 +21,10 @@
 		{ key: 'alleles', label: 'Alleles', collection: 'alleles' }
 	];
 
+	function count(n, word) {
+		return n + ' ' + word + (n === 1 ? '' : 's');
+	}
+
 	function serviceRoot(root) {
 		var r = String(root || '').replace(/\/+$/, '');
 		return /\/service$/.test(r) ? r : r + '/service';
@@ -348,7 +352,7 @@
 			var incomplete = partial[chosen().key];
 			button.textContent = incomplete
 				? 'Cannot save: ' + chosen().label + ' counts are incomplete'
-				: 'Save ' + n + ' genes without ' + chosen().label + ' as list';
+				: 'Save ' + count(n, 'gene') + ' without ' + chosen().label + ' as list';
 			button.disabled = incomplete || n === 0;
 		}
 		select.addEventListener('change', function () {
