@@ -1,0 +1,6 @@
+.alliance-set-interactions .agr-table-wrap { margin-bottom: var(--agr-space-2, 8px); max-height: 420px; overflow: auto; }
+.alliance-set-interactions .agr-filters { display: flex; flex-wrap: wrap; gap: var(--agr-space-2, 8px); margin-bottom: var(--agr-space-2, 8px); }
+.alliance-set-interactions .agr-actions .agr-btn { margin-right: var(--agr-space-2, 8px); margin-bottom: var(--agr-space-2, 8px); }
+.alliance-set-interactions svg { max-width: 100%; height: auto; }
+.alliance-set-interactions .agr-edge { stroke: #999; stroke-opacity: 0.35; stroke-width: 1; }
+.alliance-set-interactions .agr-node { fill: #2b6cb0; }

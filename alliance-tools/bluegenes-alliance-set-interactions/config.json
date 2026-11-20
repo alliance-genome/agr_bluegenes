@@ -1,0 +1,30 @@
+{
+  "accepts": ["ids"],
+  "classes": ["Gene"],
+  "threshold": 1000,
+  "depends": [
+    "Gene.id",
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.interactions.relation",
+    "Gene.interactions.detectionMethod.name",
+    "Gene.interactions.participant2.id",
+    "Gene.interactions.participant2.primaryIdentifier",
+    "Gene.interactions.participant2.symbol",
+    "Gene.interactions.details.experiment.publication.pubMedId"
+  ],
+  "columnMapping": {
+    "Gene": {
+      "id": "primaryIdentifier"
+    }
+  },
+  "files": {
+    "js": "dist/bundle.js",
+    "css": "dist/style.css"
+  },
+  "toolName": {
+    "human": "Interaction network of a gene set (Alliance)",
+    "cljs": "bluegenesAllianceSetInteractions"
+  },
+  "version": 2
+}
