@@ -2,7 +2,8 @@
  * GO ribbon (Alliance), a BlueGenes tool (tool API version 2).
  * Plain JavaScript without dependencies, so this file is both the source and
  * the bundle. BlueGenes loads it as a script and calls
- * bluegenesAllianceGoRibbon.main(el, service, entity, state, config, navigate).
+ * bluegenesAllianceGoRibbon.main(el, service, entity, state, config, navigate, context).
+ * A gene list or results page gives an array of ids and runs the set view.
  * Styles are in style.css, declared in config.json under files.css.
  *
  * The gene's identifier and organism come from the mine. The GO slim ribbon
@@ -447,7 +448,290 @@
 		box.appendChild(gridWrap);
 	}
 
-	function main(el, service, imEntity, state, config) {
+	// Gene sets (lists and results pages).
+	var SET_CHUNK = 50;
+	var MAX_SET_GENES = 300;
+	var SET_VIEW = GENE_VIEW.concat(['Gene.id']);
+	var ASPECT_RANK = { All: 0, Term: 1, Other: 2 };
+
+	function buildSetQuery(ids) {
+		return (
+			'<query model="genomic" view="' + SET_VIEW.join(' ') + '">' +
+			'<constraint path="Gene.id" op="ONE OF">' +
+			ids.map(function (v) { return '<value>' + escapeXml(v) + '</value>'; }).join('') +
+			'</constraint></query>'
+		);
+	}
+
+	// Takes mine rows [primaryIdentifier, symbol, shortName, taxonId, id]; keeps
+	// genes with an Alliance curie, one entry per curie.
+	function toSetGenes(rows) {
+		var seen = {};
+		var genes = [];
+		rows.forEach(function (r) {
+			var s = toSubject(r);
+			if (!s || seen[s.curie]) return;
+			seen[s.curie] = true;
+			s.id = r[4];
+			genes.push(s);
+		});
+		return genes;
+	}
+
+	function isSetMode(ids, context) {
+		if (!Array.isArray(ids)) return false;
+		var page = context && context.page;
+		return ids.length > 1 || page === 'list' || page === 'results';
+	}
+
+	// Requests the ribbon for each chunk of genes in turn and merges the subjects.
+	function fetchRibbonSubjects(base, genes, onProgress) {
+		var done = 0;
+		return chunk(genes, SET_CHUNK).reduce(function (prev, part) {
+			return prev.then(function (acc) {
+				var curies = part.map(function (g) { return g.curie; });
+				return fetchApiJson(ribbonUrl(base, curies)).then(function (json) {
+					done += part.length;
+					onProgress(done, genes.length);
+					return {
+						categories: acc.categories || (json && json.categories) || null,
+						subjects: acc.subjects.concat((json && json.subjects) || [])
+					};
+				});
+			});
+		}, Promise.resolve({ categories: null, subjects: [] }));
+	}
+
+	// Per aspect, the slim terms with the genes annotated to each (count above 0).
+	function summarize(ribbon, genes) {
+		var bySubject = {};
+		(ribbon.subjects || []).forEach(function (s) { bySubject[s.id] = s; });
+		var aspects = [];
+		var byAspect = {};
+		buildColumns(ribbon.categories).forEach(function (col) {
+			var hits = [];
+			genes.forEach(function (g) {
+				var n = countOf(bySubject[g.curie], col);
+				if (n > 0) hits.push({ gene: g, n: n });
+			});
+			if (!hits.length) return;
+			var a = byAspect[col.aspectId];
+			if (!a) {
+				a = byAspect[col.aspectId] = { id: col.aspectId, label: String(col.aspect).replace(/_/g, ' '), terms: [] };
+				aspects.push(a);
+			}
+			a.terms.push({ col: col, genes: hits });
+		});
+		aspects.forEach(function (a) {
+			a.terms = a.terms
+				.map(function (t, i) { return { t: t, i: i }; })
+				.sort(function (x, y) {
+					return ASPECT_RANK[x.t.col.type] - ASPECT_RANK[y.t.col.type] ||
+						(x.t.col.type === 'Term' ? y.t.genes.length - x.t.genes.length : 0) || x.i - y.i;
+				})
+				.map(function (x) { return x.t; });
+		});
+		return aspects;
+	}
+
+	function csvCell(v) {
+		var s = String(v == null ? '' : v);
+		return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+	}
+
+	function toCsv(rows) {
+		return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+	}
+
+	function summaryCsv(aspects) {
+		var rows = [['Aspect', 'GO ID', 'Term', 'Genes', 'Gene symbols']];
+		aspects.forEach(function (a) {
+			a.terms.forEach(function (t) {
+				rows.push([
+					a.label, t.col.id, t.col.label, t.genes.length,
+					t.genes.map(function (h) { return h.gene.symbol; }).join('; ')
+				]);
+			});
+		});
+		return toCsv(rows);
+	}
+
+	function termCsv(term) {
+		var rows = [['Symbol', 'Alliance ID', 'Species', 'Annotations']];
+		term.genes.forEach(function (h) { rows.push([h.gene.symbol, h.gene.curie, h.gene.species, h.n]); });
+		return toCsv(rows);
+	}
+
+	function downloadCsv(filename, text) {
+		var url = URL.createObjectURL(new Blob([text], { type: 'text/csv' }));
+		var a = node('a');
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	}
+
+	function button(text, className, onClick) {
+		var b = node('button', text, className);
+		b.setAttribute('type', 'button');
+		b.addEventListener('click', onClick);
+		return b;
+	}
+
+	function termKey(a, t) {
+		return a.id + '|' + t.col.key;
+	}
+
+	function renderSummary(box, aspects, onTerm, selectedKey) {
+		clear(box);
+		aspects.forEach(function (a) {
+			box.appendChild(node('h4', a.label));
+			var wrap = node('div', null, 'agr-table-wrap');
+			var table = node('table', null, 'agr-table agr-table-sm alliance-go-ribbon-set');
+			var hr = node('tr');
+			['GO slim term', 'GO ID', 'Genes'].forEach(function (h) { hr.appendChild(node('th', h)); });
+			var thead = node('thead');
+			thead.appendChild(hr);
+			table.appendChild(thead);
+			var tbody = node('tbody');
+			a.terms.forEach(function (t) {
+				var tr = node('tr');
+				var termTd = node('td');
+				var b = button(t.col.label, 'alliance-go-ribbon-term', function () { onTerm(a, t); });
+				b.setAttribute('aria-label', t.col.label + ', ' + t.genes.length + (t.genes.length === 1 ? ' gene' : ' genes'));
+				b.setAttribute('aria-pressed', selectedKey === termKey(a, t) ? 'true' : 'false');
+				termTd.appendChild(b);
+				tr.appendChild(termTd);
+				tr.appendChild(node('td', t.col.type === 'Other' ? '' : t.col.id));
+				tr.appendChild(node('td', t.genes.length));
+				tbody.appendChild(tr);
+			});
+			table.appendChild(tbody);
+			wrap.appendChild(table);
+			box.appendChild(wrap);
+		});
+	}
+
+	function renderTermGenes(box, term, onSave) {
+		clear(box);
+		box.appendChild(node('h4', term.col.label + ': ' + term.genes.length + (term.genes.length === 1 ? ' gene' : ' genes')));
+		var actions = node('div', null, 'alliance-go-ribbon-actions');
+		actions.appendChild(button('Download genes as CSV', 'agr-btn agr-btn-sm', function () {
+			downloadCsv('go-ribbon-' + term.col.id.replace(/[^A-Za-z0-9]+/g, '-') + '.csv', termCsv(term));
+		}));
+		if (onSave) actions.appendChild(button('Save genes in this term as a list', 'agr-btn agr-btn-sm', onSave));
+		box.appendChild(actions);
+		var status = node('p', null, 'agr-note alliance-go-ribbon-status');
+		box.appendChild(status);
+		var wrap = node('div', null, 'agr-table-wrap');
+		var table = node('table', null, 'agr-table agr-table-sm');
+		var hr = node('tr');
+		['Gene', 'Species', 'Annotations'].forEach(function (h) { hr.appendChild(node('th', h)); });
+		var thead = node('thead');
+		thead.appendChild(hr);
+		table.appendChild(thead);
+		var tbody = node('tbody');
+		term.genes.forEach(function (h) {
+			var tr = node('tr');
+			var td = node('td');
+			td.appendChild(link(h.gene.symbol, ALLIANCE_GENE_URL + encodeURIComponent(h.gene.curie)));
+			tr.appendChild(td);
+			tr.appendChild(node('td', h.gene.species));
+			tr.appendChild(node('td', h.n));
+			tbody.appendChild(tr);
+		});
+		table.appendChild(tbody);
+		wrap.appendChild(table);
+		box.appendChild(wrap);
+		return status;
+	}
+
+	function saveTerm(context, term, status) {
+		status.textContent = 'Saving...';
+		var ids = term.genes.map(function (h) { return h.gene.id; });
+		context
+			.saveList({ name: term.col.label + ' (GO slim genes)', class: 'Gene', ids: ids, tags: ['go-ribbon'] })
+			.then(function (name) { status.textContent = 'Saved list ' + name + ' (' + ids.length + ' genes)'; })
+			.catch(function (err) {
+				var needsLogin = err && err.message === 'login required';
+				if (!needsLogin) console.error('go-ribbon: save list failed', err);
+				status.textContent = needsLogin ? 'Log in to save a list' : 'Could not save the list';
+			});
+	}
+
+	function setNote(ids, genes, rows) {
+		var parts = [];
+		if (ids.length > MAX_SET_GENES) {
+			parts.push('This list has ' + ids.length + ' genes. The ribbon covers the first ' + MAX_SET_GENES + '; use a smaller list to cover the rest.');
+		}
+		if (rows.length > genes.length) {
+			parts.push(rows.length - genes.length + ' genes have no Alliance identifier and are left out.');
+		}
+		return parts.join(' ');
+	}
+
+	function mainSet(wrap, ids, service, config, context, stale) {
+		var sr = serviceRoot(service.root);
+		var base = apiBase(config);
+		var capped = ids.slice(0, MAX_SET_GENES);
+		var noteEl = node('p', null, 'agr-note alliance-go-ribbon-note');
+		var actions = node('div', null, 'alliance-go-ribbon-actions');
+		var body = node('div');
+		var details = node('div', null, 'alliance-go-ribbon-details');
+		var source = node('p', 'Data from the Alliance of Genome Resources API (GO annotations, api.geneontology.org).', 'agr-note alliance-go-ribbon-source');
+		[noteEl, actions, body, details, source].forEach(function (n) { wrap.appendChild(n); });
+		var canSave = !!context && typeof context.saveList === 'function';
+		var aspects = [];
+
+		function showTerm(a, t) {
+			renderSummary(body, aspects, showTerm, termKey(a, t));
+			var status = renderTermGenes(details, t, canSave ? function () { saveTerm(context, t, status); } : null);
+		}
+
+		function show(ribbon, genes) {
+			aspects = summarize(ribbon, genes);
+			if (!aspects.length) {
+				message(body, 'No GO annotations for these genes');
+				return;
+			}
+			actions.appendChild(button('Download summary as CSV', 'agr-btn agr-btn-sm', function () {
+				downloadCsv('go-ribbon-summary.csv', summaryCsv(aspects));
+			}));
+			renderSummary(body, aspects, showTerm, null);
+		}
+
+		function fail(text, label) {
+			return function (err) {
+				if (stale()) return;
+				console.error('go-ribbon: ' + label, err);
+				message(body, text);
+			};
+		}
+
+		message(body, 'Loading genes from the mine...');
+		fetchMineRows(sr, buildSetQuery(capped))
+			.then(function (rows) {
+				if (stale()) return null;
+				var genes = toSetGenes(rows);
+				noteEl.textContent = setNote(ids, genes, rows);
+				if (!genes.length) {
+					message(body, 'No Alliance identifier for these genes');
+					return null;
+				}
+				var progress = function (n, total) {
+					if (!stale()) message(body, 'Loading GO annotations: ' + n + ' of ' + total + ' genes');
+				};
+				message(body, 'Loading GO annotations: 0 of ' + genes.length + ' genes');
+				return fetchRibbonSubjects(base, genes, progress).then(function (ribbon) {
+					if (!stale()) show(ribbon, genes);
+				}, fail('Could not load the GO ribbon from the API', 'ribbon failed'));
+			})
+			.catch(fail('Could not load the genes from the mine', 'gene lookup failed'));
+	}
+
+	function main(el, service, imEntity, state, config, navigate, context) {
 		if (!el || !service || !imEntity) {
 			throw new Error('Call main with correct signature');
 		}
@@ -464,6 +748,10 @@
 		el.appendChild(wrap);
 		if (!list.length) {
 			wrap.appendChild(node('p', 'No GO annotations for this gene', 'agr-empty'));
+			return;
+		}
+		if (isSetMode(ids, context)) {
+			mainSet(wrap, list, service, config, context, stale);
 			return;
 		}
 		var sr = serviceRoot(service.root);
@@ -608,7 +896,13 @@
 		ribbonUrl: ribbonUrl,
 		slimmerUrl: slimmerUrl,
 		chunk: chunk,
-		apiBase: apiBase
+		apiBase: apiBase,
+		buildSetQuery: buildSetQuery,
+		toSetGenes: toSetGenes,
+		summarize: summarize,
+		toCsv: toCsv,
+		summaryCsv: summaryCsv,
+		termCsv: termCsv
 	};
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;
 	root.bluegenesAllianceGoRibbon = api;
