@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-literature-digest",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Papers that cover the most genes of a list, ranked by gene coverage, for list and results pages.",
   "main": "dist/bundle.js",
   "scripts": {
