@@ -1,6 +1,6 @@
 (ns bluegenes.pages.results.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx reg-sub dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! close!]]
             [clojure.string :as s]
             [imcljs.fetch :as fetch]
@@ -124,10 +124,33 @@
           query-parts
           (keys query-parts)))
 
-(defn missing-list-message [title]
+(defn logged-in? [db]
+  (map? (get-in db [:mines (:current-mine db) :auth :identity])))
+
+(defn missing-list-message
+  "Lists and results that were not saved to an account live only in the
+  session that made them, so a reload or a new session cannot find them."
+  [title logged-in?]
   [:messages/add
-   {:markup [:span "Failed to find a list with the name: " [:em title]]
+   {:markup [:span "Failed to find a list with the name: " [:em title]
+             ". A list that was not saved exists only in the session that created it."
+             (when-not logged-in?
+               " Log in to keep lists between sessions.")]
     :style "danger"}])
+
+(defn gene-list-select
+  "Summary fields for the table of a list. Gene lists lead with the symbol and
+  leave out the secondary identifier, which holds a source id such as an RGD
+  number for many genes, so the table does not show it as a Systematic Name."
+  [type summary-fields]
+  (if (= "Gene" (some-> type name))
+    (let [fields (set summary-fields)]
+      (if (contains? fields "Gene.symbol")
+        (into ["Gene.symbol"]
+              (remove #{"Gene.symbol" "Gene.secondaryIdentifier"})
+              summary-fields)
+        summary-fields))
+    summary-fields))
 
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
@@ -146,7 +169,7 @@
        ;; load-history should really only be dispatched when the query exists,
        ;; so this shouldn't happen.
        {:dispatch-n [[::route/navigate ::route/lists]
-                     (missing-list-message title)]}
+                     (missing-list-message title (logged-in? db))]}
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
        {:db (-> db
@@ -187,7 +210,7 @@
              summary-fields (get-in db [:assets :summary-fields current-mine (keyword type)])]
          (if (nil? package)
            {:dispatch-n [[::route/navigate ::route/lists]
-                         (missing-list-message list-name)]}
+                         (missing-list-message list-name (logged-in? db))]}
            ;; Now we can build our query for use with `:results/history+`.
            {:dispatch [:results/history+
                        {:source current-mine
@@ -195,7 +218,7 @@
                         :intent :list
                         :value {:title title
                                 :from type
-                                :select summary-fields
+                                :select (gene-list-select type summary-fields)
                                 :where [{:path type
                                          :op "IN"
                                          :value name}]}}
@@ -395,3 +418,46 @@
                :else
                (do (.error js/console "Failed imcljs request" res)
                    "An error occured. Please check your connection and try again.")))))
+
+(defn open-panels
+  "The toolbar panels that are open, in toolbar order."
+  [db]
+  (cond-> []
+    (get-in db [:results :orthologs :open?]) (conj :convert)
+    (get-in db [:results :orthologs-compare :open?]) (conj :compare)
+    (get-in db [:results :send-to-mine :open?]) (conj :send)
+    (get-in db [:results :track-export :open?]) (conj :track)
+    (get-in db [:results :linkout :source]) (conj :linkout)
+    (get-in db [:results :cite :open?]) (conj :cite)))
+
+(defn newly-opened
+  "The first panel in `new-open` that was not in `old-open`."
+  [old-open new-open]
+  (first (remove (set old-open) new-open)))
+
+(defn close-event
+  "The event that closes `panel`, which is open in `db`."
+  [db panel]
+  (case panel
+    :convert [:bluegenes.pages.results.orthologs/toggle nil]
+    :compare [:bluegenes.pages.results.orthologs-compare/toggle nil]
+    :send [:bluegenes.pages.results.send-to-mine/toggle nil]
+    :track [:bluegenes.pages.results.track-export/toggle]
+    :linkout [:bluegenes.pages.results.linkout/toggle (get-in db [:results :linkout :source])]
+    :cite [:bluegenes.pages.results.cite/toggle]))
+
+(defn close-others-events
+  "Events that close every open panel except `panel`."
+  [db panel]
+  (mapv (partial close-event db)
+        (remove #{panel} (open-panels db))))
+
+(reg-sub
+ :results/open-panels
+ (fn [db]
+   (open-panels db)))
+
+(reg-event-fx
+ :results/panel-opened
+ (fn [{db :db} [_ panel]]
+   {:dispatch-n (close-others-events db panel)}))

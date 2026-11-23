@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.table :as table]
-            [bluegenes.pages.results.events]
+            [bluegenes.pages.results.events :as events]
             [bluegenes.pages.results.subs]
             [bluegenes.pages.results.orthologs :as orthologs]
             [bluegenes.pages.results.orthologs-compare :as orthologs-compare]
@@ -219,6 +219,33 @@
      (when (= "Gene" (:from query))
        [linkout/send-button {:query query}])]))
 
+(def panel-selectors
+  {:convert ".orthologs-panel"
+   :compare ".orthologs-compare-panel"
+   :send ".send-to-mine-panel"
+   :track ".track-export-panel"
+   :linkout ".linkout-panel"
+   :cite ".cite-panel"})
+
+(defn- reveal-panel! [panel]
+  (js/setTimeout
+   #(when-let [elem (ocall js/document :querySelector (get panel-selectors panel))]
+      (ocall elem :scrollIntoView #js {:block "nearest" :behavior "smooth"}))
+   100))
+
+(defn panel-coordinator
+  "Keeps one toolbar panel open: closes the others when one opens, and scrolls
+  the new one into view. Renders nothing."
+  [_open]
+  (reagent/create-class
+   {:display-name "panel-coordinator"
+    :component-did-update
+    (fn [this [_ old-open]]
+      (when-let [panel (events/newly-opened old-open (second (reagent/argv this)))]
+        (dispatch [:results/panel-opened panel])
+        (reveal-panel! panel)))
+    :reagent-render (fn [_open] nil)}))
+
 (defn main
   "Result page for a list or query."
   []
@@ -240,6 +267,7 @@
                [list-actions]
                [results-actions])]
             [cite/cite-panel]
+            [panel-coordinator @(subscribe [:results/open-panels])]
             ;; Query details is only interesting if it's a saved list.
             (when (= @intent :list)
               [query-details])
