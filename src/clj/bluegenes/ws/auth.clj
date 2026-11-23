@@ -6,6 +6,7 @@
             [taoensso.timbre :as timbre]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+            [clojure.string :as str]
             [config.core :refer [env]]
             [bluegenes.utils :refer [env->mines]]))
 
@@ -55,7 +56,8 @@
   root, which `env->mines` replaces with the backend root when one is set."
   []
   (-> (set (map :root (env->mines env)))
-      (conj (:bluegenes-default-service-root env))))
+      (conj (:bluegenes-default-service-root env))
+      (disj nil)))
 
 (defn- wrap-configured-service
   "Reject requests whose service root is not one of the configured mines, so the
@@ -104,16 +106,20 @@
       (let [{:keys [renamedLists user token]} (:output res)]
         [(assoc user :token token) renamedLists]))))
 
+(defn- blank-credentials?
+  "True when either credential is not a string or is empty or whitespace."
+  [username password]
+  (or (not (string? username)) (str/blank? username)
+      (not (string? password)) (str/blank? password)))
+
 (defn handle-auth
   "Ring handler for handling authentication. Attempts to authenticate with the
   IM server (via web services) by fetching a token. If successful, return
   the token and store it in the session."
   [{{:keys [username password service]} :params :as _req}]
   (let [service (use-backend-service service)]
-    (cond
-      (or (empty? username) (empty? password))
+    (if (blank-credentials? username password)
       (response/bad-request {:error "missing parameters. name and password required"})
-      :else
       (try
         (let [[user+token renamedLists] (login service username password)]
           (-> (response/ok {:identity user+token
@@ -130,10 +136,8 @@
   perform a regular login to get a proper token and store it in the session."
   [{{:keys [username password service]} :params :as _req}]
   (let [service (use-backend-service service)]
-    (cond
-      (or (empty? username) (empty? password))
+    (if (blank-credentials? username password)
       (response/bad-request {:error "missing parameters. name and password required"})
-      :else
       (try
         ;; Registration only returns a temporaryToken valid for 24 hours.
         (im-auth/register service username password)

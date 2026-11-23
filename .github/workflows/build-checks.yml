@@ -1,0 +1,54 @@
+name: build-checks
+
+on:
+  pull_request:
+  push:
+    branches: [dev, master]
+
+jobs:
+  clj-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: m2-${{ hashFiles('project.clj') }}
+      - run: lein with-profile cljtest test
+
+  alliance-tool-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run node tests of every alliance tool
+        run: |
+          status=0
+          for dir in alliance-tools/*/; do
+            [ -d "$dir/test" ] || continue
+            echo "::group::$dir"
+            (cd "$dir" && node --test test/) || status=1
+            echo "::endgroup::"
+          done
+          exit $status
+
+  tools-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test the tools directory scripts
+        run: scripts/test/build-tools-dir.test.sh
+      - name: Build the tools stage
+        run: docker build --target tools -t bluegenes-tools .
+      - name: Audit hosts in the @intermine bundles
+        run: |
+          id="$(docker create bluegenes-tools)"
+          docker cp "$id:/tools" "$RUNNER_TEMP/tools"
+          docker rm "$id"
+          scripts/audit-tool-hosts.sh "$RUNNER_TEMP/tools"

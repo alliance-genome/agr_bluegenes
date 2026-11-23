@@ -1,0 +1,35 @@
+# Hosts named in the dist bundles of the @intermine tools pinned in intermine-tools.txt.
+# Most are comment or documentation links. Add a host only after reading how the bundle uses it.
+# cdn.intermine.org: go-term-visualizer loads json3 from it only when the browser has no native JSON (dead code path).
+cdn.intermine.org
+cdn.plot.ly
+chart-studio.plotly.com
+davidwalsh.name
+developer.mozilla.org
+ebi-uniprot.github.io
+en.wikipedia.org
+engelschall.com
+fb.me
+feross.org
+genetics.bwh.harvard.edu
+github.com
+jquery.com
+jquery.org
+momentjs.com
+opensource.org
+plotly.com
+purl.eligrey.com
+raw.githubusercontent.com
+registry.intermine.org
+sift.jcvi.org
+sites.google.com
+sizzlejs.com
+stuk.github.io
+syntheti.cc
+vega.github.io
+www.amstat.org
+www.chartjs.org
+www.ebi.ac.uk
+www.ncbi.nlm.nih.gov
+www.uniprot.org
+www.w3.org
