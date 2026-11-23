@@ -1,11 +1,8 @@
 (ns bluegenes.pages.results.track-export
   "Track export for Gene lists and Gene results: BED or GFF3 of the gene
-  locations with an optional flank, one file per organism. The mine's own
-  bed/gff3 export is tried when no flank and no assembly label are asked for;
-  otherwise, and whenever it fails, the file is built from tabular rows."
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [<!]]
-            [re-frame.core :refer [reg-event-db reg-event-fx reg-fx reg-sub subscribe dispatch]]
+  locations with an optional flank, one file per organism. The file is built
+  from tabular rows because the mine has no bed or gff3 exporter."
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx reg-sub subscribe dispatch]]
             [clojure.string :as str]
             [oops.core :refer [oget]]
             [imcljs.fetch :as fetch]
@@ -14,16 +11,24 @@
 
 (def max-flank 100000)
 
+(def max-rows 100000)
+
 (def organism-path "Gene.organism.shortName")
 
 (def row-paths
   ["Gene.primaryIdentifier" "Gene.symbol" organism-path
    "Gene.chromosome.primaryIdentifier" "Gene.chromosomeLocation.start"
-   "Gene.chromosomeLocation.end" "Gene.chromosomeLocation.strand"])
+   "Gene.chromosomeLocation.end" "Gene.chromosomeLocation.strand"
+   "Gene.chromosome.length"])
+
+(def outer-joins ["Gene.chromosome" "Gene.chromosomeLocation"])
 
 (def source-name "BlueGenes")
 
-;;; Pure helpers ;;;
+(def chrom-styles
+  [["mine" "As in the mine"]
+   ["ucsc" "UCSC (chr1, chrM)"]
+   ["ensembl" "Ensembl (1, MT)"]])
 
 (defn clamp-flank
   "Flank size as an integer from 0 to `max-flank`. Anything that is not a
@@ -36,9 +41,13 @@
 
 (defn flank-span
   "1-based inclusive [start end] widened by `flank` on both sides. The start is
-  clamped at 1."
-  [start end flank]
-  [(max 1 (- start flank)) (+ end flank)])
+  clamped at 1 and the end at the chromosome `length` when it is known."
+  ([start end flank] (flank-span start end flank nil))
+  ([start end flank length]
+   (let [flank (clamp-flank flank)
+         e (+ end flank)]
+     [(max 1 (- start flank))
+      (if (and length (>= length end)) (min e length) e)])))
 
 (defn strand-symbol
   "InterMine strands are 1, -1 and 0 (as numbers or strings)."
@@ -55,7 +64,7 @@
 (defn row->gene
   "Gene map from a row in the order of `row-paths`, or nil when the gene has no
   chromosome or no start and end."
-  [[id symbol organism chromosome start end strand]]
+  [[id symbol organism chromosome start end strand length]]
   (let [start (number-or-nil start)
         end (number-or-nil end)]
     (when (and (not (str/blank? chromosome)) start end)
@@ -65,7 +74,37 @@
        :chromosome chromosome
        :start start
        :end end
-       :strand (strand-symbol strand)})))
+       :strand (strand-symbol strand)
+       :length (number-or-nil length)})))
+
+(defn- mito? [name]
+  (contains? #{"m" "mt" "mtdna" "mitochondrion" "mitochondrial"}
+             (str/lower-case (str/replace name #"^[Cc][Hh][Rr]" ""))))
+
+(defn chrom-name
+  "Chromosome name in the naming `style`: \"mine\" keeps it, \"ucsc\" has a
+  lower case chr prefix and chrM, \"ensembl\" has no prefix and MT."
+  [style name]
+  (case style
+    "ucsc" (cond
+             (mito? name) "chrM"
+             (re-find #"^[Cc][Hh][Rr]" name) (str/replace name #"^[Cc][Hh][Rr]" "chr")
+             :else (str "chr" name))
+    "ensembl" (if (mito? name) "MT" (str/replace name #"^[Cc][Hh][Rr]" ""))
+    name))
+
+(defn chrom-sort-key
+  "Natural order: numbered chromosomes by number, then the others by name."
+  [name]
+  (let [[_ digits rest] (re-matches #"(\d*)(.*)" (str/replace name #"^[Cc][Hh][Rr]" ""))]
+    [(if (str/blank? digits) 1 0)
+     (if (str/blank? digits) 0 (js/parseInt digits 10))
+     rest]))
+
+(defn sort-genes
+  "Genes by chromosome in natural order, then start and end."
+  [genes]
+  (sort-by (juxt (comp chrom-sort-key :chromosome) :start :end) genes))
 
 (defn gene-label [{:keys [symbol id]}]
   (if (str/blank? symbol) id symbol))
@@ -78,9 +117,9 @@
 
 (defn bed-line
   "BED is 0-based and half-open, so the 1-based start is lowered by one."
-  [flank {:keys [chromosome start end strand] :as gene}]
-  (let [[s e] (flank-span start end flank)]
-    (str/join "\t" [chromosome (dec s) e (gene-label gene) 0 strand])))
+  [flank {:keys [chromosome start end strand length] :as gene}]
+  (let [[s e] (flank-span start end flank length)]
+    (str/join "\t" [chromosome (dec s) e (str/replace (gene-label gene) #"\s+" "_") 0 strand])))
 
 (defn bed-header [title assembly]
   (let [assembly (clean-label assembly)]
@@ -93,14 +132,21 @@
                             (map #(bed-line flank %) genes)))
        "\n"))
 
-(defn- attribute [v]
-  (js/encodeURIComponent (or v "")))
+(defn- attribute
+  "GFF3 column 9 value with only the reserved characters percent-encoded."
+  [v]
+  (str/replace (or v "") #"[;=&,%\t\r\n]"
+               #(str "%" (.padStart (.toString (.charCodeAt % 0) 16) 2 "0"))))
 
-(defn gff3-line [flank {:keys [chromosome start end strand id symbol] :as gene}]
-  (let [[s e] (flank-span start end flank)]
+(defn gff3-line [flank {:keys [chromosome start end strand id symbol organism length] :as gene}]
+  (let [[s e] (flank-span start end flank length)]
     (str/join "\t" [chromosome source-name "gene" s e "." strand "."
-                    (str "ID=" (attribute id) ";Name=" (attribute (gene-label gene))
-                         (when-not (str/blank? symbol) (str ";Alias=" (attribute id))))])))
+                    (str/join ";" (concat [(str "ID=" (attribute id))
+                                           (str "Name=" (attribute (gene-label gene)))]
+                                          (when-not (str/blank? symbol) [(str "Alias=" (attribute id))])
+                                          [(str "Dbxref=" (attribute id))]
+                                          (when-not (str/blank? organism)
+                                            [(str "Note=" (attribute organism))])))])))
 
 (defn gff3-file [{:keys [assembly flank genes]}]
   (let [assembly (clean-label assembly)]
@@ -118,6 +164,27 @@
   [genes]
   (into (sorted-map) (group-by #(or (:organism %) "unknown") genes)))
 
+(defn parse-assemblies
+  "Assembly labels from the text field: a bare label, or `organism=label`
+  entries separated by semicolons."
+  [text]
+  (reduce (fn [acc part]
+            (let [part (str/trim part)
+                  [k v] (str/split part #"=" 2)]
+              (cond
+                (str/blank? part) acc
+                (some? v) (assoc-in acc [:by-organism (str/trim k)] (str/trim v))
+                :else (assoc acc :default part))))
+          {:default nil :by-organism {}}
+          (str/split (or text "") #";")))
+
+(defn assembly-for
+  "Label for one organism. A bare label is only used when a single organism is
+  exported, because it names one genome."
+  [{:keys [default by-organism]} organism multiple?]
+  (or (get by-organism organism)
+      (when-not multiple? default)))
+
 (defn- safe-name [s]
   (str/replace (or s "") #"[^A-Za-z0-9._-]+" "_"))
 
@@ -129,40 +196,26 @@
        (when (pos? flank) (str "_flank" flank))
        "." format))
 
-(defn server-eligible?
-  "The server formats carry no flank and no assembly label."
-  [flank assembly]
-  (and (zero? flank) (str/blank? assembly)))
-
-(defn server-query
-  "Query for the mine's bed/gff3 export of the genes of one organism."
-  [base-query organism]
-  (-> base-query
-      (assoc :select ["Gene.primaryIdentifier"])
-      (update :where (fnil conj []) {:path organism-path :op "=" :value organism})))
-
-(defn usable-server-text
-  "The server answer when it is a non-blank text, else nil."
-  [res]
-  (when (and (string? res) (not (str/blank? res))) res))
-
 (defn jbrowse-link
   "JBrowse location URL for a gene, or nil without a base URL."
-  [base assembly flank {:keys [chromosome start end]}]
+  [base assembly flank {:keys [chromosome start end length]}]
   (when-not (str/blank? base)
-    (let [[s e] (flank-span start end flank)]
+    (let [[s e] (flank-span start end flank length)]
       (str base (if (str/includes? base "?") "&" "?")
            "loc=" (js/encodeURIComponent (str chromosome ":" s ".." e))
            (when-not (str/blank? assembly)
              (str "&assembly=" (js/encodeURIComponent assembly)))))))
 
 (defn base-query
-  "Query for the export rows of a list or of the Gene results."
+  "Query for the export rows of a list or of the Gene results. The location
+  paths are outer joins so that genes without a location stay in the rows."
   [{:keys [kind name query]}]
-  (if (= :list kind)
-    {:from "Gene" :select row-paths :where [{:path "Gene" :op "IN" :value name}]}
-    (-> (select-keys query [:from :where :constraintLogic :joins])
-        (assoc :from "Gene" :select row-paths))))
+  (let [q (if (= :list kind)
+            {:from "Gene" :where [{:path "Gene" :op "IN" :value name}]}
+            (select-keys query [:from :where :constraintLogic :joins]))]
+    (-> q
+        (assoc :from "Gene" :select row-paths)
+        (update :joins #(vec (distinct (concat % outer-joins)))))))
 
 (defn gene-root?
   "True when the query is on Gene, by its root class or its first column."
@@ -179,6 +232,56 @@
     (and (not= :list intent) query (gene-root? query))
     {:kind :query :query query :label (or (:title query) "gene_results")}))
 
+(defn export-files
+  "Track files, one per organism, with genes in chromosome order."
+  [{:keys [format flank assemblies label]} genes]
+  (let [groups (by-organism genes)
+        multiple? (> (count groups) 1)
+        parsed (parse-assemblies assemblies)]
+    (vec (for [[organism org-genes] groups
+               :let [assembly (assembly-for parsed organism multiple?)]]
+           {:organism organism
+            :assembly assembly
+            :name (file-name {:label label :organism organism :format format
+                              :flank flank :multiple? multiple?})
+            :text (build-file format {:title (str label " " organism)
+                                      :assembly assembly :flank flank
+                                      :genes (sort-genes org-genes)})}))))
+
+(defn export-outcome
+  "Everything an export produces from the response rows and the options taken
+  when the download started."
+  [{:keys [chrom-style assemblies label] :as opts} rows]
+  (let [truncated? (> (count rows) max-rows)
+        rows (take max-rows rows)
+        genes (->> rows
+                   (keep row->gene)
+                   (mapv #(update % :chromosome (partial chrom-name chrom-style))))
+        skipped-ids (vec (keep (fn [row] (when-not (row->gene row) (first row))) rows))
+        files (export-files opts genes)
+        parsed (parse-assemblies assemblies)
+        unlabelled (when (and (:default parsed) (> (count files) 1))
+                     (count (remove :assembly files)))]
+    {:genes (count genes)
+     :files files
+     :skipped-file (when (seq skipped-ids)
+                     {:name (str (safe-name (or label "genes")) "_no_location.txt")
+                      :text (str (str/join "\n" skipped-ids) "\n")})
+     :links (vec (for [[organism org-genes] (by-organism genes)]
+                   {:organism organism
+                    :gene (first (sort-genes org-genes))
+                    :assembly (assembly-for parsed organism (> (count files) 1))
+                    :flank (:flank opts)}))
+     :message (str (count genes) " genes in " (count files)
+                   (if (= 1 (count files)) " file" " files")
+                   (when (seq skipped-ids)
+                     (str ", " (count skipped-ids) " without a location skipped"))
+                   (when truncated?
+                     (str ", cut at the first " max-rows " genes"))
+                   (when (pos? (or unlabelled 0))
+                     (str ". The assembly label names one genome, so it was not applied; use organism=label entries"))
+                   ".")}))
+
 ;;; Events ;;;
 
 (def state-path [:results :track-export])
@@ -191,95 +294,53 @@
  (fn [db _]
    (if (get-in db (conj state-path :open?))
      (assoc-in db state-path nil)
-     (assoc-in db state-path {:open? true :format "bed" :flank 0 :assembly ""}))))
+     (assoc-in db state-path {:open? true :format "bed" :flank 0 :assembly ""
+                              :chrom-style "mine"}))))
 
 (reg-event-db
  ::set-field
  (fn [db [_ k v]]
-   (update-in db state-path assoc k v :error nil)))
-
-(defn- export-files
-  "Files to save: one per organism, server text taken where available."
-  [{:keys [format flank assembly label]} genes server-texts]
-  (let [groups (by-organism genes)
-        multiple? (> (count groups) 1)]
-    (for [[organism org-genes] groups]
-      {:name (file-name {:label label :organism organism :format format
-                         :flank flank :multiple? multiple?})
-       :text (or (get server-texts organism)
-                 (build-file format {:title (str label " " organism)
-                                     :assembly assembly :flank flank
-                                     :genes org-genes}))})))
-
-(reg-fx
- ::server-export
- (fn [{:keys [service query organisms format on-done]}]
-   (go
-     (let [texts (loop [[o & more] organisms acc {}]
-                   (if-not o
-                     acc
-                     (let [res (<! (fetch/fetch-custom-format
-                                    service (server-query query o) {:format format}))]
-                       (recur more (if-let [t (usable-server-text res)] (assoc acc o t) acc)))))]
-       (dispatch (conj on-done texts))))))
+   (if (get-in db (conj state-path :busy?))
+     db
+     (update-in db state-path assoc k v :error nil))))
 
 (reg-fx
  ::save-files
  (fn [files]
-   (doseq [[i {:keys [name text]}] (map-indexed vector files)]
-     (js/setTimeout
-      #(bundle/save-blob! (js/Blob. #js [text] #js {:type "text/plain"}) name)
-      (* i 400)))))
+   (doseq [{:keys [name text]} files]
+     (bundle/save-blob! (js/Blob. #js [text] #js {:type "text/plain"}) name))))
 
 (reg-event-fx
  ::download
  (fn [{db :db} [_ source]]
-   (let [{:keys [busy? flank]} (get-in db state-path)]
+   (let [{:keys [busy? format flank assembly chrom-style]} (get-in db state-path)
+         opts {:format format :flank (clamp-flank flank) :assemblies assembly
+               :chrom-style chrom-style :label (:label source)}]
      (when-not busy?
-       {:db (update-in db state-path assoc :busy? true :error nil :message nil :flank (clamp-flank flank))
+       {:db (update-in db state-path assoc :busy? true :error nil :message nil
+                       :files nil :skipped-file nil :links nil :flank (:flank opts))
         :im-chan {:chan (fetch/rows (service db) (base-query source)
-                                    {:format "json" :size max-flank})
-                  :on-success [::rows-success source]
+                                    {:format "json" :size (inc max-rows)})
+                  :on-success [::rows-success opts]
                   :on-failure [::failure]}}))))
-
-(defn- finish
-  "Saves the files and records what was written."
-  [db {:keys [label] :as opts} genes skipped texts]
-  (let [files (export-files opts genes texts)]
-    {:db (update-in db state-path assoc
-                    :busy? false
-                    :first-gene (first genes)
-                    :message (str (count genes) " genes in " (count files)
-                                  (if (= 1 (count files)) " file" " files")
-                                  (when (pos? skipped) (str ", " skipped " without a location skipped"))
-                                  "."))
-     ::save-files files}))
 
 (reg-event-fx
  ::rows-success
- (fn [{db :db} [_ source res]]
-   (let [{:keys [format flank assembly]} (get-in db state-path)
-         rows (:results res)
-         genes (vec (keep row->gene rows))
-         opts {:format format :flank flank :assembly assembly :label (:label source)}
-         skipped (- (count rows) (count genes))]
-     (cond
-       (empty? genes)
+ (fn [{db :db} [_ opts res]]
+   (let [{:keys [genes files skipped-file links message]} (export-outcome opts (:results res))]
+     (if (zero? genes)
        {:db (update-in db state-path assoc :busy? false
                        :error "None of the genes has a chromosome location.")}
-
-       (server-eligible? flank assembly)
-       {:db db
-        ::server-export {:service (service db) :query (base-query source)
-                         :organisms (keys (by-organism genes)) :format format
-                         :on-done [::server-done opts genes skipped]}}
-
-       :else (finish db opts genes skipped {})))))
+       (cond-> {:db (update-in db state-path assoc
+                               :busy? false :message message
+                               :files files :skipped-file skipped-file :links links)}
+         (= 1 (count files)) (assoc ::save-files files))))))
 
 (reg-event-fx
- ::server-done
- (fn [{db :db} [_ opts genes skipped texts]]
-   (finish db opts genes skipped texts)))
+ ::save-file
+ (fn [{db :db} [_ file-name]]
+   (let [{:keys [files skipped-file]} (get-in db state-path)]
+     {::save-files (filter #(= file-name (:name %)) (conj (vec files) skipped-file))})))
 
 (reg-event-db
  ::failure
@@ -308,36 +369,58 @@
      (export-source list query intent))))
 
 (defn track-panel [source]
-  (let [{:keys [format flank assembly busy? error message first-gene]} @(subscribe [::state])
-        jbrowse (when first-gene
-                  (jbrowse-link @(subscribe [::jbrowse-url]) assembly (clamp-flank flank) first-gene))]
-    [:section.agr-section.track-export-panel
+  (let [{:keys [format flank assembly chrom-style busy? error message files skipped-file links]}
+        @(subscribe [::state])
+        base @(subscribe [::jbrowse-url])]
+    [:section.agr-section.track-export-panel {:id "track-export-panel"}
      [:h3.agr-section-title "Track export"]
      [:div.agr-filter-bar
       [:label "Format"
        [:select.form-control
-        {:value format
+        {:value format :disabled busy?
          :on-change #(dispatch [::set-field :format (oget % :target :value)])}
         [:option {:value "bed"} "BED"]
         [:option {:value "gff3"} "GFF3"]]]
       [:label "Flank (bp)"
        [:input.form-control
         {:type "number" :min 0 :max max-flank :step 100
-         :value flank
+         :value flank :disabled busy?
          :on-change #(dispatch [::set-field :flank (oget % :target :value)])}]]
+      [:label "Chromosome names"
+       [:select.form-control
+        {:value chrom-style :disabled busy?
+         :on-change #(dispatch [::set-field :chrom-style (oget % :target :value)])}
+        (for [[k label] chrom-styles]
+          ^{:key k} [:option {:value k} label])]]
       [:label "Assembly label"
        [:input.form-control
-        {:type "text" :placeholder "e.g. GRCh38"
-         :value assembly
+        {:type "text" :placeholder "GRCh38, or H. sapiens=GRCh38; M. musculus=GRCm39"
+         :value assembly :disabled busy?
          :on-change #(dispatch [::set-field :assembly (oget % :target :value)])}]]
       [:button.agr-btn-primary
-       {:type "button" :disabled busy?
+       {:type "button" :disabled busy? :aria-busy (boolean busy?)
         :on-click #(dispatch [::download source])}
        (if busy? "Preparing" "Download")]]
-     (when error [:p.agr-error error])
-     (when message [:p.agr-note message])
-     (when jbrowse
-       [:p.agr-note [:a {:href jbrowse :target "_blank" :rel "noopener"} "Open the first gene in JBrowse"]])]))
+     [:p.agr-note
+      "Flanks are not cut at the chromosome end unless the mine stores the chromosome length."]
+     (when error [:p.agr-error {:role "alert"} error])
+     (when message [:p.agr-note {:role "status"} message])
+     (when (> (count files) 1)
+       [:ul.list-unstyled
+        (for [{:keys [name]} files]
+          ^{:key name}
+          [:li [:button.agr-btn {:type "button" :on-click #(dispatch [::save-file name])}
+                (str "Download " name)]])])
+     (when skipped-file
+       [:p.agr-note
+        [:button.agr-btn {:type "button" :on-click #(dispatch [::save-file (:name skipped-file)])}
+         "Download the genes without a location"]])
+     (when (and (seq links) (not (str/blank? base)))
+       [:ul.list-unstyled
+        (for [{:keys [organism gene assembly flank]} links]
+          ^{:key organism}
+          [:li [:a {:href (jbrowse-link base assembly flank gene) :target "_blank" :rel "noopener"}
+                (str "Open the first " organism " gene in JBrowse")]])])]))
 
 (defn track-button
   "Toggle button and panel. Renders nothing unless the results are a Gene list
@@ -346,7 +429,9 @@
   (when-let [source @(subscribe [::source])]
     [:div.track-export
      [:button.agr-btn
-      {:type "button" :on-click #(dispatch [::toggle])}
+      {:type "button" :on-click #(dispatch [::toggle])
+       :aria-expanded (boolean (:open? @(subscribe [::state])))
+       :aria-controls "track-export-panel"}
       "Track export"]
      (when (:open? @(subscribe [::state]))
        [track-panel source])]))
