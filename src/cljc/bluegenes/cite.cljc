@@ -2,7 +2,8 @@
   "Pure text generation for the Cite / methods panel: a methods paragraph,
   BibTeX entries and RIS entries. No db or browser access. The caller passes
   the access date as a yyyy-mm-dd string."
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [imcljs.query :as im-query]))
 
 (def intermine-papers
   "The InterMine papers to cite. Authors are [family given] pairs."
@@ -329,6 +330,69 @@
 (defn- comment-block [prefix lines]
   (str/join "\n" (map #(str prefix " " %) lines)))
 
+;;; Query XML ;;;
+
+(defn- remove-logic-token
+  "Remove one operand from a constraint logic string together with the
+  operator that joined it to its neighbour. Operands are letter codes or `()`."
+  [logic token]
+  (let [t (if (= token "()") "\\(\\s*\\)" (str "\\b" token "\\b"))]
+    (-> logic
+        (str/replace (re-pattern (str "(?i)" t "\\s+(?:and|or)\\s+")) "")
+        (str/replace (re-pattern (str "(?i)\\s+(?:and|or)\\s+" t)) "")
+        (str/replace (re-pattern t) ""))))
+
+(defn drop-switched-off-logic
+  "The constraint logic with the operands for the given codes removed, and the
+  parentheses they leave empty. Nil when nothing remains."
+  [logic codes]
+  (when-not (str/blank? logic)
+    (let [reduced (reduce remove-logic-token logic codes)
+          cleaned (loop [s reduced]
+                    (let [n (remove-logic-token s "()")]
+                      (if (= n s) s (recur n))))]
+      (when-not (str/blank? cleaned) (str/trim cleaned)))))
+
+(defn active-query
+  "A sterilized query without its switched-off constraints, and a constraint
+  logic that no longer names them. PathQuery XML has no switched-off state,
+  so keeping them would return different rows than the page shows."
+  [query]
+  (let [q (im-query/sterilize-query query)
+        off (remove active? (:where q))
+        codes (remove nil? (map :code off))]
+    (cond-> q
+      (seq off) (update :where #(vec (filter active? %)))
+      (seq off) (update :constraintLogic drop-switched-off-logic codes))))
+
+(defn- constraint-xml [constraint]
+  (let [xml (im-query/map->xmlstr "constraint" constraint)
+        extra (:extraValue constraint)
+        tag "<constraint "
+        at (str/index-of xml tag)]
+    (if (or (str/blank? extra) (nil? at))
+      xml
+      (let [split (+ at (count tag))]
+        (str (subs xml 0 split)
+             "extraValue=\"" (im-query/escape-attribute (str extra)) "\" "
+             (subs xml split))))))
+
+(defn query->xml
+  "PathQuery XML for a query map and model. Unlike imcljs.query/->xml it keeps
+  extraValue (the organism of a LOOKUP) and drops switched-off constraints."
+  [model query]
+  (let [q (active-query query)
+        head (cond-> {:model (:name model)
+                      :view (str/join " " (:select q))}
+               (:constraintLogic q) (assoc :constraintLogic (:constraintLogic q))
+               (:sortOrder q) (assoc :sortOrder (str/join " " (flatten (map (juxt :path :direction) (:sortOrder q)))))
+               (:title q) (assoc :name (:title q))
+               (:longDescription q) (assoc :longDescription (:longDescription q)))]
+    (str "<query " (im-query/stringify-map head) ">"
+         (when (:joins q) (apply str (map im-query/make-join (:joins q))))
+         (apply str (map constraint-xml (:where q)))
+         "\n</query>")))
+
 (defn- python-literal [xml]
   (-> xml
       (str/replace "\\" "\\\\")
@@ -345,19 +409,32 @@
        "for row in query.rows():\n"
        "    print(row)\n"))
 
+(defn- view-columns
+  "The view paths of a query XML string."
+  [xml]
+  (when-let [[_ view] (re-find #"<query[^>]*?\sview=\"([^\"]*)\"" (str xml))]
+    (remove str/blank? (str/split view #"\s+"))))
+
 (defn r-snippet
-  "R using httr: sends the query XML to the mine's query/results service as CSV."
+  "R using httr: sends the query XML to the mine's query/results service as CSV.
+  The service sends no header row, so the columns are named from the query view."
   [{:keys [url xml] :as mine}]
-  (str (comment-block "#" (stamp-lines mine)) "\n"
-       "# install.packages(\"httr\")\n"
-       "library(httr)\n\n"
-       "mine <- \"" (service-base url) "\"\n"
-       "query <- r\"---(" xml ")---\"\n"
-       "response <- GET(paste0(mine, \"/service/query/results\"),\n"
-       "                query = list(query = query, format = \"csv\"))\n"
-       "stop_for_status(response)\n"
-       "result <- read.csv(text = content(response, \"text\", encoding = \"UTF-8\"))\n"
-       "head(result)\n"))
+  (let [columns (view-columns xml)]
+    (str (comment-block "#" (stamp-lines mine)) "\n"
+         "# install.packages(\"httr\")\n"
+         "library(httr)\n\n"
+         "mine <- \"" (service-base url) "\"\n"
+         "query <- r\"---(" xml ")---\"\n"
+         (when (seq columns)
+           (str "columns <- c(" (str/join ", " (map #(str "\"" % "\"") columns)) ")\n"))
+         "response <- GET(paste0(mine, \"/service/query/results\"),\n"
+         "                query = list(query = query, format = \"csv\"))\n"
+         "stop_for_status(response)\n"
+         "result <- read.csv(text = content(response, \"text\", encoding = \"UTF-8\"),\n"
+         "                   header = FALSE"
+         (when (seq columns) ", col.names = columns")
+         ")\n"
+         "head(result)\n")))
 
 (defn xml-snippet
   "The raw PathQuery XML, unchanged, for import in the query builder or the web service."

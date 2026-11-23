@@ -6,7 +6,6 @@
             [re-frame.core :refer [reg-event-db reg-event-fx reg-fx reg-sub subscribe dispatch]]
             [oops.core :refer [oget ocall]]
             [imcljs.fetch :as fetch]
-            [imcljs.query :as im-query]
             [bluegenes.cite :as cite]
             [bluegenes.alliance-release :as alliance-release]
             [bluegenes.utils :refer [encode-file]]))
@@ -52,7 +51,7 @@
   "PathQuery XML for a query map and mine model, or nil without both."
   [model query]
   (when (and (seq model) (seq query))
-    (im-query/->xml model query)))
+    (cite/query->xml model query)))
 
 (defn code-snippets
   "Python, R and XML snippets for a mine map (with :alliance and :date) and the
