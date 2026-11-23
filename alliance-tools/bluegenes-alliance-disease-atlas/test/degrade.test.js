@@ -35,7 +35,7 @@ test('disease model query rejected with HTTP 400 drops the models column and sho
 	await tick();
 	assert.deepStrictEqual(el.find('th').map((c) => c.textContent), ['Gene', 'Direct', 'Via orthology']);
 	assert.match(el.textContent, /This mine has no disease model data/);
-	assert.match(el.textContent, /1 genes in 1 organisms annotated to cancer/);
+	assert.match(el.textContent, /1 gene in 1 organism annotated to cancer/);
 });
 
 test('child term query rejected with HTTP 400 disables the checkbox and keeps the term', async () => {
@@ -53,7 +53,7 @@ test('child term query rejected with HTTP 400 disables the checkbox and keeps th
 	await tick();
 	assert.match(el.textContent, /This mine has no child term data/);
 	assert.strictEqual(el.find('input')[0].disabled, true);
-	assert.match(el.textContent, /1 genes in 1 organisms annotated to cancer/);
+	assert.match(el.textContent, /1 gene in 1 organism annotated to cancer/);
 });
 
 test('annotation query rejected with HTTP 400 still fails the tool', async () => {

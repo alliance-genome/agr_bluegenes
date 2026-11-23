@@ -69,9 +69,9 @@
 			serviceRoot.replace(/\/+$/, '') +
 			'/query/results?format=json&size=1&query=' +
 			encodeURIComponent(query);
-		return fetch(url)
+		return mineFetch(url)
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) throw httpError(res);
 				return res.json();
 			})
 			.then(function (json) {
@@ -89,16 +89,82 @@
 			a.href = geneUrl(curie);
 			a.className = 'agr-external';
 			a.target = '_blank';
-			a.rel = 'noopener';
+			a.rel = 'noopener noreferrer';
 			a.textContent = text;
 			wrap.appendChild(a);
 		} else {
 			var p = document.createElement('p');
 			p.className = cls || '';
 			p.textContent = text;
+			p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
 			wrap.appendChild(p);
 		}
 		el.appendChild(wrap);
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity) {
@@ -125,13 +191,13 @@
 					show(el, 'No Alliance page for this gene', null, 'agr-empty');
 				}
 			})
-			.catch(function () {
+			.catch(function (err) {
 				if (el.__agrReq !== token) return;
-				show(el, 'Could not load the gene from the mine', null, 'agr-error');
+				show(el, errorText(err, 'Could not load the gene from the mine'), null, 'agr-error');
 			});
 	}
 
-	var api = { main: main, serviceRoot: serviceRoot, toCurie: toCurie, geneUrl: geneUrl };
+	var api = { main: main, mineFetch: mineFetch, errorText: errorText, serviceRoot: serviceRoot, toCurie: toCurie, geneUrl: geneUrl };
 	if (typeof module !== 'undefined' && module.exports) module.exports = api;
 	root.bluegenesAllianceGeneLink = api;
 })(typeof window !== 'undefined' ? window : globalThis);

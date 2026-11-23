@@ -57,13 +57,13 @@
 	}
 
 	function postRows(mineRoot, query) {
-		return fetch(mineRoot.replace(/\/+$/, '') + '/query/results', {
+		return mineFetch(mineRoot.replace(/\/+$/, '') + '/query/results', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: 'format=json&query=' + encodeURIComponent(query)
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) throw httpError(res);
 				return res.json();
 			})
 			.then(function (json) { return (json && json.results) || []; });
@@ -87,7 +87,7 @@
 			function (res) {
 				if (!res.ok) {
 					clearTimeout(timer);
-					throw new Error('HTTP ' + res.status);
+					throw httpError(res);
 				}
 				return res.json().then(
 					function (j) { clearTimeout(timer); return j; },
@@ -240,7 +240,7 @@
 		var isNum = function (i) { return !!numeric && numeric.indexOf(headers[i]) !== -1; };
 		var thead = node('thead');
 		var hr = node('tr');
-		headers.forEach(function (h, i) { hr.appendChild(node('th', h, isNum(i) ? 'num' : null)); });
+		headers.forEach(function (h, i) { hr.appendChild(colHeader(h, isNum(i) ? 'num' : null)); });
 		thead.appendChild(hr);
 		t.appendChild(thead);
 		var tbody = node('tbody');
@@ -262,7 +262,7 @@
 		var sec = node('div', null, 'alliance-sgd-halflife');
 		sec.appendChild(node('h4', 'Protein half-life'));
 		if (!rows.length) {
-			sec.appendChild(node('p', 'No protein half-life data in SGD for this gene.', 'agr-empty'));
+			sec.appendChild(statusNode('No protein half-life data in SGD for this gene.', 'agr-empty'));
 			return sec;
 		}
 		sec.appendChild(table(['Experiment', 'Value', 'Unit', 'Reference'], rows.map(function (r) {
@@ -275,7 +275,7 @@
 		var sec = node('div', null, 'alliance-sgd-neighbourhood');
 		sec.appendChild(node('h4', 'Neighbourhood on S288C' + (nb && nb.chromosome ? ' (' + nb.chromosome + ')' : '')));
 		if (!nb || !nb.genes.length) {
-			sec.appendChild(node('p', 'No neighbouring genes in SGD for this gene.', 'agr-empty'));
+			sec.appendChild(statusNode('No neighbouring genes in SGD for this gene.', 'agr-empty'));
 			return sec;
 		}
 		var track = node('div', null, 'alliance-sgd-track-wrap');
@@ -285,6 +285,84 @@
 			return [g.link ? externalLink(g.name, g.link) : g.name, g.systematic, g.start, g.end, g.strand];
 		}), ['Start', 'End']));
 		return sec;
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) { // eslint-disable-line no-unused-vars
@@ -301,10 +379,10 @@
 		var wrap = node('div', null, 'alliance-sgd-protein');
 		el.appendChild(wrap);
 		if (geneId === undefined || geneId === null || geneId === '') {
-			wrap.appendChild(node('p', 'No gene selected', 'agr-empty'));
+			wrap.appendChild(statusNode('No gene selected', 'agr-empty'));
 			return;
 		}
-		wrap.appendChild(node('p', 'Loading...', 'agr-loading'));
+		wrap.appendChild(statusNode('Loading...', 'agr-loading'));
 		var base = backendBaseOf(config);
 
 		postRows(serviceRoot(service.root), buildQuery(geneId))
@@ -313,12 +391,12 @@
 				var r = rows[0];
 				clear(wrap);
 				if (!r) {
-					wrap.appendChild(node('p', 'Gene not found in this mine', 'agr-empty'));
+					wrap.appendChild(statusNode('Gene not found in this mine', 'agr-empty'));
 					return;
 				}
 				var sgdid = sgdIdOf(r[0], r[1]);
 				if (!sgdid) {
-					wrap.appendChild(node('p', 'SGD data is for budding yeast genes.', 'agr-empty'));
+					wrap.appendChild(statusNode('SGD data is for budding yeast genes.', 'agr-empty'));
 					return;
 				}
 				show(wrap, base, sgdid, stale);
@@ -327,14 +405,14 @@
 				if (stale()) return;
 				console.error('sgd-protein: gene lookup failed', err);
 				clear(wrap);
-				wrap.appendChild(node('p', 'Could not load the gene from the mine', 'agr-error'));
+				wrap.appendChild(statusNode(errorText(err, 'Could not load the gene from the mine'), 'agr-error'));
 			});
 	}
 
 	function section(wrap, title, promise, build, stale) {
 		var holder = node('div');
 		holder.appendChild(node('h4', title));
-		holder.appendChild(node('p', 'Loading...', 'agr-loading'));
+		holder.appendChild(statusNode('Loading...', 'agr-loading'));
 		wrap.appendChild(holder);
 		promise.then(
 			function (json) {
@@ -347,7 +425,7 @@
 				console.error('sgd-protein: ' + title + ' failed', err);
 				clear(holder);
 				holder.appendChild(node('h4', title));
-				holder.appendChild(node('p', 'Could not load ' + title.toLowerCase() + ' from SGD', 'agr-error'));
+				holder.appendChild(statusNode('Could not load ' + title.toLowerCase() + ' from SGD', 'agr-error'));
 			}
 		);
 	}
@@ -363,6 +441,8 @@
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		sgdIdOf: sgdIdOf,

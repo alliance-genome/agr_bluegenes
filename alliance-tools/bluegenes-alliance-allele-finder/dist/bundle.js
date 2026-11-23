@@ -194,7 +194,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-allele-finder');
 		var cls = text === 'Loading...' ? 'agr-loading' : /^Could not/.test(text) ? 'agr-error' : 'agr-empty';
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -204,7 +204,7 @@
 			var a = node('a', id);
 			a.href = PUBMED_URL + encodeURIComponent(id) + '/';
 			a.target = '_blank';
-			a.rel = 'noopener';
+			a.rel = 'noopener noreferrer';
 			a.title = 'PubMed ' + id;
 			cell.appendChild(a);
 		});
@@ -218,7 +218,7 @@
 		if (kind === 'disease') heads.push('Qualifier');
 		heads.push('Publications');
 		var headRow = node('tr');
-		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
+		heads.forEach(function (h) { headRow.appendChild(colHeader(h)); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		table.appendChild(thead);
@@ -263,8 +263,8 @@
 		entries.forEach(function (e) { species[e.species] = true; });
 		var n = Object.keys(species).length;
 		return (
-			countAlleles(entries) + ' alleles with ' + kind + ' annotations, ' +
-			termCounts(entries).length + ' terms, ' + n + ' species'
+			count(countAlleles(entries), 'allele') + ' with ' + kind + ' annotations, ' +
+			count(termCounts(entries).length, 'term') + ', ' + count(n, 'species', 'species')
 		);
 	}
 
@@ -279,7 +279,7 @@
 			byKind[k] = aggregate(all.filter(function (r) { return r.kind === k; }));
 		});
 		if (!byKind.disease.length && !byKind.phenotype.length) {
-			wrap.appendChild(node('p', 'No alleles with disease or phenotype annotations for this gene or its orthologs', 'agr-empty'));
+			wrap.appendChild(statusNode('No alleles with disease or phenotype annotations for this gene or its orthologs', 'agr-empty'));
 			if (gaps.note) wrap.appendChild(node('p', gaps.note, 'agr-note alliance-allele-finder-note'));
 			return;
 		}
@@ -311,7 +311,7 @@
 			clear(summary);
 			summary.textContent = summaryText(entries, state.kind);
 			clear(tableHolder);
-			if (!entries.length) tableHolder.appendChild(node('p', 'No ' + state.kind + ' annotations for this selection', 'agr-empty'));
+			if (!entries.length) tableHolder.appendChild(statusNode('No ' + state.kind + ' annotations for this selection', 'agr-empty'));
 			else tableHolder.appendChild(renderTable(entries, state.kind, navigate));
 		}
 
@@ -378,16 +378,14 @@
 	}
 
 	function fetchPage(serviceRoot, source, kind, geneId, start) {
-		return fetch(resultsUrl(serviceRoot), {
+		return mineFetch(resultsUrl(serviceRoot), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: requestBody(source, kind, geneId, start)
 		})
 			.then(function (res) {
 				if (!res.ok) {
-					var err = new Error('HTTP ' + res.status);
-					err.status = res.status;
-					throw err;
+					throw httpError(res);
 				}
 				return res.json();
 			})
@@ -453,6 +451,89 @@
 		};
 	}
 
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	// "1 gene", "2 genes". many is the plural when it is not the singular plus s.
+	function count(n, one, many) {
+		return n + ' ' + (n === 1 ? one : many || one + 's');
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
+	}
+
 	function main(el, service, imEntity, state, config, navigate) {
 		if (!el || !service || !imEntity) {
 			throw new Error('Call main with correct signature');
@@ -475,11 +556,14 @@
 			.catch(function (err) {
 				console.error('allele-finder: load failed', err);
 				if (el.__agrAlleleFinderReq !== token) return;
-				message(el, 'Could not load alleles from the mine');
+				message(el, errorText(err, 'Could not load alleles from the mine'));
 			});
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		count: count,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		buildQuery: buildQuery,

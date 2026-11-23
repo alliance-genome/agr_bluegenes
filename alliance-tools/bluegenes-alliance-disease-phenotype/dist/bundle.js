@@ -159,13 +159,13 @@
 	function fetchRows(serviceRoot, queryXml) {
 		var body =
 			'format=json&size=' + MAX_ROWS + '&query=' + encodeURIComponent(queryXml);
-		return fetch(serviceRoot.replace(/\/+$/, '') + '/query/results', {
+		return mineFetch(serviceRoot.replace(/\/+$/, '') + '/query/results', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body: body
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) throw httpError(res);
 				return res.json();
 			})
 			.then(function (json) {
@@ -328,7 +328,7 @@
 		a.className = 'agr-external';
 		a.href = href;
 		a.target = '_blank';
-		a.rel = 'noopener';
+		a.rel = 'noopener noreferrer';
 		return a;
 	}
 
@@ -393,7 +393,9 @@
 		var cols = showGene ? ['Gene'].concat(headers) : headers;
 		// The last column is the annotation count.
 		cols.forEach(function (h, i) {
-			headRow.appendChild(make('th', i === cols.length - 1 ? 'num' : null, h));
+			var th = make('th', i === cols.length - 1 ? 'num' : null, h);
+			th.setAttribute('scope', 'col');
+			headRow.appendChild(th);
 		});
 		var thead = make('thead');
 		thead.appendChild(headRow);
@@ -430,7 +432,7 @@
 				box.appendChild(make('p', 'agr-note', 'Showing first ' + MAX_ROWS + ' rows, results are incomplete'));
 			}
 			if (groups.length === 0) {
-				box.appendChild(make('p', 'agr-empty', kind.empty));
+				box.appendChild(make('p', 'agr-empty', showGene ? kind.empty.replace('this gene', 'these genes') : kind.empty));
 				return;
 			}
 			var limit = expanded ? groups.length : COLLAPSE_AFTER;
@@ -450,7 +452,7 @@
 	function showMessage(box, title, text, className) {
 		clear(box);
 		box.appendChild(make('h4', null, title));
-		box.appendChild(make('p', className, text));
+		box.appendChild(statusNode(text, className));
 	}
 
 	var DISEASE_KIND = {
@@ -477,10 +479,82 @@
 				if (el.__agrReq !== token) return;
 				renderSection(box, kind, kind.group(rows), ids.length > 1, rows.length >= MAX_ROWS);
 			})
-			.catch(function () {
+			.catch(function (err) {
 				if (el.__agrReq !== token) return;
-				showMessage(box, kind.title, 'Could not load ' + kind.title.toLowerCase() + ' annotations from the mine', 'agr-error');
+				showMessage(box, kind.title, errorText(err, 'Could not load ' + kind.title.toLowerCase() + ' annotations from the mine'), 'agr-error');
 			});
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = make('p', cls, text);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity) {
@@ -514,6 +588,8 @@
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		errorText: errorText,
 		main: main, serviceRoot: serviceRoot,
 		entityIds: entityIds,
 		buildDiseaseQuery: buildDiseaseQuery,

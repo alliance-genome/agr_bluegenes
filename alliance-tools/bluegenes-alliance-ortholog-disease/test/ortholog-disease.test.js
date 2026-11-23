@@ -82,7 +82,7 @@ test('failure of the main query shows a short message and logs', async () => {
 		const el = document.createElement('div');
 		tool.main(el, { root: ROOT }, { Gene: { value: 1 } }, {}, {}, () => {});
 		await tick();
-		assert.strictEqual(text(el), 'Could not load disease annotations from the mine');
+		assert.strictEqual(text(el), 'Could not load disease annotations from the mine (HTTP 500)');
 		assert.ok(logged.length >= 1);
 	} finally {
 		console.error = orig;
@@ -173,4 +173,8 @@ test('buildQuery escapes qualifier values into a NONE OF constraint', () => {
 test('serviceRoot appends /service once', () => {
 	assert.strictEqual(tool.serviceRoot(ROOT), ROOT + '/service');
 	assert.strictEqual(tool.serviceRoot(ROOT + '/service/'), ROOT + '/service');
+});
+
+test('config.json accepts both id and ids so list pages reach the list branch', () => {
+	assert.deepStrictEqual(require('../config.json').accepts, ['id', 'ids']);
 });

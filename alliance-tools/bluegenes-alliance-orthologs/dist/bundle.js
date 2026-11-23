@@ -16,6 +16,7 @@
 
 	var ALLIANCE_GENE_URL = 'https://www.alliancegenome.org/gene/';
 	var MAX_ROWS = 2000;
+	var ID_CHUNK = 200;
 	var VIEW = [
 		'Gene.primaryIdentifier',
 		'Gene.homologues.homologue.id',
@@ -223,13 +224,19 @@
 	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-orthologs');
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
 	function support(row) {
 		if (row.match == null || row.attempted == null) return '';
 		return row.match + '/' + row.attempted;
+	}
+
+	var CSV_HEADER = ['Query gene', 'Species', 'Symbol', 'Identifier', 'Algorithms matched', 'Algorithms attempted', 'Best', 'Best reverse'];
+
+	function csvRow(r) {
+		return [r.source, r.species || '', r.symbol || '', r.identifier || '', r.match == null ? '' : r.match, r.attempted == null ? '' : r.attempted, r.best ? 'yes' : 'no', r.bestReverse ? 'yes' : 'no'];
 	}
 
 	// view is the columns that were queried; the Algorithms and Best columns are shown only when queried.
@@ -240,7 +247,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-orthologs');
 		if (!rows.length) {
-			wrap.appendChild(node('p', 'No orthologs for this gene', 'agr-empty'));
+			wrap.appendChild(statusNode(multi ? 'No orthologs for these genes' : 'No orthologs for this gene', 'agr-empty'));
 			el.appendChild(wrap);
 			return;
 		}
@@ -249,10 +256,13 @@
 			.map(function (g) { return g.species + ' ' + g.rows.length; })
 			.join(', ');
 		wrap.appendChild(
-			node('p', rows.length + ' orthologs in ' + groups.length + ' species: ' + summary, 'alliance-orthologs-summary')
+			node('p', count(rows.length, 'ortholog') + ' in ' + count(groups.length, 'species', 'species') + ': ' + summary, 'alliance-orthologs-summary')
 		);
-		if (truncated) wrap.appendChild(node('p', 'Showing the first ' + MAX_ROWS + ' orthologs.', 'agr-note'));
+		if (truncated) wrap.appendChild(node('p', 'The mine returned ' + MAX_ROWS + ' rows, the limit for one request, so the list is incomplete.', 'agr-note'));
 
+		var toolbar = node('div', null, 'agr-filter-bar');
+		toolbar.appendChild(csvButton('orthologs.csv', CSV_HEADER, groups.reduce(function (acc, g) { return acc.concat(g.rows.map(csvRow)); }, [])));
+		wrap.appendChild(toolbar);
 		var tableWrap = node('div', null, 'agr-table-wrap');
 		var table = node('table', null, 'agr-table agr-table-sm');
 		var headRow = node('tr');
@@ -260,7 +270,7 @@
 		if (showAlgorithms) heads.push('Algorithms');
 		if (showBest) heads.push('Best');
 		if (multi) heads.unshift('Query gene');
-		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
+		heads.forEach(function (h) { headRow.appendChild(colHeader(h)); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		table.appendChild(thead);
@@ -289,7 +299,7 @@
 					var ext = node('a', 'Alliance', 'agr-external');
 					ext.href = alliance(curie);
 					ext.target = '_blank';
-					ext.rel = 'noopener';
+					ext.rel = 'noopener noreferrer';
 					ext.title = 'View ' + curie + ' on the Alliance of Genome Resources';
 					idCell.appendChild(ext);
 				}
@@ -312,19 +322,145 @@
 		el.appendChild(wrap);
 	}
 
+	// One request per chunk of ids, run in sequence so the mine is not hit in parallel.
+	// truncated is true when any chunk came back at the row limit, judged on the raw rows before de-duplication.
 	function fetchRows(serviceRoot, ids, view) {
-		return fetch(resultsUrl(serviceRoot), {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-			body: requestBody(ids, view)
-		})
-			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
-				return res.json();
-			})
-			.then(function (json) {
-				return dedupeRows(((json && json.results) || []).map(function (r) { return toRow(r, view); }));
+		var parts = [];
+		for (var i = 0; i < ids.length; i += ID_CHUNK) parts.push(ids.slice(i, i + ID_CHUNK));
+		var raw = [];
+		var truncated = false;
+		return parts
+			.reduce(function (chain, part) {
+				return chain.then(function () {
+					return mineFetch(resultsUrl(serviceRoot), {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+						body: requestBody(part, view)
+					})
+						.then(function (res) {
+							if (!res.ok) throw httpError(res);
+							return res.json();
+						})
+						.then(function (json) {
+							var results = (json && json.results) || [];
+							if (results.length >= MAX_ROWS) truncated = true;
+							results.forEach(function (r) { raw.push(toRow(r, view)); });
+						});
+				});
+			}, Promise.resolve())
+			.then(function () {
+				return { rows: dedupeRows(raw), truncated: truncated };
 			});
+	}
+
+	function csvCell(v) {
+		var s = String(v === null || v === undefined ? '' : v);
+		if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+		return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+	}
+
+	function toCsv(header, rows) {
+		return [header].concat(rows).map(function (l) { return l.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+	}
+
+	function download(text, filename) {
+		var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+		var url = URL.createObjectURL(blob);
+		var a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function csvButton(filename, header, rows) {
+		var b = node('button', 'Download CSV', 'agr-btn agr-btn-sm');
+		b.type = 'button';
+		b.addEventListener('click', function () { download(toCsv(header, rows), filename); });
+		return b;
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	// "1 gene", "2 genes". many is the plural when it is not the singular plus s.
+	function count(n, one, many) {
+		return n + ' ' + (n === 1 ? one : many || one + 's');
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -345,17 +481,23 @@
 		message(el, 'Loading orthologs', 'agr-loading');
 		var view = viewFor(service);
 		fetchRows(serviceRoot(service.root), list, view)
-			.then(function (rows) {
+			.then(function (result) {
 				if (el.__agrOrthReq !== token) return;
-				render(el, rows, navigate, list.length > 1, rows.length >= MAX_ROWS, view);
+				render(el, result.rows, navigate, list.length > 1, result.truncated, view);
 			})
-			.catch(function () {
+			.catch(function (err) {
 				if (el.__agrOrthReq !== token) return;
-				message(el, 'Could not load orthologs from the mine', 'agr-error');
+				message(el, errorText(err, 'Could not load orthologs from the mine'), 'agr-error');
 			});
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		count: count,
+		toCsv: toCsv,
+		csvRow: csvRow,
+		CSV_HEADER: CSV_HEADER,
+		errorText: errorText,
 		main: main, serviceRoot: serviceRoot,
 		buildQuery: buildQuery,
 		resultsUrl: resultsUrl,

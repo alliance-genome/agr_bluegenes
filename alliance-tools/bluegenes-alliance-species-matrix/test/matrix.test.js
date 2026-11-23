@@ -65,7 +65,7 @@ test('main renders grid, aria labels, notes and detail on click', async () => {
 	const text = el.textContent;
 	assert.ok(text.includes('H. sapiens') && text.includes('M. musculus'));
 	assert.ok(text.includes('MP, WBPhenotype, FBcv, ZP, HP'));
-	const buttons = el.find('button');
+	const buttons = el.find('td').flatMap((td) => td.find('button'));
 	assert.deepStrictEqual(buttons.map((b) => b.textContent), ['0 / 0', '1 / 1', '1 / 0']);
 	assert.ok(buttons[2].attrs['aria-label'].includes('Trp53'));
 	buttons[2].listeners.click();
@@ -106,4 +106,43 @@ test('a stale response does not overwrite a newer call', async () => {
 	el.__agrMatrixReq += 1;
 	await tick();
 	assert.ok(el.textContent.includes('Loading...'));
+});
+
+test('chunked queries run one after another', async () => {
+	let inFlight = 0;
+	let overlap = false;
+	const chunks = [];
+	globalThis.fetch = async (url, init) => {
+		const q = decodeURIComponent(init.body.split('query=')[1]);
+		let results = [];
+		if (q.includes('view="Organism.shortName"')) results = [['H. sapiens'], ['M. musculus']];
+		else if (q.includes('view="Gene.id')) results = [[1, 'HGNC:1', 'TP53', 'H. sapiens']];
+		else if (q.includes('Homologue.gene.id')) results = Array.from({ length: 400 }, (_, i) => [1, 1000 + i, 'g' + i, 'MGI:' + i, 'M. musculus']);
+		else if (q.includes('PhenotypeAnnotation')) chunks.push((q.match(/<value>/g) || []).length);
+		if (++inFlight > 1) overlap = true;
+		await tick();
+		inFlight--;
+		return { ok: true, json: async () => ({ results }) };
+	};
+	const el = document.createElement('div');
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [1] } }, {}, {}, () => {});
+	await new Promise((r) => setTimeout(r, 200));
+	assert.deepStrictEqual(chunks, [300, 101]);
+	assert.strictEqual(overlap, false);
+});
+
+test('Download CSV lists every gene and species cell', async () => {
+	stubFetch([]);
+	const el = document.createElement('div');
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [1, 5] } }, {}, {}, () => {});
+	await tick();
+	assert.ok(el.find('button').some((b) => b.textContent === 'Download CSV'));
+	const genes = [{ id: 1, identifier: 'HGNC:1', symbol: 'TP53', species: 'H. sapiens' }];
+	const model = tool.buildMatrix(genes, [[1, 2, 'Trp53', 'MGI:2', 'M. musculus']], [[1, 'p0'], [2, 'p1']], [[1, 'is_implicated_in', 'd0']]);
+	const csv = tool.toCsv(tool.CSV_HEADER, tool.matrixCsvRows(genes, ['H. sapiens', 'M. musculus'], model, false)).split('\r\n');
+	assert.deepStrictEqual(csv.slice(0, 3), [
+		'Gene,Species,Phenotype annotations,Direct disease annotations,Genes in species',
+		'TP53,H. sapiens,1,1,TP53',
+		'TP53,M. musculus,1,0,Trp53'
+	]);
 });

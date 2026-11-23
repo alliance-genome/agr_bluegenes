@@ -138,12 +138,12 @@
 		var body = Object.keys(params)
 			.map(function (k) { return k + '=' + encodeURIComponent(params[k]); })
 			.join('&');
-		return fetch(sr.replace(/\/+$/, '') + '/query/results', {
+		return mineFetch(sr.replace(/\/+$/, '') + '/query/results', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
 		}).then(function (res) {
-			if (!res.ok) throw new Error('HTTP ' + res.status);
+			if (!res.ok) throw httpError(res);
 			return res.json();
 		});
 	}
@@ -191,7 +191,7 @@
 	 *   listAnnotations rows: [geneId, termId, identifier, name, qualifier]
 	 *   background rows: [geneId, identifier, qualifier]
 	 * opts: { includeNegated }
-	 * Returns all tested terms sorted by p, each with fdr; callers filter on fdr.
+	 * Returns all terms sorted by p, each with fdr; terms with incomplete counts come last with p and fdr null.
 	 */
 	function compute(data, opts) {
 		var includeNegated = !!(opts && opts.includeNegated);
@@ -201,7 +201,9 @@
 		data.listAnnotations.forEach(function (r) {
 			if (r[2] != null && !info[r[2]]) info[r[2]] = { id: r[1], name: r[3] };
 		});
+		var truncated = data.truncated || {};
 		var out = Object.keys(list).map(function (ident) {
+			var incomplete = !!(data.listCapped || truncated[ident]);
 			var k = Object.keys(list[ident]).length;
 			var K = Math.max(back[ident] ? Object.keys(back[ident]).length : 0, k);
 			return {
@@ -212,17 +214,58 @@
 				n: data.n,
 				K: K,
 				N: data.N,
-				fold: data.n > 0 && K > 0 && data.N > 0 ? (k / data.n) / (K / data.N) : null,
-				p: hypergeomUpperTail(k, data.n, K, data.N)
+				incomplete: incomplete,
+				fold: !incomplete && data.n > 0 && K > 0 && data.N > 0 ? (k / data.n) / (K / data.N) : null,
+				p: incomplete ? null : hypergeomUpperTail(k, data.n, K, data.N)
 			};
 		});
-		var fdr = benjaminiHochberg(out.map(function (t) { return t.p; }));
-		out.forEach(function (t, i) { t.fdr = fdr[i]; });
-		out.sort(function (a, b) { return a.p - b.p || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0); });
+		// Terms whose counts were cut off by the row limit have no valid p; BH runs over the complete terms only.
+		var complete = out.filter(function (t) { return !t.incomplete; });
+		var fdr = benjaminiHochberg(complete.map(function (t) { return t.p; }));
+		complete.forEach(function (t, i) { t.fdr = fdr[i]; });
+		out.forEach(function (t) { if (t.incomplete) t.fdr = null; });
+		out.sort(function (a, b) {
+			if (a.incomplete !== b.incomplete) return a.incomplete ? 1 : -1;
+			var an = a.name || a.identifier;
+			var bn = b.name || b.identifier;
+			return (a.p || 0) - (b.p || 0) || (an < bn ? -1 : an > bn ? 1 : 0);
+		});
 		return out;
 	}
 
 	// ---- loading ----
+
+	var TERM_CHUNK = 200;
+
+	// Background rows for the terms, fetched in chunks one after another. A chunk that hits the row limit is split;
+	// a single term that still hits it is reported in truncated, because its gene count is incomplete.
+	function backgroundRows(sr, organisms, termList, truncated) {
+		function fetchTerms(terms) {
+			return rows(sr, backgroundQuery(organisms, terms)).then(function (b) {
+				if (b.length < MAX_ROWS) return b;
+				if (terms.length === 1) {
+					truncated[terms[0]] = true;
+					return b;
+				}
+				var mid = Math.ceil(terms.length / 2);
+				return fetchTerms(terms.slice(0, mid)).then(function (first) {
+					return fetchTerms(terms.slice(mid)).then(function (second) { return first.concat(second); });
+				});
+			});
+		}
+		var all = [];
+		var chain = Promise.resolve();
+		for (var i = 0; i < termList.length; i += TERM_CHUNK) {
+			chain = chain.then(
+				function (chunk) {
+					return function () {
+						return fetchTerms(chunk).then(function (b) { all = all.concat(b); });
+					};
+				}(termList.slice(i, i + TERM_CHUNK))
+			);
+		}
+		return chain.then(function () { return all; });
+	}
 
 	function load(sr, ids) {
 		return Promise.all([rows(sr, listGenesQuery(ids)), rows(sr, listAnnotationsQuery(ids))]).then(function (res) {
@@ -234,19 +277,25 @@
 			var terms = {};
 			annotations.forEach(function (r) { if (r[2] != null) terms[r[2]] = true; });
 			var termList = Object.keys(terms).sort();
-			var base = { n: genes.length, N: 0, organisms: organisms, listAnnotations: annotations, background: [] };
-			if (!organisms.length || !termList.length) {
-				base.capped = false;
-				return base;
-			}
-			return Promise.all([
-				organismCounts(sr, organisms),
-				rows(sr, backgroundQuery(organisms, termList))
-			]).then(function (bg) {
-				base.N = bg[0];
-				base.background = bg[1];
-				base.capped = bg[1].length >= MAX_ROWS || annotations.length >= MAX_ROWS;
-				return base;
+			var listCapped = annotations.length >= MAX_ROWS;
+			var base = {
+				n: genes.length,
+				N: 0,
+				organisms: organisms,
+				listAnnotations: annotations,
+				background: [],
+				listCapped: listCapped,
+				truncated: {},
+				capped: listCapped
+			};
+			if (!organisms.length || !termList.length) return base;
+			return organismCounts(sr, organisms).then(function (total) {
+				base.N = total;
+				return backgroundRows(sr, organisms, termList, base.truncated).then(function (b) {
+					base.background = b;
+					if (Object.keys(base.truncated).length) base.capped = true;
+					return base;
+				});
 			});
 		});
 	}
@@ -267,13 +316,26 @@
 	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-disease-enrichment');
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
 	function formatP(p) {
 		if (p === 0) return '0';
 		return p < 0.001 ? p.toExponential(2) : p.toFixed(4);
+	}
+
+	var TOP_ROWS = 10;
+	var CSV_HEADER = ['Term', 'Identifier', 'k', 'n', 'K', 'N', 'Fold', 'p', 'FDR', 'Counts complete'];
+
+	function csvRow(t) {
+		return [
+			t.name || '', t.identifier, t.k, t.n, t.K, t.N,
+			t.fold == null ? '' : t.fold,
+			t.p == null ? '' : t.p,
+			t.fdr == null ? '' : t.fdr,
+			t.incomplete ? 'no' : 'yes'
+		];
 	}
 
 	function render(el, data, navigate, opts) {
@@ -308,40 +370,44 @@
 		negInput.addEventListener('change', update);
 
 		var results = compute(data, opts);
-		var shown = results.filter(function (t) { return t.fdr <= opts.maxFdr; });
+		var shown = results.filter(function (t) { return t.incomplete || t.fdr <= opts.maxFdr; });
+		var tested = results.filter(function (t) { return !t.incomplete; }).length;
 
 		var summary = node('p', null, 'alliance-disease-enrichment-background');
-		summary.appendChild(document.createTextNode('Background: all ' + data.N + ' genes of '));
+		summary.appendChild(document.createTextNode('Background: all ' + count(data.N, 'gene') + ' of '));
 		data.organisms.forEach(function (o, i) {
 			if (i > 0) summary.appendChild(document.createTextNode(', '));
 			summary.appendChild(node('em', o));
 		});
 		summary.appendChild(document.createTextNode(
-			' in this mine. List: ' + data.n + ' genes. ' +
-				results.length + ' terms tested, ' + shown.length + ' with FDR <= ' + opts.maxFdr + '.'
+			' in this mine. List: ' + count(data.n, 'gene') + '. ' +
+				count(tested, 'term') + ' tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.'
 		));
 		wrap.appendChild(summary);
 		wrap.appendChild(controls);
-		if (data.capped) {
-			wrap.appendChild(node('p', 'Result limit reached, counts may be incomplete.', 'agr-note'));
+		if (data.listCapped) {
+			wrap.appendChild(node('p', 'Result limit reached for the list annotations: counts are incomplete, p and FDR are not shown.', 'agr-error alliance-disease-enrichment-capped'));
+		} else if (data.capped) {
+			wrap.appendChild(node('p', 'Result limit reached for some terms: their background counts are incomplete, so p and FDR are not shown for them.', 'agr-error alliance-disease-enrichment-capped'));
 		}
 
 		var note = node('p', 'Hypergeometric upper-tail test with Benjamini-Hochberg FDR. k/n is the list genes with the term, K/N the background genes with the term.', 'agr-note');
 		if (!shown.length) {
-			wrap.appendChild(node('p', 'No enriched disease terms at this FDR', 'agr-empty'));
+			wrap.appendChild(statusNode('No enriched disease terms at this FDR', 'agr-empty'));
 			wrap.appendChild(note);
 			el.appendChild(wrap);
 			return;
 		}
 
+		var visible = opts.showAll ? shown : shown.slice(0, TOP_ROWS);
 		var table = node('table', null, 'agr-table agr-table-sm');
 		var thead = node('thead');
 		var hr = node('tr');
-		['Disease term', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h, i) { hr.appendChild(node('th', h, i ? 'num' : null)); });
+		['Disease term', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h, i) { hr.appendChild(colHeader(h, i ? 'num' : null)); });
 		thead.appendChild(hr);
 		table.appendChild(thead);
 		var tbody = node('tbody');
-		shown.forEach(function (t) {
+		visible.forEach(function (t) {
 			var tr = node('tr');
 			var cell = node('td');
 			var a = node('a', t.name || t.identifier);
@@ -354,18 +420,140 @@
 			cell.appendChild(a);
 			tr.appendChild(cell);
 			tr.appendChild(node('td', t.k + '/' + t.n, 'num'));
-			tr.appendChild(node('td', t.K + '/' + t.N, 'num'));
+			tr.appendChild(node('td', t.incomplete ? '>=' + t.K + '/' + t.N : t.K + '/' + t.N, 'num'));
 			tr.appendChild(node('td', t.fold == null ? '' : t.fold.toFixed(2), 'num'));
-			tr.appendChild(node('td', formatP(t.p), 'num'));
-			tr.appendChild(node('td', formatP(t.fdr), 'num'));
+			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.p), 'num'));
+			tr.appendChild(node('td', t.incomplete ? 'n/a' : formatP(t.fdr), 'num'));
 			tbody.appendChild(tr);
 		});
 		table.appendChild(tbody);
 		var tableWrap = node('div', null, 'agr-table-wrap');
 		tableWrap.appendChild(table);
+		var toolbar = node('div', null, 'agr-filter-bar');
+		toolbar.appendChild(csvButton('disease-enrichment.csv', CSV_HEADER, shown.map(csvRow)));
+		if (shown.length > TOP_ROWS) {
+			var more = node('button', opts.showAll ? 'Show top ' + TOP_ROWS : 'Show all ' + shown.length, 'agr-btn agr-btn-sm');
+			more.type = 'button';
+			more.addEventListener('click', function () {
+				opts.showAll = !opts.showAll;
+				render(el, data, navigate, opts);
+			});
+			toolbar.appendChild(more);
+		}
+		wrap.appendChild(toolbar);
 		wrap.appendChild(tableWrap);
 		wrap.appendChild(note);
 		el.appendChild(wrap);
+	}
+
+	function csvCell(v) {
+		var s = String(v === null || v === undefined ? '' : v);
+		if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+		return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+	}
+
+	function toCsv(header, rows) {
+		return [header].concat(rows).map(function (l) { return l.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+	}
+
+	function download(text, filename) {
+		var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+		var url = URL.createObjectURL(blob);
+		var a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function csvButton(filename, header, rows) {
+		var b = node('button', 'Download CSV', 'agr-btn agr-btn-sm');
+		b.type = 'button';
+		b.addEventListener('click', function () { download(toCsv(header, rows), filename); });
+		return b;
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	// "1 gene", "2 genes". many is the plural when it is not the singular plus s.
+	function count(n, one, many) {
+		return n + ' ' + (n === 1 ? one : many || one + 's');
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -396,11 +584,17 @@
 			.catch(function (err) {
 				console.error('Disease enrichment failed', err);
 				if (el.__agrEnrichReq !== token) return;
-				message(el, 'Could not compute disease enrichment from the mine', 'agr-error');
+				message(el, errorText(err, 'Could not compute disease enrichment from the mine'), 'agr-error');
 			});
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		count: count,
+		toCsv: toCsv,
+		csvRow: csvRow,
+		CSV_HEADER: CSV_HEADER,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		hypergeomUpperTail: hypergeomUpperTail,

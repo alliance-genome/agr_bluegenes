@@ -211,3 +211,29 @@ test('a one-element list behaves like a single gene', async () => {
 	assert.strictEqual(el.find('h4').length, 0);
 	assert.strictEqual(el.find('tr').length, 3);
 });
+
+test('config.json accepts both id and ids so list pages reach the list branch', () => {
+	assert.deepStrictEqual(require('../config.json').accepts, ['id', 'ids']);
+});
+
+test('the requests for a list of genes never overlap', async () => {
+	let inFlight = 0;
+	let overlap = false;
+	const h = handlers();
+	h['Gene.symbol'] = () => ok([[1, 'Brca1'], [2, 'Atm'], [3, 'Tp53']]);
+	const route = router(h, []);
+	globalThis.fetch = async (url, init) => {
+		if (++inFlight > 1) overlap = true;
+		await tick(1);
+		try {
+			return await route(url, init);
+		} finally {
+			inFlight--;
+		}
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [1, 2, 3] } }, {}, {}, () => {});
+	await tick(200);
+	assert.strictEqual(el.find('h4').length, 3);
+	assert.strictEqual(overlap, false);
+});

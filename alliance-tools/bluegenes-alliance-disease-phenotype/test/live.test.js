@@ -31,6 +31,10 @@ class Node_ {
 		return this._text;
 	}
 	addEventListener() {}
+	setAttribute(name, value) {
+		this.attrs = this.attrs || {};
+		this.attrs[name] = String(value);
+	}
 }
 global.document = { createElement: (t) => new Node_(t) };
 

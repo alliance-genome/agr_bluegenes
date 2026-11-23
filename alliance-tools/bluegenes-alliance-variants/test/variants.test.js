@@ -192,7 +192,7 @@ test('main logs and shows a message when the mine query fails', async () => {
 	await tick();
 	console.error = orig;
 	assert.strictEqual(errors.length, 1);
-	assert.ok(texts(el, 'p').includes('Could not load the gene from the mine'));
+	assert.ok(texts(el, 'p').includes('Could not load the gene from the mine (HTTP 500)'));
 });
 
 test('main says so when the species has no Alliance identifier', async () => {

@@ -28,6 +28,10 @@ class FakeNode {
 		return this._text + this.children.map((c) => c.textContent).join('');
 	}
 	addEventListener() {}
+	setAttribute(name, value) {
+		this.attrs = this.attrs || {};
+		this.attrs[name] = String(value);
+	}
 }
 global.document = { createElement: (tag) => new FakeNode(tag) };
 const tool = require('../dist/bundle.js');
