@@ -1,14 +1,19 @@
 {
-  "accepts": ["id", "ids"],
-  "classes": ["Gene"],
+  "accepts": [
+    "id",
+    "ids"
+  ],
+  "classes": [
+    "Gene"
+  ],
+  "threshold": 500,
   "depends": [
     "Gene.primaryIdentifier",
     "Gene.symbol",
+    "Gene.organism.shortName",
     "Gene.diseaseAnnotation.id",
+    "Gene.diseaseAnnotation.ontologyTerm.identifier",
     "Gene.diseaseAnnotation.ontologyTerm.name",
-    "Gene.diseaseAnnotation.slimTerms.name",
-    "Gene.diseaseAnnotation.evidenceType",
-    "Gene.diseaseAnnotation.viaOrthologyOrder",
     "Gene.diseaseAnnotation.qualifier",
     "Gene.diseaseAnnotation.evidence.code.code",
     "Gene.diseaseAnnotation.evidence.publications.pubMedId"
