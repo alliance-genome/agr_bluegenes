@@ -836,6 +836,17 @@ test('the gene matrix view shows one row per gene and loads cell details', async
 	assert.ok(el.find('button').some((b) => b.textContent === 'Show term list'));
 });
 
+test('the gene matrix leaves out genes the API could not map', async () => {
+	const rows = setRows(3);
+	globalThis.fetch = setNet({ rows, log: [], unmapped: ['HGNC:1001'] });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await settle(60);
+	el.find('button').find((b) => b.textContent === 'Show gene matrix').listeners.click();
+	assert.strictEqual(el.find('tbody').pop().find('tr').length, 2);
+	assert.ok(!el.textContent.includes('G1 (H. sapiens)'));
+});
+
 test('geneMatrixCsv has one row per gene with data and a column per slim term', () => {
 	const genes = [
 		{ curie: RIBBON.subjects[0].id, symbol: 'TP53', species: 'H. sapiens' },

@@ -891,10 +891,16 @@
 			var status = renderTermGenes(details, t, canSave ? function () { saveTerm(context, t, status, found > genes.length ? found : 0); } : null);
 		}
 
+		function matrixRows() {
+			var have = {};
+			acc.subjects.forEach(function (s) { have[s.id] = true; });
+			return genes.filter(function (g) { return have[g.curie]; }).slice(0, MATRIX_ROWS);
+		}
+
 		function showCell(row, col, data) {
 			var mine = ++cellSeq;
 			selectedCell = { curie: row.curie, key: col.key };
-			renderGrid(body, genes.slice(0, MATRIX_ROWS), acc, showCell, selectedCell);
+			renderGrid(body, matrixRows(), acc, showCell, selectedCell);
 			loadCellDetails(base, details, row, col, data, function () { return !stale() && mine === cellSeq; });
 		}
 
@@ -903,7 +909,7 @@
 			cellSeq++;
 			if (view === 'matrix') {
 				selectedCell = null;
-				renderGrid(body, genes.slice(0, MATRIX_ROWS), acc, showCell, null);
+				renderGrid(body, matrixRows(), acc, showCell, null);
 			} else {
 				selectedTerm = null;
 				renderSummary(body, aspects, showTerm, null);
