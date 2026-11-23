@@ -6,6 +6,9 @@ class Node {
 		this.children = [];
 		this._text = '';
 		this.listeners = {};
+		this.style = {};
+		this.attrs = {};
+		this.value = '';
 	}
 	set textContent(v) { this._text = String(v); this.children = []; }
 	get textContent() { return this._text + this.children.map((c) => c.textContent).join(''); }
@@ -13,6 +16,7 @@ class Node {
 	appendChild(c) { this.children.push(c); return c; }
 	removeChild(c) { this.children.splice(this.children.indexOf(c), 1); return c; }
 	addEventListener(t, f) { this.listeners[t] = f; }
+	setAttribute(k, v) { this.attrs[k] = v; }
 	find(tag, out = []) {
 		if (this.tag === tag) out.push(this);
 		this.children.forEach((c) => c.find && c.find(tag, out));

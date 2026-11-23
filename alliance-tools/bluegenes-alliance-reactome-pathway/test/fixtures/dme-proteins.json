@@ -1,0 +1,10 @@
+{"modelName":"genomic","columnHeaders":["Gene > Id","Gene > Proteins > Primary Accession"],"rootClass":"Gene","start":0,"views":["Gene.id","Gene.proteins.primaryAccession"],"results":[
+[44320090,"P18824"],
+[44320090,"P18824-2"],
+[44323365,"A0A126GV30"],
+[44323365,"P91667"],
+[44323365,"Q9VAS9"],
+[44326963,"Q9VYK8"],
+[44348597,"Q8MRH4"],
+[44348597,"Q9VJ12"]
+],"executionTime":"2026.11.23 14:32::32","wasSuccessful":true,"error":null,"statusCode":200}

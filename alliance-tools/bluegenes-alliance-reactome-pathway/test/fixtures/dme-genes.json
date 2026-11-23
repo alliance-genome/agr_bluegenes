@@ -1,0 +1,6 @@
+{"modelName":"genomic","columnHeaders":["Pathway > Id","Pathway > Identifier","Pathway > Genes > Id","Pathway > Genes > Standard Name"],"rootClass":"Pathway","start":0,"views":["Pathway.id","Pathway.identifier","Pathway.genes.id","Pathway.genes.symbol"],"results":[
+[131003950,"R-DME-109581",44348597,"Acn"],
+[131003950,"R-DME-109581",44323365,"Apc"],
+[131003950,"R-DME-109581",44320090,"arm"],
+[131003950,"R-DME-109581",44326963,"Aven"]
+],"executionTime":"2026.11.23 14:32::32","wasSuccessful":true,"error":null,"statusCode":200}
