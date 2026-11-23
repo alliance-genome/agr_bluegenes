@@ -381,6 +381,32 @@ test('an empty result falls back to the plain message when the count fails', asy
 	assert.ok(/No interactions among these genes/.test(el.textContent));
 });
 
+test('the request timer is cleared when the response parser throws', async () => {
+	const live = new Set();
+	const realSet = globalThis.setTimeout;
+	const realClear = globalThis.clearTimeout;
+	globalThis.setTimeout = (f, ms, ...a) => {
+		const id = realSet(() => { live.delete(id); f(...a); }, ms);
+		if (ms === tool.settings.timeoutMs) live.add(id);
+		return id;
+	};
+	globalThis.clearTimeout = (id) => { live.delete(id); realClear(id); };
+	try {
+		mock((n) => (n === 1 ? { rows: [] } : { text: '0' }));
+		const base = globalThis.fetch;
+		globalThis.fetch = (url, opts) => base(url, opts).then((res) => (
+			/format=count/.test(String(opts.body)) ? Object.assign({}, res, { text: () => { throw new Error('boom'); } }) : res
+		));
+		start();
+		await wait(40);
+		assert.strictEqual(live.size, 0);
+	} finally {
+		live.forEach((id) => realClear(id));
+		globalThis.setTimeout = realSet;
+		globalThis.clearTimeout = realClear;
+	}
+});
+
 test('a result of self rows only is shown, not reported as empty', async () => {
 	mock(() => ({ rows: [ROWS[5]] }));
 	const el = start();

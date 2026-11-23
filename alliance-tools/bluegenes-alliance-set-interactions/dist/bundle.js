@@ -100,7 +100,7 @@
 					clearTimeout(timer);
 					throw httpError(res.status);
 				}
-				return parse(res).then(
+				return new Promise(function (resolve) { resolve(parse(res)); }).then(
 					function (v) { clearTimeout(timer); return v; },
 					function (err) { clearTimeout(timer); throw err; }
 				);
