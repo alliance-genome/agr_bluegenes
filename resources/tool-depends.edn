@@ -7,7 +7,6 @@
 {:groups
  {"@intermine/bluegenes-cytoscape-interaction-network-viewer" "Annotation"
   "@intermine/bluegenes-disease-expression-arrayexpress-visualizer" "Annotation"
-  "@intermine/bluegenes-esyn-viewer" "Annotation"
   "@intermine/bluegenes-expression-box-swarm-visualizer" "Annotation"
   "@intermine/bluegenes-go-concept-relation" "Annotation"
   "@intermine/bluegenes-go-term-visualizer" "Annotation"
@@ -42,7 +41,14 @@
   "@alliance/bluegenes-alliance-rgd" "Annotation"
   "@alliance/bluegenes-alliance-sgd-protein" "Annotation"
   "@alliance/bluegenes-alliance-species-matrix" "Annotation"
-  "@alliance/bluegenes-alliance-variants" "Annotation"}
+  "@alliance/bluegenes-alliance-variants" "Annotation"
+  "@alliance/bluegenes-alliance-annotation-coverage" "Annotation"
+  "@alliance/bluegenes-alliance-disease-matrix" "Annotation"
+  "@alliance/bluegenes-alliance-expression-heatmap" "Annotation"
+  "@alliance/bluegenes-alliance-literature-digest" "Annotation"
+  "@alliance/bluegenes-alliance-reactome-pathway" "Annotation"
+  "@alliance/bluegenes-alliance-set-interactions" "Annotation"
+  "@alliance/bluegenes-alliance-template-runner" "Other"}
 "@intermine/bluegenes-cytoscape-interaction-network-viewer"
  ["Gene.interactions.participant2.primaryIdentifier"
   "Gene.interactions.participant2.symbol"
@@ -87,9 +93,6 @@
   "Gene.atlasExpression.tStatistic"
   "Gene.atlasExpression.pValue"
   "Gene.atlasExpression.expression"]
-
- "@intermine/bluegenes-esyn-viewer"
- ["Gene.organism.taxonId"]
 
  "@intermine/bluegenes-go-concept-relation"
  ["Gene.organism.shortName"

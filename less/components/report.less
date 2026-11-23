@@ -511,7 +511,28 @@
 .tool-group-heading {
     margin-bottom: var(--agr-space-3);
     border: 1px solid var(--agr-border);
+    padding: 0;
+
+    .tool-group-toggle {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0;
+        padding: var(--agr-space-2) var(--agr-space-3);
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        border-radius: var(--agr-radius);
+
+        &:focus-visible { outline: 2px solid var(--agr-primary); outline-offset: -2px; }
+    }
 }
+
+.tool-error { margin: var(--agr-space-3); }
 
 // Not scoped to report-page as it's also used for tools on results page.
 // Alliance panel: light header, bold title, count badge, chevron, 1px border.

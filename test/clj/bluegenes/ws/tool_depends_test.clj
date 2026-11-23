@@ -1,6 +1,7 @@
 (ns bluegenes.ws.tool-depends-test
   (:require [clojure.test :refer [deftest is testing]]
-            [bluegenes.ws.tool-depends :as td]))
+            [bluegenes.ws.tool-depends :as td]
+            [bluegenes-tool-store.tools :as tools]))
 
 (def overrides {"@intermine/a" ["Gene.pathways.name" "Gene.symbol"]
                 "@intermine/b" ["AtlasExpression"]})
@@ -52,10 +53,29 @@
                                (own-group? %))
                           alliance-dirs))))
     (testing "every official tool has a group"
-      (is (every? #(contains? groups %) (keys (td/load-overrides)))))))
+      (is (every? #(contains? groups %) (keys (td/load-overrides)))))
+    (testing "every group entry names a tool that is shipped"
+      (is (= (set (keys (td/load-overrides)))
+             (set (filter #(.startsWith ^String % "@intermine/") (keys groups)))))
+      (is (empty? (remove (set (map #(str "@alliance/" (.getName ^java.io.File %)) alliance-dirs))
+                          (filter #(.startsWith ^String % "@alliance/") (keys groups))))))))
 
 (deftest bundled-overrides
   (let [m (td/load-overrides)]
-    (is (= 19 (count m)))
+    (is (= 18 (count m)))
     (is (every? #(.startsWith ^String % "@intermine/") (keys m)))
     (is (every? #(and (vector? %) (seq %) (every? string? %)) (vals m)))))
+
+(deftest get-all-tools-applies-overrides-and-groups
+  (with-redefs [tools/get-all-tools
+                (fn [] {:status 200
+                        :body {:tools [(tool "@intermine/bluegenes-pathway-visualizer" nil)
+                                       (tool "@alliance/bluegenes-alliance-disease-matrix" nil)
+                                       (tool "@other/unknown" nil)]}})]
+    (let [{:keys [status body]} (td/get-all-tools)
+          [pathway matrix unknown] (:tools body)]
+      (is (= 200 status))
+      (is (= "Annotation" (get-in pathway [:config :group])))
+      (is (some #{"Gene.pathways.name"} (get-in pathway [:config :depends])))
+      (is (= "Annotation" (get-in matrix [:config :group])))
+      (is (nil? (get-in unknown [:config :group]))))))

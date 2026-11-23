@@ -11,13 +11,49 @@
 (defn greatest-count
   "Returns the greatest count of IDs across all entities."
   [entities]
-  (apply max (map (comp #(if (coll? %) (count %) 1) :value val) entities)))
+  (apply max 0 (map (comp #(if (coll? %) (count %) 1) :value val) entities)))
 
 (defn above-threshold?
   "Returns whether a tool has surpassed its config's `threshold`, or the global
   threshold, for automatic initialisation."
   [{:keys [entity config] :as _tool-details}]
   (> (greatest-count entity) (:threshold config global-threshold)))
+
+(defn threshold-halted?
+  "Whether a tool is held back by its threshold. `overrides` maps a tool's cljs
+  name to the entity the user chose to run it on, so an override ends when the
+  query changes the entity."
+  [overrides {:keys [entity names] :as tool-details}]
+  (and (above-threshold? tool-details)
+       (not= entity (get overrides (:cljs names)))))
+
+(defn threshold-notice
+  "Text telling the user how many ids a halted tool got and what it recommends."
+  [{:keys [entity config]}]
+  (str (.toLocaleString (greatest-count entity) "en-US")
+       " ids, recommended up to "
+       (.toLocaleString (:threshold config global-threshold) "en-US")))
+
+;;; Collapse state ;;;
+
+(defn- string-set [xs]
+  (if (sequential? xs)
+    (into #{} (filter string?) xs)
+    #{}))
+
+(defn sanitize-collapse
+  "Collapse state read back from storage as {:collapsed #{} :collapsed-groups #{}},
+  or nil when it is not a map. Anything that is not a string is dropped."
+  [stored]
+  (when (map? stored)
+    {:collapsed (string-set (:collapsed stored))
+     :collapsed-groups (string-set (:collapsed-groups stored))}))
+
+(defn collapse->storable
+  "Collapse state as vectors, which survive JSON."
+  [{:keys [collapsed collapsed-groups]}]
+  {:collapsed (vec (sort collapsed))
+   :collapsed-groups (vec (sort collapsed-groups))})
 
 ;;; Groups ;;;
 
@@ -95,9 +131,19 @@
 
 (def ^:private class-name-re #"[A-Za-z][A-Za-z0-9_]*")
 
-(defn- id? [x]
+(defn- id?
+  "Positive integer, as a number or as a string of digits without leading zeros."
+  [x]
   (or (and (number? x) (integer? x) (pos? x))
-      (and (string? x) (some? (re-matches #"\d+" x)))))
+      (and (string? x) (some? (re-matches #"[1-9]\d*" x)))))
+
+(defn logged-in?
+  "Whether the current mine has a logged in user. Anonymous sessions also hold
+  a token, so only the identity tells them apart."
+  [db]
+  (boolean (seq (get-in db [:mines (:current-mine db) :auth :identity]))))
+
+(def wrong-mine-message "saveList: the tool belongs to a different mine than the open one")
 
 (defn validate-save-args
   "Returns a message for the first problem in the `saveList` argument map
@@ -109,6 +155,15 @@
     (not (and (sequential? ids) (seq ids))) "saveList: ids must be a non-empty array"
     (not (every? id? ids)) "saveList: ids must be InterMine object ids"
     (not (or (nil? tags) (and (sequential? tags) (every? string? tags)))) "saveList: tags must be an array of strings"))
+
+(defn save-problem
+  "Message for the first reason a `saveList` call from a tool of `mine` cannot
+  run now, or nil when it can."
+  [db mine args]
+  (cond
+    (not= (some-> mine keyword) (:current-mine db)) wrong-mine-message
+    (not (logged-in? db)) login-required-message
+    :else (validate-save-args args)))
 
 (defn ids-query
   "Query listing the objects of `class` with the given object ids."
