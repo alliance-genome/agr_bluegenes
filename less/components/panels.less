@@ -1,0 +1,70 @@
+// Toolbar panels on the results page share one card look, and the page
+// stays inside the viewport on a phone.
+.container-fluid.results {
+    .results-actions {
+        .linkout {
+            display: contents;
+        }
+
+        .linkout-panel {
+            order: 10;
+            flex: 0 0 100%;
+            min-width: 0;
+            background-color: var(--agr-bg);
+            border: 1px solid var(--agr-border);
+            border-radius: var(--agr-radius);
+            padding: var(--agr-space-4);
+            margin-bottom: var(--agr-space-4);
+
+            .agr-section-title {
+                font-size: var(--agr-h4-size);
+                font-weight: 700;
+            }
+        }
+
+        .orthologs-panel,
+        .orthologs-compare-panel,
+        .send-to-mine-panel,
+        .track-export-panel,
+        .linkout-panel {
+            scroll-margin-top: 80px;
+        }
+    }
+
+    .col-sm-8,
+    .col-sm-4 {
+        min-width: 0;
+    }
+
+    .widgets .widget {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: auto;
+    }
+
+    .widget-filter,
+    .enrichment-filter {
+        max-width: 100%;
+        min-width: 0;
+
+        select {
+            max-width: 100%;
+        }
+    }
+
+    .report-item-tool {
+        button,
+        select,
+        input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+            min-height: 32px;
+        }
+    }
+}
+
+@media (max-width: 767px) {
+    .container-fluid.results .widgets .widget {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+}
