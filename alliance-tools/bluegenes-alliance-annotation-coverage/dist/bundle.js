@@ -528,6 +528,12 @@
 				saveButton.disabled = true;
 				return;
 			}
+			var failed = needed().filter(function (t) { return data.status[t.key] === 'error'; });
+			if (failed.length) {
+				saveButton.textContent = 'Retry ' + failed.map(function (t) { return t.label; }).join(', ') + ' to save';
+				saveButton.disabled = true;
+				return;
+			}
 			var ready = needed().every(function (t) { return data.status[t.key] === 'done'; });
 			if (!ready) {
 				saveButton.textContent = 'Wait for the annotation types to load';

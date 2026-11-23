@@ -146,6 +146,14 @@ test('an HTTP 500 on one type fails that column only and Retry reloads it', asyn
 	assert.ok(!el.textContent.includes('Could not load'));
 });
 
+test('saving names the failed type to retry instead of waiting forever', async () => {
+	mine.install({ respond: (req) => (req.collection === 'goAnnotation' ? { ok: false, status: 500 } : undefined) });
+	const el = await quiet(async () => { const e = await run(tool, SERVICE, ALL, { saveList: async (a) => a.name }); await tick(); return e; });
+	choose(el, 'any');
+	const save = button(el, /^Retry GO to save$/);
+	assert.strictEqual(save.disabled, true);
+});
+
 test('a 429 is retried and the column loads', async () => {
 	let seen = 0;
 	const { requests } = mine.install({ respond: (req) => (req.collection === 'goAnnotation' && ++seen < 3 ? { ok: false, status: 429, headers: { get: () => null } } : undefined) });
