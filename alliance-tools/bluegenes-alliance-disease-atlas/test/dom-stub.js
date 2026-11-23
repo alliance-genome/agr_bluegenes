@@ -13,6 +13,7 @@ class Node {
 	appendChild(c) { this.children.push(c); return c; }
 	removeChild(c) { this.children.splice(this.children.indexOf(c), 1); return c; }
 	addEventListener(t, f) { this.listeners[t] = f; }
+	setAttribute(k, v) { (this.attrs = this.attrs || {})[k] = String(v); }
 	find(tag, out = []) {
 		if (this.tag === tag) out.push(this);
 		this.children.forEach((c) => c.find && c.find(tag, out));

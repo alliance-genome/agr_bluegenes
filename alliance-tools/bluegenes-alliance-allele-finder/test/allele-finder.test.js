@@ -118,7 +118,7 @@ test('main fetches four queries, renders, filters by term and switches kind', as
 	select.value = 'DOID:0001';
 	select.listeners.change();
 	text = el.textContent;
-	assert.ok(text.includes('1 alleles with disease annotations, 1 terms, 1 species'));
+	assert.ok(text.includes('1 allele with disease annotations, 1 term, 1 species'));
 	assert.ok(!text.includes('Brca1<a>'));
 
 	// search narrows options
@@ -131,7 +131,7 @@ test('main fetches four queries, renders, filters by term and switches kind', as
 	const phBtn = el.find('button').find((b) => b.textContent.startsWith('Phenotype'));
 	phBtn.listeners.click();
 	text = el.textContent;
-	assert.ok(text.includes('1 alleles with phenotype annotations, 1 terms, 1 species'));
+	assert.ok(text.includes('1 allele with phenotype annotations, 1 term, 1 species'));
 	assert.ok(!text.includes('Qualifier'));
 });
 

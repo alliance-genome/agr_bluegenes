@@ -168,7 +168,7 @@
 	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-ortholog-disease');
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -184,7 +184,7 @@
 					a.href = DO_URL + t.id;
 					a.className = 'agr-external';
 					a.target = '_blank';
-					a.rel = 'noopener';
+					a.rel = 'noopener noreferrer';
 					head.appendChild(a);
 				} else {
 					head.appendChild(node('strong', t.name));
@@ -216,7 +216,7 @@
 		var wrap = node('div', null, 'alliance-ortholog-disease');
 		var terms = groupRows(rows, ownSet);
 		if (!terms.length) {
-			wrap.appendChild(node('p', 'No disease annotations on orthologs for this gene', 'agr-empty'));
+			wrap.appendChild(statusNode(multi ? 'No disease annotations on orthologs for these genes' : 'No disease annotations on orthologs for this gene', 'agr-empty'));
 			el.appendChild(wrap);
 			return;
 		}
@@ -225,7 +225,7 @@
 		var table = node('table', null, 'agr-table agr-table-sm');
 		var headRow = node('tr');
 		['Disease'].concat(multi ? ['Query gene'] : [], ['Ortholog', 'Species', 'Association', 'Evidence']).forEach(function (h) {
-			headRow.appendChild(node('th', h));
+			headRow.appendChild(colHeader(h));
 		});
 		var thead = node('thead');
 		thead.appendChild(headRow);
@@ -256,13 +256,13 @@
 	}
 
 	function post(serviceRootUrl, query) {
-		return fetch(resultsUrl(serviceRootUrl), {
+		return mineFetch(resultsUrl(serviceRootUrl), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: requestBody(query)
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) throw httpError(res);
 				return res.json();
 			})
 			.then(function (json) {
@@ -287,6 +287,84 @@
 				console.error('Disease via orthologs: could not load the gene\'s own annotations', err);
 				return {};
 			});
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -314,11 +392,13 @@
 			.catch(function (err) {
 				console.error('Disease via orthologs: request failed', err);
 				if (el.__agrOrthDisReq !== token) return;
-				message(el, 'Could not load disease annotations from the mine', 'agr-error');
+				message(el, errorText(err, 'Could not load disease annotations from the mine'), 'agr-error');
 			});
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		buildQuery: buildQuery,

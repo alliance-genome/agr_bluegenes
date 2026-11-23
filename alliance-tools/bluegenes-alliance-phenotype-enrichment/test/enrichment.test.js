@@ -282,7 +282,7 @@ test('a term whose background hits the row limit has no p, the other term is sti
 	await tick();
 	const text = el.textContent;
 	assert.ok(text.includes('background counts are incomplete'));
-	assert.ok(text.includes('1 terms tested'));
+	assert.ok(text.includes('1 term tested'));
 	const rowsText = el.find('tr').map((r) => r.textContent);
 	const a = rowsText.find((t) => t.includes('term a'));
 	assert.ok(a.endsWith('n/an/a'));
@@ -320,4 +320,61 @@ test('main with no ids shows a message without fetching', () => {
 	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [] } }, {}, {}, () => {});
 	assert.strictEqual(called, false);
 	assert.ok(el.textContent.includes('No genes to analyse'));
+});
+
+const humanRows = require('./fixtures/tp53-human-phenotypes.json').results;
+
+test('a human list whose annotations have no ontology term says enrichment cannot run', async () => {
+	const base = stubFetch([]);
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (body.includes('Gene.phenotypeAnnotations.id')) return { ok: true, json: async () => ({ results: humanRows }) };
+		return base(url, init);
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1'] } }, {}, {}, () => {});
+	await tick();
+	const text = el.textContent;
+	assert.ok(text.includes('No phenotype annotation in this mine links to an ontology term for H. sapiens'));
+	assert.ok(text.includes('3 annotations were skipped'));
+	assert.ok(text.includes('Disease enrichment'));
+	assert.ok(!text.includes('No enriched phenotype terms'));
+});
+
+// 450 terms, each annotated for gene 1.
+const manyTerms = Array.from({ length: 450 }, (_, i) => [1, 5000 + i, 6000 + i, 'MP:' + i, 'term ' + i]);
+
+test('background terms go out in sequential chunks of 200', async () => {
+	const sizes = [];
+	let inFlight = 0;
+	let overlap = false;
+	const base = stubFetch([]);
+	globalThis.fetch = async (url, init) => {
+		const body = decodeURIComponent(init.body);
+		if (body.includes('Gene.phenotypeAnnotations.id')) return { ok: true, json: async () => ({ results: manyTerms }) };
+		if (body.includes('path="Gene.phenotypeAnnotations.ontologyTerm.identifier"')) {
+			sizes.push((body.match(/<value>MP:/g) || []).length);
+			if (++inFlight > 1) overlap = true;
+			await tick();
+			inFlight--;
+			return { ok: true, json: async () => ({ results: [] }) };
+		}
+		return base(url, init);
+	};
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: ['1'] } }, {}, {}, () => {});
+	await new Promise((r) => setTimeout(r, 120));
+	assert.deepStrictEqual(sizes, [200, 200, 50]);
+	assert.strictEqual(overlap, false);
+	assert.strictEqual(el.find('tbody')[0].children.length, 10);
+	const labels = el.find('button').map((b) => b.textContent);
+	assert.ok(labels.includes('Download CSV'));
+	assert.ok(labels.includes('Show all 450'));
+});
+
+test('toCsv writes the header, one row per term and defuses formulas', () => {
+	const row = tool.csvRow({ name: '+cmd', identifier: 'MP:1', prefix: 'MP', k: 2, n: 4, K: 5, N: 100, fold: null, p: null, fdr: null, incomplete: true });
+	const csv = tool.toCsv(tool.CSV_HEADER, [row]).split('\r\n');
+	assert.strictEqual(csv[0], 'Term,Identifier,Ontology,k,n,K,N,Fold,p,FDR,Counts complete');
+	assert.strictEqual(csv[1], "'+cmd,MP:1,MP,2,4,5,100,,,,no");
 });

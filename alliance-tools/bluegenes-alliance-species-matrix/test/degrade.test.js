@@ -37,7 +37,7 @@ test('phenotype query rejected with HTTP 400 leaves disease counts and a note', 
 	const el = document.createElement('div');
 	tool.main(el, { root: 'http://h/mine' }, { Gene: { value: [1] } }, {}, {}, () => {});
 	await tick();
-	assert.deepStrictEqual(el.find('button').map((b) => b.textContent), ['1', '0']);
+	assert.deepStrictEqual(el.find('td').flatMap((td) => td.find('button')).map((b) => b.textContent), ['1', '0']);
 	assert.ok(el.textContent.includes('This mine has no phenotype annotations'));
 	assert.ok(!el.textContent.includes('Phenotype ontologies differ'));
 });

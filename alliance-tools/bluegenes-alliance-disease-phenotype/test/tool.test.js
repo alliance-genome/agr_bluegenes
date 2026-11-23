@@ -32,6 +32,10 @@ class FakeNode {
 	addEventListener(name, fn) {
 		this.listeners[name] = fn;
 	}
+	setAttribute(name, value) {
+		this.attrs = this.attrs || {};
+		this.attrs[name] = String(value);
+	}
 	find(tag, out = []) {
 		if (this.tag === tag) out.push(this);
 		this.children.forEach((c) => c.find(tag, out));

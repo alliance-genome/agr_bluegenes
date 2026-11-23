@@ -116,7 +116,7 @@ test('main renders families, warning and coverage, and posts to the service root
 	tool.main(el, { root: 'http://localhost:9999/alliancetestmine' }, { Gene: { value: [1, 2, 3, 4, 5] } }, {}, {}, () => {});
 	await flush();
 	const text = el.textContent;
-	assert.ok(text.includes('1 paralog families with 2 or more list genes'));
+	assert.ok(text.includes('1 paralog family with 2 or more list genes'));
 	assert.ok(text.includes('Paralogue data found for: H. sapiens'));
 	assert.ok(el.find('td').some((c) => c.textContent === 'A - B'));
 	assert.ok(el.find('td').some((c) => c.textContent === '70'));
@@ -141,7 +141,7 @@ test('stale response does not overwrite a newer one', async () => {
 	await flush();
 	release();
 	await flush();
-	assert.ok(el.textContent.includes('List: 1 genes'));
+	assert.ok(el.textContent.includes('List: 1 gene'));
 	assert.ok(!el.textContent.includes('OLD'));
 });
 
@@ -165,4 +165,30 @@ test('empty entity shows a message without fetching', () => {
 	tool.main(el, { root: 'http://h/m' }, { Gene: { value: [] } }, {}, {}, null);
 	assert.ok(el.textContent.includes('No genes to analyse'));
 	assert.strictEqual(fetched, 0);
+});
+
+test('family CSV has one row per paralogue pair, numbered by family', () => {
+	const c = tool.buildClusters(genes, links, { minIdentity: 40 });
+	const rows = tool.familyCsvRows(c);
+	assert.strictEqual(rows.length, c.reduce((n, x) => n + x.links.length, 0));
+	assert.strictEqual(rows[0][0], 1);
+	const csv = tool.toCsv(tool.CSV_HEADER, rows).split('\r\n');
+	assert.strictEqual(csv[0], 'Family,Gene A,Identifier A,Species A,Gene B,Identifier B,Species B,Identity,Rank');
+	assert.strictEqual(csv[1], '1,MAPT,X:4,H. sapiens,MAP2,X:5,H. sapiens,59,1');
+	assert.strictEqual(csv[2], '2,TP53,X:1,H. sapiens,TP73,X:3,H. sapiens,60,1');
+});
+
+test('main offers Download CSV when families exist', async () => {
+	globalThis.fetch = fakeFetch(
+		[
+			{ when: (q) => q.includes('Gene.symbol'), rows: [[1, 'X:1', 'A', 'H. sapiens'], [2, 'X:2', 'B', 'H. sapiens']] },
+			{ when: (q) => q.includes('paralogue.id'), rows: [[1, 2, 70, 80, 1]] },
+			{ when: (q) => q.includes('IS NOT NULL'), rows: [[1, 'H. sapiens'], [2, 'H. sapiens']] }
+		],
+		[]
+	);
+	const el = document.createElement('div');
+	tool.main(el, { root: 'http://h/m' }, { Gene: { value: [1, 2] } }, {}, {}, () => {});
+	await flush();
+	assert.ok(el.find('button').some((b) => b.textContent === 'Download CSV'));
 });

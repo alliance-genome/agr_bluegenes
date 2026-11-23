@@ -99,7 +99,7 @@ test('main loads the term, annotations and models and renders per organism', asy
 	const text = el.textContent;
 	assert.match(text, /3 genes in 3 organisms annotated to cancer/);
 	assert.match(text, /2 genes annotated NOT/);
-	assert.match(text, /M\. musculus \(1 genes\)/);
+	assert.match(text, /M\. musculus \(1 gene\)/);
 	assert.match(text, /is_implicated_in \(ECO:1, ECO:2\)/);
 	assert.match(text, /Annotated NOT \(1\): Atm/);
 	const buttons = findAll(el, 'button');
@@ -129,7 +129,7 @@ test('include child terms queries descendants and uses their identifiers', async
 	await tick();
 	const annCall = calls.filter((c) => /diseaseAnnotation/.test(c.query)).pop();
 	assert.match(annCall.query, /<value>DOID:162<\/value><value>DOID:219<\/value>/);
-	assert.match(el.textContent, /annotated to cancer and 1 child terms/);
+	assert.match(el.textContent, /annotated to cancer and 1 child term/);
 	assert.match(el.textContent, /is_implicated_in \(ECO:1, ECO:2\) - cancer/);
 });
 

@@ -195,7 +195,7 @@
 	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-model-organism-picker');
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -240,7 +240,7 @@
 		var keys = RESOURCE_KEYS.filter(function (k) { return unavailable.indexOf(k) < 0; });
 		var wrap = node('div', null, 'alliance-model-organism-picker');
 		if (!orthologs.length) {
-			wrap.appendChild(node('p', 'No orthologs for this gene', 'agr-empty'));
+			wrap.appendChild(statusNode('No orthologs for this gene', 'agr-empty'));
 			return wrap;
 		}
 		var ranked = rank(orthologs);
@@ -249,7 +249,7 @@
 		var top = ranked[0];
 		var summary = node('p', null, 'alliance-model-organism-picker-summary');
 		summary.appendChild(document.createTextNode(
-			ranked.length + ' orthologs in ' + Object.keys(species).length + ' species. Top: ' +
+			count(ranked.length, 'ortholog') + ' in ' + count(Object.keys(species).length, 'species', 'species') + '. Top: ' +
 				(top.symbol || top.identifier) + ' ('
 		));
 		summary.appendChild(node('em', top.species || 'Unknown species'));
@@ -263,7 +263,7 @@
 		var headRow = node('tr');
 		['Species', 'Symbol', 'Confidence']
 			.concat(keys.map(function (k) { return RESOURCE_LABELS[k]; }), ['Score'])
-			.forEach(function (h, i) { headRow.appendChild(node('th', h, i >= 3 ? 'num' : null)); });
+			.forEach(function (h, i) { headRow.appendChild(colHeader(h, i >= 3 ? 'num' : null)); });
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		table.appendChild(thead);
@@ -327,17 +327,27 @@
 		el.appendChild(outer);
 	}
 
+	// Applies fn to each item one after another and resolves to the results in order.
+	function sequence(items, fn) {
+		var out = [];
+		return items
+			.reduce(function (chain, item) {
+				return chain.then(function () {
+					return fn(item).then(function (v) { out.push(v); });
+				});
+			}, Promise.resolve())
+			.then(function () { return out; });
+	}
+
 	function fetchRows(serviceRoot, view, ids) {
-		return fetch(resultsUrl(serviceRoot), {
+		return mineFetch(resultsUrl(serviceRoot), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: requestBody(view, ids)
 		})
 			.then(function (res) {
 				if (!res.ok) {
-					var err = new Error('HTTP ' + res.status);
-					err.status = res.status;
-					throw err;
+					throw httpError(res);
 				}
 				return res.json();
 			})
@@ -346,7 +356,7 @@
 			});
 	}
 
-	// Orthologs of one gene, then five count queries over all ortholog ids at once.
+	// Orthologs of one gene, then one count query per resource over all ortholog ids, one after another.
 	function load(sRoot, geneId) {
 		return fetchRows(sRoot, HOMOLOGUE_VIEW, geneId).then(function (rows) {
 			var orthologs = toOrthologs(rows);
@@ -354,8 +364,9 @@
 			var ids = orthologs.map(function (o) { return o.id; });
 			var truncated = rows.length >= MAX_ROWS;
 			var unavailable = [];
-			return Promise.all(
-				RESOURCE_KEYS.map(function (k) {
+			return sequence(
+				RESOURCE_KEYS,
+				function (k) {
 					return fetchRows(sRoot, COUNT_QUERIES[k], ids).then(function (r) {
 						if (r.length >= MAX_ROWS) truncated = true;
 						return countByGene(r, k === 'diseases' ? function (row) { return isDirectQualifier(row[2]); } : null);
@@ -368,7 +379,7 @@
 						}
 						throw err;
 					});
-				})
+				}
 			).then(function (counts) {
 				orthologs.forEach(function (o) {
 					RESOURCE_KEYS.forEach(function (k, i) { o[k] = counts[i][String(o.id)] || 0; });
@@ -393,20 +404,102 @@
 	}
 
 	function loadMany(sRoot, ids) {
-		return Promise.all([
-			loadLabels(sRoot, ids),
-			Promise.all(ids.map(function (id) { return load(sRoot, id); }))
-		]).then(function (both) {
-			return ids.map(function (id, i) {
-				return {
-					id: id,
-					label: both[0][id] || 'Gene ' + id,
-					orthologs: both[1][i].orthologs,
-					truncated: both[1][i].truncated,
-					unavailable: both[1][i].unavailable
-				};
+		return loadLabels(sRoot, ids).then(function (labels) {
+			return sequence(ids, function (id) { return load(sRoot, id); }).then(function (loaded) {
+				return ids.map(function (id, i) {
+					return {
+						id: id,
+						label: labels[id] || 'Gene ' + id,
+						orthologs: loaded[i].orthologs,
+						truncated: loaded[i].truncated,
+						unavailable: loaded[i].unavailable
+					};
+				});
 			});
 		});
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	// "1 gene", "2 genes". many is the plural when it is not the singular plus s.
+	function count(n, one, many) {
+		return n + ' ' + (n === 1 ? one : many || one + 's');
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -433,7 +526,7 @@
 					.catch(function (err) {
 						console.error('Model organism picker failed', err);
 						if (el.__agrPickerReq !== token) return;
-						message(el, 'Could not load orthologs from the mine', 'agr-error');
+						message(el, errorText(err, 'Could not load orthologs from the mine'), 'agr-error');
 					});
 				return;
 			}
@@ -452,11 +545,14 @@
 			.catch(function (err) {
 				console.error('Model organism picker failed', err);
 				if (el.__agrPickerReq !== token) return;
-				message(el, 'Could not load orthologs from the mine', 'agr-error');
+				message(el, errorText(err, 'Could not load orthologs from the mine'), 'agr-error');
 			});
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		count: count,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		buildQuery: buildQuery,

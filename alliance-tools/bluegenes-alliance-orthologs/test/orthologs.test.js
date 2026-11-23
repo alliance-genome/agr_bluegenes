@@ -72,7 +72,7 @@ test('main renders rows, links and summary', async () => {
 		'https://www.alliancegenome.org/gene/FB:FBgn0039044',
 		'https://www.alliancegenome.org/gene/MGI:98834'
 	]);
-	ext.forEach((a) => assert.strictEqual(a.rel, 'noopener'));
+	ext.forEach((a) => assert.strictEqual(a.rel, 'noopener noreferrer'));
 	const internal = anchors.find((a) => a.textContent === 'MGI:98834');
 	let prevented = false;
 	internal.listeners.click({ preventDefault() { prevented = true; } });
@@ -104,7 +104,7 @@ test('error shows a short message', async () => {
 	const el = fakeEl();
 	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
 	await tick();
-	assert.strictEqual(el.textContent, 'Could not load orthologs from the mine');
+	assert.strictEqual(el.textContent, 'Could not load orthologs from the mine (HTTP 500)');
 });
 
 test('stale response is ignored', async () => {
@@ -113,6 +113,7 @@ test('stale response is ignored', async () => {
 	const el = fakeEl();
 	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
 	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 2 } });
+	await tick();
 	resolvers[1](ok([row('g', 2, 'MGI:2', 'New', 'M. musculus')]));
 	await tick();
 	resolvers[0](ok([row('g', 1, 'MGI:1', 'Old', 'M. musculus')]));
@@ -130,14 +131,14 @@ test('several ids add a query gene column', async () => {
 	assert.ok(el.textContent.includes('HGNC:1'));
 });
 
-test('500 ids go in a POST body, not the URL', async () => {
+test('ids go in a POST body, not the URL', async () => {
 	let requested, init;
 	globalThis.fetch = async (url, i) => {
 		requested = url;
 		init = i;
 		return ok([]);
 	};
-	const ids = Array.from({ length: 500 }, (_, i) => String(100000 + i));
+	const ids = Array.from({ length: 200 }, (_, i) => String(100000 + i));
 	tool.main(fakeEl(), { root: 'http://h/mine/service' }, { Gene: { value: ids } }, {}, {}, () => {});
 	await tick();
 	assert.strictEqual(init.method, 'POST');
@@ -147,7 +148,7 @@ test('500 ids go in a POST body, not the URL', async () => {
 	const params = new URLSearchParams(init.body);
 	assert.strictEqual(params.get('format'), 'json');
 	assert.strictEqual(params.get('size'), '2000');
-	assert.strictEqual((params.get('query').match(/<value>/g) || []).length, 500);
+	assert.strictEqual((params.get('query').match(/<value>/g) || []).length, 200);
 });
 
 test('dedupeRows merges repeated homologue rows: max counts, any best flag', () => {
@@ -165,4 +166,66 @@ test('dedupeRows merges repeated homologue rows: max counts, any best flag', () 
 		[9, 12, true, true]
 	);
 	assert.strictEqual(out[2].source, 'r2');
+});
+
+const fixture = require('./fixtures/tp53-orthologs.json').results;
+
+test('duplicate Homologue rows from the mine collapse to one row per pair', async () => {
+	globalThis.fetch = async () => ok(fixture);
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
+	await tick();
+	assert.strictEqual(el.find('tbody')[0].children.length, 5);
+	assert.ok(el.textContent.includes('5 orthologs in 5 species'));
+	assert.ok(!el.textContent.includes('incomplete'));
+});
+
+test('a response at the row limit shows the incomplete note even when de-duplication shrinks it', async () => {
+	const capped = [];
+	while (capped.length < 2000) capped.push(fixture[capped.length % fixture.length]);
+	globalThis.fetch = async () => ok(capped);
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
+	await tick();
+	assert.ok(el.textContent.includes('5 orthologs in 5 species'));
+	assert.ok(el.textContent.includes('the limit for one request, so the list is incomplete'));
+});
+
+test('450 ids go out in three sequential requests of at most 200 ids', async () => {
+	const bodies = [];
+	let inFlight = 0;
+	let overlap = false;
+	globalThis.fetch = async (url, i) => {
+		if (++inFlight > 1) overlap = true;
+		bodies.push(decodeURIComponent(i.body));
+		await tick();
+		inFlight--;
+		return ok([]);
+	};
+	const ids = Array.from({ length: 450 }, (_, n) => n + 1);
+	tool.main(fakeEl(), { root: 'http://h/s' }, { Gene: { value: ids } });
+	await new Promise((r) => setTimeout(r, 60));
+	assert.deepStrictEqual(bodies.map((b) => (b.match(/<value>/g) || []).length), [200, 200, 50]);
+	assert.strictEqual(overlap, false);
+});
+
+test('HTTP 429 after the retries shows that the mine is busy', async () => {
+	globalThis.fetch = async () => ({ ok: false, status: 429, headers: { get: () => '0.001' } });
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
+	await new Promise((r) => setTimeout(r, 60));
+	assert.ok(el.textContent.includes('the mine is busy (HTTP 429)'));
+});
+
+test('Download CSV carries every ortholog row with the algorithm counts', async () => {
+	globalThis.fetch = async () => ok(fixture);
+	const el = fakeEl();
+	tool.main(el, { root: 'http://h/s' }, { Gene: { value: 1 } });
+	await tick();
+	assert.ok(el.find('button').some((b) => b.textContent === 'Download CSV'));
+	const rows = tool.groupRows(tool.dedupeRows(fixture.map((r) => tool.toRow(r)))).reduce((a, g) => a.concat(g.rows), []);
+	const csv = tool.toCsv(tool.CSV_HEADER, rows.map(tool.csvRow)).split('\r\n');
+	assert.strictEqual(csv[0], 'Query gene,Species,Symbol,Identifier,Algorithms matched,Algorithms attempted,Best,Best reverse');
+	assert.strictEqual(csv.length, 5 + 2);
+	assert.ok(csv.includes('HGNC:11998,D. melanogaster,p53,FB:FBgn0039044,6,9,yes,yes'));
 });

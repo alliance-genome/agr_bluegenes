@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-phenotype-enrichment",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Phenotype ontology term over-representation for a list of genes, with hypergeometric p-values and Benjamini-Hochberg FDR.",
   "main": "dist/bundle.js",
   "scripts": {

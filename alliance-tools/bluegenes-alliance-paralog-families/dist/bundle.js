@@ -199,15 +199,13 @@
 		var body = Object.keys(params)
 			.map(function (k) { return k + '=' + encodeURIComponent(params[k]); })
 			.join('&');
-		return fetch(sr.replace(/\/+$/, '') + '/query/results', {
+		return mineFetch(sr.replace(/\/+$/, '') + '/query/results', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
 		}).then(function (res) {
 			if (!res.ok) {
-				var err = new Error('HTTP ' + res.status);
-				err.status = res.status;
-				throw err;
+				throw httpError(res);
 			}
 			return res.json();
 		});
@@ -287,7 +285,7 @@
 		clear(el);
 		var wrap = node('div', null, 'alliance-paralog-families');
 		var cls = text === 'Loading...' ? 'agr-loading' : /^Could not/.test(text) ? 'agr-error' : 'agr-empty';
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -320,7 +318,7 @@
 		var wrap = node('div', null, 'agr-table-wrap');
 		var table = node('table', null, 'agr-table agr-table-sm');
 		var tr = node('tr');
-		headers.forEach(function (h, i) { tr.appendChild(node('th', h, numeric.indexOf(i) !== -1 ? 'num' : null)); });
+		headers.forEach(function (h, i) { tr.appendChild(colHeader(h, numeric.indexOf(i) !== -1 ? 'num' : null)); });
 		var thead = node('thead');
 		thead.appendChild(tr);
 		table.appendChild(thead);
@@ -376,7 +374,7 @@
 		out.appendChild(
 			node(
 				'p',
-				'Reduced list: ' + reduced.length + ' of ' + ctx.data.genes.length + ' genes. Kept per family: ' +
+				'Reduced list: ' + reduced.length + ' of ' + count(ctx.data.genes.length, 'gene') + '. Kept per family: ' +
 					(used.length
 						? 'the member with the most ' + used.join(' plus ') + ' annotation rows, first by symbol on ties.' +
 							(used.length < ANNOTATION_KINDS.length ? ' This mine has no ' + ANNOTATION_KINDS.filter(function (k) { return used.indexOf(k.label) < 0; }).map(function (k) { return k.label; }).join(' or ') + ' annotations.' : '')
@@ -408,6 +406,28 @@
 			});
 			out.appendChild(open);
 		}
+	}
+
+	var CSV_HEADER = ['Family', 'Gene A', 'Identifier A', 'Species A', 'Gene B', 'Identifier B', 'Species B', 'Identity', 'Rank'];
+
+	// One row per paralogue pair, numbered by family in the order shown.
+	function familyCsvRows(clusters) {
+		var out = [];
+		clusters.forEach(function (c, i) {
+			var byId = {};
+			c.members.forEach(function (g) { byId[g.id] = g; });
+			c.links.forEach(function (l) {
+				var a = byId[l.a];
+				var b = byId[l.b];
+				out.push([
+					i + 1,
+					label(a), a.primaryIdentifier || '', a.organism || '',
+					label(b), b.primaryIdentifier || '', b.organism || '',
+					l.identity, l.rank != null ? l.rank : ''
+				]);
+			});
+		});
+		return out;
 	}
 
 	function render(el, ctx, state) {
@@ -451,8 +471,8 @@
 		wrap.appendChild(
 			node(
 				'p',
-				clusters.length + ' paralog families with 2 or more list genes (identity >= ' + state.minIdentity +
-					(state.maxRank ? ', rank <= ' + state.maxRank : '') + '). List: ' + data.genes.length + ' genes.',
+				count(clusters.length, 'paralog family', 'paralog families') + ' with 2 or more list genes (identity >= ' + state.minIdentity +
+					(state.maxRank ? ', rank <= ' + state.maxRank : '') + '). List: ' + count(data.genes.length, 'gene') + '.',
 				'alliance-paralog-families-summary'
 			)
 		);
@@ -481,12 +501,15 @@
 		}
 
 		if (!clusters.length) {
-			wrap.appendChild(node('p', 'No paralog families at this threshold', 'agr-empty'));
+			wrap.appendChild(statusNode('No paralog families at this threshold', 'agr-empty'));
 			wrap.appendChild(coverageNote());
 			el.appendChild(wrap);
 			return;
 		}
 
+		var toolbar = node('div', null, 'agr-filter-bar');
+		toolbar.appendChild(csvButton('paralog-families.csv', CSV_HEADER, familyCsvRows(clusters)));
+		wrap.appendChild(toolbar);
 		renderClusters(wrap, clusters, ctx.navigate);
 
 		var keepBtn = node('button', 'Keep one per family', 'agr-btn agr-btn-primary');
@@ -498,7 +521,7 @@
 		keepBtn.addEventListener('click', function () {
 			var mine = ++runToken;
 			clear(out);
-			out.appendChild(node('p', 'Counting annotations...', 'agr-loading'));
+			out.appendChild(statusNode('Counting annotations...', 'agr-loading'));
 			var ids = [];
 			clusters.forEach(function (c) { c.members.forEach(function (g) { ids.push(g.id); }); });
 			ctx.loadCounts(ids)
@@ -513,6 +536,116 @@
 
 		wrap.appendChild(coverageNote());
 		el.appendChild(wrap);
+	}
+
+	function csvCell(v) {
+		var s = String(v === null || v === undefined ? '' : v);
+		if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+		return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+	}
+
+	function toCsv(header, rows) {
+		return [header].concat(rows).map(function (l) { return l.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+	}
+
+	function download(text, filename) {
+		var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+		var url = URL.createObjectURL(blob);
+		var a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function csvButton(filename, header, rows) {
+		var b = node('button', 'Download CSV', 'agr-btn agr-btn-sm');
+		b.type = 'button';
+		b.addEventListener('click', function () { download(toCsv(header, rows), filename); });
+		return b;
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	// "1 gene", "2 genes". many is the plural when it is not the singular plus s.
+	function count(n, one, many) {
+		return n + ' ' + (n === 1 ? one : many || one + 's');
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -552,11 +685,17 @@
 			.catch(function (err) {
 				console.error('Paralog families failed', err);
 				if (el.__agrParalogReq !== token) return;
-				message(el, 'Could not load paralogue data from the mine');
+				message(el, errorText(err, 'Could not load paralogue data from the mine'));
 			});
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		count: count,
+		toCsv: toCsv,
+		familyCsvRows: familyCsvRows,
+		CSV_HEADER: CSV_HEADER,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		createUnionFind: createUnionFind,

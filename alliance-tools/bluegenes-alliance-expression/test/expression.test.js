@@ -117,7 +117,7 @@ test('failure logs to console.error and shows a message', async () => {
 	await tick();
 	console.error = orig;
 	assert.strictEqual(logged.length, 1);
-	assert.strictEqual(el.textContent, 'Could not load expression annotations from the mine');
+	assert.strictEqual(el.textContent, 'Could not load expression annotations from the mine (HTTP 500)');
 });
 
 test('a stale response does not overwrite a newer one', async () => {

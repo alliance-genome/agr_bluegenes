@@ -1,0 +1,136 @@
+{
+ "results": [
+  [
+   "HGNC:11998",
+   44179488,
+   "MGI:98834",
+   "Trp53",
+   "M. musculus",
+   9,
+   10,
+   true,
+   true
+  ],
+  [
+   "HGNC:11998",
+   44179488,
+   "MGI:98834",
+   "Trp53",
+   "M. musculus",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44179488,
+   "MGI:98834",
+   "Trp53",
+   "M. musculus",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44225356,
+   "RGD:3889",
+   "Tp53",
+   "R. norvegicus",
+   9,
+   10,
+   true,
+   true
+  ],
+  [
+   "HGNC:11998",
+   44225356,
+   "RGD:3889",
+   "Tp53",
+   "R. norvegicus",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44225356,
+   "RGD:3889",
+   "Tp53",
+   "R. norvegicus",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44318720,
+   "ZFIN:ZDB-GENE-990415-270",
+   "tp53",
+   "D. rerio",
+   9,
+   10,
+   true,
+   true
+  ],
+  [
+   "HGNC:11998",
+   44318720,
+   "ZFIN:ZDB-GENE-990415-270",
+   "tp53",
+   "D. rerio",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44318720,
+   "ZFIN:ZDB-GENE-990415-270",
+   "tp53",
+   "D. rerio",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44338185,
+   "FB:FBgn0039044",
+   "p53",
+   "D. melanogaster",
+   6,
+   9,
+   true,
+   true
+  ],
+  [
+   "HGNC:11998",
+   44338185,
+   "FB:FBgn0039044",
+   "p53",
+   "D. melanogaster",
+   null,
+   null,
+   null,
+   null
+  ],
+  [
+   "HGNC:11998",
+   44474476,
+   "Xenbase:XB-GENE-17346471",
+   "tp53.S",
+   "X. laevis",
+   1,
+   1,
+   true,
+   true
+  ]
+ ]
+}

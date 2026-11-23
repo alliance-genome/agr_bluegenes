@@ -152,15 +152,13 @@
 		var body = Object.keys(params)
 			.map(function (k) { return k + '=' + encodeURIComponent(params[k]); })
 			.join('&');
-		return fetch(sr.replace(/\/+$/, '') + '/query/results', {
+		return mineFetch(sr.replace(/\/+$/, '') + '/query/results', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
 		}).then(function (res) {
 			if (!res.ok) {
-				var err = new Error('HTTP ' + res.status);
-				err.status = res.status;
-				throw err;
+				throw httpError(res);
 			}
 			return res.json();
 		});
@@ -267,7 +265,7 @@
 
 	var TERM_CHUNK = 200;
 
-	// Background rows for the terms, fetched in chunks. A chunk that hits the row limit is split;
+	// Background rows for the terms, fetched in chunks one after another. A chunk that hits the row limit is split;
 	// a single term that still hits it is reported in truncated, because its gene count is incomplete.
 	function backgroundRows(sr, organisms, termList, annPath, truncated) {
 		function fetchTerms(terms) {
@@ -278,16 +276,23 @@
 					return b;
 				}
 				var mid = Math.ceil(terms.length / 2);
-				return Promise.all([fetchTerms(terms.slice(0, mid)), fetchTerms(terms.slice(mid))]).then(function (parts) {
-					return parts[0].concat(parts[1]);
+				return fetchTerms(terms.slice(0, mid)).then(function (first) {
+					return fetchTerms(terms.slice(mid)).then(function (second) { return first.concat(second); });
 				});
 			});
 		}
-		var chunks = [];
-		for (var i = 0; i < termList.length; i += TERM_CHUNK) chunks.push(termList.slice(i, i + TERM_CHUNK));
-		return Promise.all(chunks.map(fetchTerms)).then(function (parts) {
-			return [].concat.apply([], parts);
-		});
+		var all = [];
+		var chain = Promise.resolve();
+		for (var i = 0; i < termList.length; i += TERM_CHUNK) {
+			chain = chain.then(
+				function (chunk) {
+					return function () {
+						return fetchTerms(chunk).then(function (b) { all = all.concat(b); });
+					};
+				}(termList.slice(i, i + TERM_CHUNK))
+			);
+		}
+		return chain.then(function () { return all; });
 	}
 
 	function load(sr, ids, includeAlleles) {
@@ -361,7 +366,7 @@
 	function message(el, text, cls) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-phenotype-enrichment');
-		wrap.appendChild(node('p', text, cls));
+		wrap.appendChild(statusNode(text, cls));
 		el.appendChild(wrap);
 	}
 
@@ -374,6 +379,19 @@
 	 * opts: { maxFdr, includeAlleles, hiddenPrefixes: { PREFIX: true } }
 	 * ctx.setAlleles(bool, opts) reloads the data when the allele option changes.
 	 */
+	var TOP_ROWS = 10;
+	var CSV_HEADER = ['Term', 'Identifier', 'Ontology', 'k', 'n', 'K', 'N', 'Fold', 'p', 'FDR', 'Counts complete'];
+
+	function csvRow(t) {
+		return [
+			t.name || '', t.identifier, t.prefix, t.k, t.n, t.K, t.N,
+			t.fold == null ? '' : t.fold,
+			t.p == null ? '' : t.p,
+			t.fdr == null ? '' : t.fdr,
+			t.incomplete ? 'no' : 'yes'
+		];
+	}
+
 	function render(el, data, navigate, opts, ctx) {
 		clear(el);
 		var wrap = node('div', null, 'alliance-phenotype-enrichment');
@@ -436,14 +454,14 @@
 		var shown = results.filter(function (t) { return (t.incomplete || t.fdr <= opts.maxFdr) && !opts.hiddenPrefixes[t.prefix]; });
 
 		var summary = node('p', null, 'alliance-phenotype-enrichment-background');
-		summary.appendChild(document.createTextNode('Background: all ' + data.N + ' genes of '));
+		summary.appendChild(document.createTextNode('Background: all ' + count(data.N, 'gene') + ' of '));
 		data.organisms.forEach(function (o, i) {
 			if (i > 0) summary.appendChild(document.createTextNode(', '));
 			summary.appendChild(node('em', o));
 		});
 		summary.appendChild(document.createTextNode(
-			' in this mine. List: ' + data.n + ' genes. ' +
-				results.filter(function (t) { return !t.incomplete; }).length + ' terms tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.'
+			' in this mine. List: ' + count(data.n, 'gene') + '. ' +
+				count(results.filter(function (t) { return !t.incomplete; }).length, 'term') + ' tested, ' + shown.length + ' shown with FDR <= ' + opts.maxFdr + '.'
 		));
 		wrap.appendChild(summary);
 		wrap.appendChild(controls);
@@ -452,9 +470,17 @@
 				node('p', 'This mine has no allele phenotype annotations, so only gene annotations are used.', 'agr-note alliance-phenotype-enrichment-note')
 			);
 		}
+		var untermed = data.skipped > 0 && !results.length && !data.listCapped;
+		if (untermed) {
+			wrap.appendChild(
+				node('p', 'No phenotype annotation in this mine links to an ontology term for ' + data.organisms.join(', ') + ', so enrichment cannot run for this list. ' + data.skipped + ' ' + (data.skipped === 1 ? 'annotation was' : 'annotations were') + ' skipped. The Disease enrichment panel works on disease terms.', 'agr-error alliance-phenotype-enrichment-untermed')
+			);
+			el.appendChild(wrap);
+			return;
+		}
 		if (data.skipped > 0) {
 			wrap.appendChild(
-				node('p', data.skipped + ' annotations without a term were skipped', 'agr-note alliance-phenotype-enrichment-skipped')
+				node('p', count(data.skipped, 'annotation') + ' without a term ' + (data.skipped === 1 ? 'was' : 'were') + ' skipped', 'agr-note alliance-phenotype-enrichment-skipped')
 			);
 		}
 		if (data.listCapped) {
@@ -465,20 +491,21 @@
 
 		var note = node('p', 'Hypergeometric upper-tail test with Benjamini-Hochberg FDR. k/n is the list genes with the term, K/N the background genes with the term.', 'agr-note');
 		if (!shown.length) {
-			wrap.appendChild(node('p', 'No enriched phenotype terms at this FDR', 'agr-empty'));
+			wrap.appendChild(statusNode('No enriched phenotype terms at this FDR', 'agr-empty'));
 			wrap.appendChild(note);
 			el.appendChild(wrap);
 			return;
 		}
 
+		var visible = opts.showAll ? shown : shown.slice(0, TOP_ROWS);
 		var table = node('table', null, 'agr-table agr-table-sm');
 		var thead = node('thead');
 		var hr = node('tr');
-		['Phenotype term', 'Ontology', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h, i) { hr.appendChild(node('th', h, i > 1 ? 'num' : null)); });
+		['Phenotype term', 'Ontology', 'k/n', 'K/N', 'Fold', 'p', 'FDR'].forEach(function (h, i) { hr.appendChild(colHeader(h, i > 1 ? 'num' : null)); });
 		thead.appendChild(hr);
 		table.appendChild(thead);
 		var tbody = node('tbody');
-		shown.forEach(function (t) {
+		visible.forEach(function (t) {
 			var tr = node('tr');
 			var cell = node('td');
 			var a = node('a', t.name || t.identifier);
@@ -501,9 +528,131 @@
 		table.appendChild(tbody);
 		var tableWrap = node('div', null, 'agr-table-wrap');
 		tableWrap.appendChild(table);
+		var toolbar = node('div', null, 'agr-filter-bar');
+		toolbar.appendChild(csvButton('phenotype-enrichment.csv', CSV_HEADER, shown.map(csvRow)));
+		if (shown.length > TOP_ROWS) {
+			var more = node('button', opts.showAll ? 'Show top ' + TOP_ROWS : 'Show all ' + shown.length, 'agr-btn agr-btn-sm');
+			more.type = 'button';
+			more.addEventListener('click', function () {
+				opts.showAll = !opts.showAll;
+				render(el, data, navigate, opts, ctx);
+			});
+			toolbar.appendChild(more);
+		}
+		wrap.appendChild(toolbar);
 		wrap.appendChild(tableWrap);
 		wrap.appendChild(note);
 		el.appendChild(wrap);
+	}
+
+	function csvCell(v) {
+		var s = String(v === null || v === undefined ? '' : v);
+		if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+		return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+	}
+
+	function toCsv(header, rows) {
+		return [header].concat(rows).map(function (l) { return l.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+	}
+
+	function download(text, filename) {
+		var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+		var url = URL.createObjectURL(blob);
+		var a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function csvButton(filename, header, rows) {
+		var b = node('button', 'Download CSV', 'agr-btn agr-btn-sm');
+		b.type = 'button';
+		b.addEventListener('click', function () { download(toCsv(header, rows), filename); });
+		return b;
+	}
+
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	// "1 gene", "2 genes". many is the plural when it is not the singular plus s.
+	function count(n, one, many) {
+		return n + ' ' + (n === 1 ? one : many || one + 's');
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
 	}
 
 	function main(el, service, imEntity, state, config, navigate) {
@@ -542,13 +691,19 @@
 				.catch(function (err) {
 					console.error('Phenotype enrichment failed', err);
 					if (el.__agrPhenEnrichReq !== token) return;
-					message(el, 'Could not compute phenotype enrichment from the mine', 'agr-error');
+					message(el, errorText(err, 'Could not compute phenotype enrichment from the mine'), 'agr-error');
 				});
 		}
 		run({ maxFdr: DEFAULT_MAX_FDR, includeAlleles: false, hiddenPrefixes: {} });
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		count: count,
+		toCsv: toCsv,
+		csvRow: csvRow,
+		CSV_HEADER: CSV_HEADER,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		hypergeomUpperTail: hypergeomUpperTail,

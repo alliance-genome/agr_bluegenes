@@ -115,13 +115,13 @@
 	}
 
 	function fetchGenes(root, ids) {
-		return timedFetch(resultsUrl(root), {
+		return mineFetch(resultsUrl(root), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: requestBody(buildQuery(ids))
 		})
 			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
+				if (!res.ok) throw httpError(res);
 				return res.json();
 			})
 			.then(function (json) {
@@ -142,7 +142,7 @@
 	function fetchVariants(base, curie, page, filters) {
 		return timedFetch(variantsUrl(base, curie, page, filters), { headers: { Accept: 'application/json' } }).then(function (res) {
 			if (res.status === 404) return null;
-			if (!res.ok) throw new Error('HTTP ' + res.status);
+			if (!res.ok) throw httpError(res);
 			return res.json();
 		});
 	}
@@ -229,7 +229,7 @@
 		wrap.appendChild(t);
 		var head = node('tr');
 		['Variant', 'Type', 'Molecular consequence', 'Amino acid change', 'Position', 'Allele'].forEach(function (h) {
-			head.appendChild(node('th', h));
+			head.appendChild(colHeader(h));
 		});
 		var thead = node('thead');
 		thead.appendChild(head);
@@ -271,6 +271,84 @@
 		return b;
 	}
 
+	// Paragraph that screen readers announce: errors as alerts, loading and empty states as polite status.
+	function statusNode(text, cls) {
+		var p = node('p', text, cls);
+		p.setAttribute('role', cls === 'agr-error' ? 'alert' : 'status');
+		return p;
+	}
+
+	function colHeader(text, cls) {
+		var th = node('th', text, cls);
+		th.setAttribute('scope', 'col');
+		return th;
+	}
+
+	var MINE_TIMEOUT_MS = 30000;
+	var MINE_RETRY_DELAYS_MS = [2000, 6000];
+
+	function httpError(res) {
+		var err = new Error('HTTP ' + res.status);
+		err.status = res.status;
+		return err;
+	}
+
+	function retryDelay(res, fallback) {
+		var h = res.headers && typeof res.headers.get === 'function' ? Number(res.headers.get('Retry-After')) : NaN;
+		return h > 0 && h <= 30 ? h * 1000 : fallback;
+	}
+
+	// Mine request that aborts after 30 s and retries twice with backoff on HTTP 429 and 503.
+	// options.timeoutMs and options.delays exist for tests.
+	function mineFetch(url, init, options) {
+		var o = options || {};
+		var timeoutMs = o.timeoutMs || MINE_TIMEOUT_MS;
+		var delays = o.delays || MINE_RETRY_DELAYS_MS;
+		function attempt(n) {
+			var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+			var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+			function done() {
+				if (timer) clearTimeout(timer);
+			}
+			function failure(err) {
+				done();
+				if (ctrl && ctrl.signal.aborted) {
+					var t = new Error('Timed out after ' + timeoutMs / 1000 + ' s');
+					t.timeout = true;
+					throw t;
+				}
+				throw err;
+			}
+			var opts = Object.assign({}, init, ctrl ? { signal: ctrl.signal } : {});
+			return fetch(url, opts).then(function (res) {
+				if ((res.status === 429 || res.status === 503) && n < delays.length) {
+					done();
+					return new Promise(function (resolve) {
+						setTimeout(resolve, retryDelay(res, delays[n]));
+					}).then(function () { return attempt(n + 1); });
+				}
+				var readers = ['json', 'text'].filter(function (m) { return typeof res[m] === 'function'; });
+				if (!res.ok || !readers.length) done();
+				readers.forEach(function (m) {
+					var read = res[m].bind(res);
+					res[m] = function () {
+						return read().then(function (v) { done(); return v; }, failure);
+					};
+				});
+				return res;
+			}, failure);
+		}
+		return attempt(0);
+	}
+
+	// Sentence for a failed mine request. base is the plain failure text.
+	function errorText(err, base) {
+		if (err && err.timeout) return base + ': ' + err.message;
+		if (err && err.status === 429) return base + ': the mine is busy (HTTP 429), try again in a minute';
+		if (err && err.status) return base + ' (HTTP ' + err.status + ')';
+		return base;
+	}
+
 	function main(el, service, imEntity, state, config, navigate) {
 		if (!el || !service || !imEntity) {
 			throw new Error('Call main with correct signature');
@@ -287,20 +365,20 @@
 		var wrap = node('div', null, 'alliance-variants');
 		el.appendChild(wrap);
 		if (!list.length) {
-			wrap.appendChild(node('p', EMPTY_TEXT, 'agr-empty'));
+			wrap.appendChild(statusNode(EMPTY_TEXT, 'agr-empty'));
 			return;
 		}
 		var base = apiBase(config);
 		var body = node('div', null, 'alliance-variants-body');
 		wrap.appendChild(body);
-		body.appendChild(node('p', 'Loading...', 'agr-loading'));
+		body.appendChild(statusNode('Loading...', 'agr-loading'));
 
 		fetchGenes(serviceRoot(service.root), list)
 			.then(function (genes) {
 				if (stale()) return;
 				clear(body);
 				if (!genes.length) {
-					body.appendChild(node('p', EMPTY_TEXT, 'agr-empty'));
+					body.appendChild(statusNode(EMPTY_TEXT, 'agr-empty'));
 					return;
 				}
 				showGenes(genes);
@@ -309,7 +387,7 @@
 				if (stale()) return;
 				console.error('variants: gene lookup in the mine failed', err);
 				clear(body);
-				body.appendChild(node('p', 'Could not load the gene from the mine', 'agr-error'));
+				body.appendChild(statusNode(errorText(err, 'Could not load the gene from the mine'), 'agr-error'));
 			});
 
 		function showGenes(genes) {
@@ -346,12 +424,12 @@
 				var curie = toAllianceCurie(cur.identifier, cur.taxonId || cur.organism);
 				if (!curie) {
 					clear(panel);
-					panel.appendChild(node('p', 'No Alliance identifier for ' + cur.identifier, 'agr-empty'));
+					panel.appendChild(statusNode('No Alliance identifier for ' + cur.identifier, 'agr-empty'));
 					return;
 				}
 				if (!v.types.length) {
 					clear(panel);
-					panel.appendChild(node('p', 'Loading...', 'agr-loading'));
+					panel.appendChild(statusNode('Loading...', 'agr-loading'));
 				}
 				var current = function () { return !stale() && view === v && v.req === myReq; };
 				fetchVariants(base, curie, v.page, { type: v.type, consequence: v.consequence })
@@ -372,7 +450,7 @@
 							return;
 						}
 						clear(panel);
-						panel.appendChild(node('p', msg, 'agr-error'));
+						panel.appendChild(statusNode(msg, 'agr-error'));
 						panel.appendChild(attribution(curie));
 					});
 			}
@@ -386,7 +464,7 @@
 				clear(panel);
 				var filtered = !!(v.type || v.consequence);
 				if (!total && !filtered) {
-					panel.appendChild(node('p', EMPTY_TEXT, 'agr-empty'));
+					panel.appendChild(statusNode(EMPTY_TEXT, 'agr-empty'));
 					panel.appendChild(attribution(curie));
 					return;
 				}
@@ -405,7 +483,7 @@
 				panel.appendChild(bar);
 				if (errMsg) panel.appendChild(node('p', errMsg, 'agr-error alliance-variants-error'));
 				if (rows.length) panel.appendChild(table(rows));
-				else if (total) panel.appendChild(node('p', 'No variants on this page', 'agr-empty'));
+				else if (total) panel.appendChild(statusNode('No variants on this page', 'agr-empty'));
 				var pager = node('div', null, 'alliance-variants-pager agr-filter-bar');
 				pager.appendChild(button('Previous', v.page <= 1, function () { if (v.page > 1) { var p = prevOf(); v.page -= 1; load(p); } }));
 				pager.appendChild(button('Next', last >= total, function () { if (last < total) { var p = prevOf(); v.page += 1; load(p); } }));
@@ -416,6 +494,8 @@
 	}
 
 	var api = {
+		mineFetch: mineFetch,
+		errorText: errorText,
 		main: main,
 		serviceRoot: serviceRoot,
 		apiBase: apiBase,
