@@ -2,6 +2,7 @@
   "accepts": ["id", "ids"],
   "classes": ["Gene"],
   "threshold": 20,
+  "group": "Annotation",
   "depends": [
     "Gene.id",
     "Gene.primaryIdentifier",
@@ -9,7 +10,9 @@
     "Gene.expressionAnnotations.id",
     "Gene.expressionAnnotations.anatomy.name",
     "Gene.expressionAnnotations.anatomy.identifier",
-    "Gene.expressionAnnotations.stageTerm"
+    "Gene.expressionAnnotations.stageTerm",
+    "Gene.expressionAnnotations.source",
+    "Gene.organism.shortName"
   ],
   "columnMapping": {
     "Gene": {

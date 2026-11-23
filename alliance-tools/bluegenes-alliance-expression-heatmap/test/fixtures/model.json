@@ -1,0 +1,95 @@
+{
+ "Gene": {
+  "attributes": {
+   "id": {
+    "displayName": "Id",
+    "name": "id",
+    "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+    "type": "java.lang.Integer"
+   },
+   "primaryIdentifier": {
+    "displayName": "Primary DBID",
+    "name": "primaryIdentifier",
+    "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+    "type": "java.lang.String"
+   },
+   "symbol": {
+    "displayName": "Standard Name",
+    "name": "symbol",
+    "term": "http://purl.obolibrary.org/obo/SO_0000704,http://purl.obolibrary.org/obo/SO:0000704",
+    "type": "java.lang.String"
+   }
+  },
+  "references": {
+   "organism": {
+    "displayName": "Organism",
+    "name": "organism",
+    "referencedType": "Organism"
+   }
+  },
+  "collections": {
+   "expressionAnnotations": {
+    "displayName": "Expression Annotations",
+    "name": "expressionAnnotations",
+    "referencedType": "ExpressionAnnotation"
+   }
+  }
+ },
+ "ExpressionAnnotation": {
+  "attributes": {
+   "id": {
+    "displayName": "Id",
+    "name": "id",
+    "type": "java.lang.Integer"
+   },
+   "stageTerm": {
+    "displayName": "Stage Term",
+    "name": "stageTerm",
+    "type": "java.lang.String"
+   },
+   "source": {
+    "displayName": "Source",
+    "name": "source",
+    "type": "java.lang.String"
+   }
+  },
+  "references": {
+   "anatomy": {
+    "displayName": "Anatomy",
+    "name": "anatomy",
+    "referencedType": "OntologyTerm"
+   }
+  },
+  "collections": {}
+ },
+ "OntologyTerm": {
+  "attributes": {
+   "name": {
+    "displayName": "Name",
+    "name": "name",
+    "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+    "type": "java.lang.String"
+   },
+   "identifier": {
+    "displayName": "Identifier",
+    "name": "identifier",
+    "term": "http://www.w3.org/2004/02/skos/core#Concept,http://semanticscience.org/resource/SIO_000275",
+    "type": "java.lang.String"
+   }
+  },
+  "references": {},
+  "collections": {}
+ },
+ "Organism": {
+  "attributes": {
+   "shortName": {
+    "displayName": "Short Name",
+    "name": "shortName",
+    "term": "http://semanticscience.org/resource/SIO_010000,http://purl.obolibrary.org/obo/OBI_0100026",
+    "type": "java.lang.String"
+   }
+  },
+  "references": {},
+  "collections": {}
+ }
+}

@@ -6,6 +6,8 @@ class Node {
 		this.children = [];
 		this._text = '';
 		this.listeners = {};
+		this.attrs = {};
+		this.clicks = 0;
 	}
 	set textContent(v) { this._text = String(v); this.children = []; }
 	get textContent() { return this._text + this.children.map((c) => c.textContent).join(''); }
@@ -13,6 +15,9 @@ class Node {
 	appendChild(c) { this.children.push(c); return c; }
 	removeChild(c) { this.children.splice(this.children.indexOf(c), 1); return c; }
 	addEventListener(t, f) { this.listeners[t] = f; }
+	setAttribute(k, v) { this.attrs[k] = String(v); }
+	getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; }
+	click() { this.clicks++; if (this.onclickHook) this.onclickHook(this); }
 	find(tag, out = []) {
 		if (this.tag === tag) out.push(this);
 		this.children.forEach((c) => c.find && c.find(tag, out));
@@ -21,6 +26,7 @@ class Node {
 }
 function install() {
 	globalThis.document = {
+		body: new Node('body'),
 		createElement: (t) => new Node(t),
 		createTextNode: (s) => { const n = new Node('#text'); n._text = s; return n; }
 	};

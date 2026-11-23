@@ -12,5 +12,16 @@
 .alliance-expression-heatmap-l0 { background: var(--agr-bg-light, #f8f9fa); }
 .alliance-expression-heatmap-l1 { background: var(--agr-heat-2, #c6dbef); color: var(--agr-text, #212529); }
 .alliance-expression-heatmap-l2 { background: var(--agr-heat-3, #9ecae1); color: var(--agr-text, #212529); }
-.alliance-expression-heatmap-l3 { background: var(--agr-heat-5, #3182bd); color: #fff; }
-.alliance-expression-heatmap-l4 { background: var(--agr-heat-6, #08519c); color: #fff; }
+.alliance-expression-heatmap-l3 { background: var(--agr-heat-4, #6baed6); color: var(--agr-text, #212529); }
+.alliance-expression-heatmap-l4 { background: var(--agr-heat-5, #3182bd); color: #fff; }
+.alliance-expression-heatmap-l5 { background: var(--agr-heat-6, #08519c); color: #fff; }
+
+.alliance-expression-heatmap-grid tbody th,
+.alliance-expression-heatmap-grid thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--agr-bg, #fff); }
+.alliance-expression-heatmap-gene .alliance-expression-heatmap-sort { writing-mode: vertical-rl; transform: rotate(180deg); }
+.alliance-expression-heatmap-organism { display: block; font-size: 10px; font-weight: 400; font-style: italic; }
+.alliance-expression-heatmap-legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0; font-size: 12px; }
+.alliance-expression-heatmap-legend-item { display: inline-flex; gap: 4px; align-items: center; }
+.alliance-expression-heatmap-swatch { display: inline-block; width: 16px; height: 16px; }
+.alliance-expression-heatmap-hide { display: inline-flex; align-items: center; margin: 0; font-weight: 400; }
+.agr-table-wrap:focus-visible { outline: 2px solid var(--agr-heat-6, #08519c); }

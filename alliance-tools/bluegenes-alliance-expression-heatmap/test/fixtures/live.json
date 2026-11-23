@@ -1,0 +1,114 @@
+{
+ "info": [
+  [
+   "HGNC:11998",
+   "TP53",
+   44551229,
+   "H. sapiens"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   44178454,
+   "M. musculus"
+  ],
+  [
+   "RGD:3258",
+   "Pax6",
+   44224468,
+   "R. norvegicus"
+  ]
+ ],
+ "page1": [
+  [
+   "MGI:97490",
+   "Pax6",
+   59725723,
+   "2-cell stage conceptus",
+   "EMAPA:36042",
+   "TS02",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   59725724,
+   "2-cell stage embryo",
+   "EMAPA:16036",
+   "TS02",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   59725725,
+   "4-cell stage embryo",
+   "EMAPA:31864",
+   "TS03",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   59725726,
+   "8-cell stage conceptus",
+   "EMAPA:36044",
+   "TS03",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ]
+ ],
+ "page2": [
+  [
+   "MGI:97490",
+   "Pax6",
+   59725727,
+   "adenohypophysis pars anterior",
+   "EMAPA:17515",
+   "TS20",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   59725728,
+   "adenohypophysis pars anterior",
+   "EMAPA:17515",
+   "TS23",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   59725729,
+   "adenohypophysis pars anterior",
+   "EMAPA:17515",
+   "TS24",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ],
+  [
+   "MGI:97490",
+   "Pax6",
+   59725730,
+   "adenohypophysis pars anterior",
+   "EMAPA:17515",
+   "TS26",
+   44178454,
+   "MGI",
+   "M. musculus"
+  ]
+ ]
+}
