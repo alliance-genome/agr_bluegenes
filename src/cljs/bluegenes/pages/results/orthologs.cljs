@@ -15,6 +15,10 @@
 (def organism-path "Gene.homologues.homologue.organism.shortName")
 (def homologue-id-path "Gene.homologues.homologue.id")
 
+(def fetch-limit
+  "Rows asked for by the preview and the list-gene queries."
+  100000)
+
 (def required-paths
   "Paths the conversion queries in the current mine: the organism summary, the
   ortholog count and the saved list all use these."
@@ -40,11 +44,14 @@
   {:path "Gene" :op "IN" :value list-name})
 
 (defn organisms-query
-  "Distinct organisms are summarised from this query's single column."
-  [list-name]
-  {:from "Gene"
-   :select [organism-path]
-   :where [(list-constraint list-name)]})
+  "Distinct organisms are summarised from this query's single column. With the
+  type feature only organisms holding orthologs are offered."
+  ([list-name]
+   (organisms-query list-name {}))
+  ([list-name features]
+   {:from "Gene"
+    :select [organism-path]
+    :where (into [(list-constraint list-name)] (preview/type-constraints features))}))
 
 (defn orthologs-query
   "Homologue genes of `organism` for the genes in the list. Used both to count
@@ -57,7 +64,8 @@
     :select [homologue-id-path]
     :where (into [(list-constraint list-name)
                   {:path organism-path :op "=" :value organism}]
-                 (preview/filter-constraints opts features))}))
+                 (concat (preview/type-constraints features)
+                         (preview/filter-constraints opts features)))}))
 
 (defn default-list-name [list-name organism]
   (str list-name " orthologs in " organism))
@@ -78,7 +86,7 @@
   (get-in db [:mines (:current-mine db) :service]))
 
 (defn model-features
-  "Preview features (:type? :methods? :best? :best-reverse?) whose path
+  "Preview features (:type? :methods? :best? :best-reverse? :stringency?) whose path
   resolves in the model. An unknown model offers all of them."
   [classes]
   (let [missing (set (mine-support/missing-paths classes (vals preview/optional-paths)))]
@@ -90,13 +98,25 @@
    :select ["Gene.id" "Gene.primaryIdentifier" "Gene.symbol"]
    :where [(list-constraint list-name)]})
 
+(defn- filter-opts [{:keys [min-methods best-only? stringent-only?]}]
+  {:min-methods min-methods :best-only? best-only? :stringent-only? stringent-only?})
+
 (defn shown-targets
   "Number of orthologs after the preview filters, or the server count while
   the preview rows are not loaded."
-  [{:keys [rows count min-methods best-only?]}]
-  (if rows
-    (preview/target-count (preview/filter-rows {:min-methods min-methods :best-only? best-only?} rows))
+  [{:keys [rows count truncated?] :as state}]
+  (if (and rows (not truncated?))
+    (preview/target-count (preview/filter-rows (filter-opts state) rows))
     count))
+
+(defn description
+  "Provenance stored with the saved list."
+  [{:keys [list-source organism min-methods best-only? stringent-only?]} date]
+  (str "Orthologs of " list-source " in " organism
+       (when (pos? (or min-methods 0)) (str ", at least " min-methods " methods"))
+       (when best-only? ", best matches only")
+       (when stringent-only? ", stringent only")
+       "; " date))
 
 (defn failure-message [title res]
   [:messages/add
@@ -118,7 +138,7 @@
                      :features (model-features (mine-support/mine-classes db (:current-mine db)))
                      :loading-organisms? true})
       :im-chan {:chan (fetch/rows (service db)
-                                  (organisms-query list-name)
+                                  (organisms-query list-name (model-features (mine-support/mine-classes db (:current-mine db))))
                                   {:summaryPath organism-path
                                    :size 1000
                                    :format "jsonrows"})
@@ -149,17 +169,20 @@
 (reg-event-fx
  ::select-organism
  (fn [{db :db} [_ organism]]
-   (let [{:keys [list-source]} (get-in db [:results :orthologs])]
+   (let [{:keys [list-source features]} (get-in db [:results :orthologs])]
      (if (str/blank? organism)
        {:db (update-in db [:results :orthologs] assoc
                        :organism nil :count nil :loading-count? false
-                       :rows nil :min-methods 0 :best-only? false)}
+                       :rows nil :truncated? false :min-methods 0 :best-only? false
+                       :stringent-only? false :relation-filter nil :show-all-unmapped? false)}
        {:db (update-in db [:results :orthologs] assoc
                        :organism organism :count nil :loading-count? true
-                       :loading-preview? true :rows nil :min-methods 0 :best-only? false)
+                       :loading-preview? true :rows nil :truncated? false
+                       :min-methods 0 :best-only? false :stringent-only? false
+                       :relation-filter nil :show-all-unmapped? false)
         :dispatch [::fetch-preview organism]
         :im-chan {:chan (fetch/rows (service db)
-                                    (orthologs-query list-source organism)
+                                    (orthologs-query list-source organism {} features)
                                     {:summaryPath homologue-id-path
                                      :size 1
                                      :format "jsonrows"})
@@ -196,7 +219,7 @@
    (let [{:keys [list-source features]} (get-in db [:results :orthologs])]
      {:im-chan {:chan (fetch/rows (service db)
                                   (preview/preview-query list-source organism features)
-                                  {:format "json" :size 100000})
+                                  {:format "json" :size fetch-limit})
                 :abort ::preview
                 :on-success [::preview-success list-source organism]
                 :on-failure [::preview-failure list-source organism]}})))
@@ -208,10 +231,12 @@
      (let [{:keys [features genes]} (get-in db [:results :orthologs])]
        (cond-> {:db (update-in db [:results :orthologs] assoc
                                :loading-preview? false
-                               :rows (preview/parse-rows (:results res) features))}
+                               :truncated? (preview/truncated? (:results res) fetch-limit)
+                               :rows (preview/flag-relations
+                                      (preview/parse-rows (:results res) features)))}
          (nil? genes) (assoc :im-chan {:chan (fetch/rows (service db)
                                                          (list-genes-query list-source)
-                                                         {:format "json" :size 100000})
+                                                         {:format "json" :size fetch-limit})
                                        :abort ::list-genes
                                        :on-success [::list-genes-success list-source]
                                        :on-failure [::list-genes-failure list-source]}))))))
@@ -227,14 +252,17 @@
  ::list-genes-success
  (fn [db [_ list-source res]]
    (if (= list-source (get-in db [:results :orthologs :list-source]))
-     (assoc-in db [:results :orthologs :genes] (preview/parse-genes (:results res)))
+     (update-in db [:results :orthologs] assoc
+                :genes (preview/parse-genes (:results res))
+                :genes-truncated? (preview/truncated? (:results res) fetch-limit))
      db)))
 
 (reg-event-fx
  ::list-genes-failure
  (fn [{db :db} [_ list-source res]]
    (when (= list-source (get-in db [:results :orthologs :list-source]))
-     {:dispatch (failure-message "Failed to load the genes of the list." res)})))
+     {:db (assoc-in db [:results :orthologs :genes-failed?] true)
+      :dispatch (failure-message "Failed to load the genes of the list." res)})))
 
 (reg-event-db
  ::set-min-methods
@@ -248,6 +276,22 @@
    (assoc-in db [:results :orthologs :best-only?] (boolean value))))
 
 (reg-event-db
+ ::set-stringent-only
+ (fn [db [_ value]]
+   (assoc-in db [:results :orthologs :stringent-only?] (boolean value))))
+
+(reg-event-db
+ ::set-relation-filter
+ (fn [db [_ value]]
+   (assoc-in db [:results :orthologs :relation-filter]
+             (some-> value not-empty keyword))))
+
+(reg-event-db
+ ::toggle-unmapped
+ (fn [db _]
+   (update-in db [:results :orthologs :show-all-unmapped?] not)))
+
+(reg-event-db
  ::set-list-name
  (fn [db [_ value]]
    (assoc-in db [:results :orthologs :list-name] value)))
@@ -255,7 +299,7 @@
 (reg-event-fx
  ::save
  (fn [{db :db} _]
-   (let [{:keys [list-source organism features min-methods best-only?] :as state}
+   (let [{:keys [list-source organism features] :as state}
          (get-in db [:results :orthologs])
          lists (get-in db [:assets :lists (:current-mine db)])
          typed (effective-list-name state)
@@ -265,9 +309,9 @@
      (when (and organism (not (str/blank? typed)) (not (:saving? state)))
        {:db (assoc-in db [:results :orthologs :saving?] true)
         :im-chan {:chan (save/im-list-from-query (service db) list-name
-                                                 (orthologs-query list-source organism
-                                                                  {:min-methods min-methods :best-only? best-only?}
-                                                                  features))
+                                                 (orthologs-query list-source organism (filter-opts state) features)
+                                                 {:description (description state (subs (.toISOString (js/Date.)) 0 10))
+                                                  :tags "orthologs"})
                   :on-success [::save-success]
                   :on-failure [::save-failure]}}))))
 
@@ -308,37 +352,51 @@
 (reg-sub
  ::preview-data
  :<- [::state]
- (fn [{:keys [rows genes min-methods best-only?]}]
+ (fn [{:keys [rows genes truncated? genes-truncated?] :as state}]
    (when rows
-     (let [kept (preview/flag-relations
-                 (preview/filter-rows {:min-methods min-methods :best-only? best-only?} rows))]
-       {:rows kept
-        :max-methods (preview/max-methods rows)
-        :relation-counts (preview/relation-counts kept)
-        :unmapped (when genes (preview/unmapped-genes genes kept))}))))
+     (if truncated?
+       {:truncated? true}
+       (let [kept (preview/filter-rows (filter-opts state) rows)]
+         {:rows kept
+          :max-methods (preview/max-methods rows)
+          :no-methods (preview/without-methods rows)
+          :relation-counts (preview/relation-counts kept)
+          :unmapped (when (and genes (not genes-truncated?))
+                      {:none (preview/unmapped-genes genes rows)
+                       :dropped (preview/dropped-genes genes rows kept)})})))))
 
 (def ^:private max-preview-rows 200)
-
-(def ^:private relation-labels
-  {:one-to-one "1:1" :one-to-many "1:many" :many-to-one "many:1" :many-to-many "many:many"})
+(def ^:private max-unmapped-rows 100)
 
 (defn- yes-no [v] (if v "yes" "no"))
 
 (defn- methods-cell [{:keys [match attempted]}]
   (if (nil? match) "" (str match (when attempted (str " of " attempted)))))
 
+(defn- download!
+  "Hand `text` to the browser as a file called `filename`."
+  [filename text]
+  (let [url (.createObjectURL js/URL (js/Blob. #js [text] #js {:type "text/tab-separated-values"}))
+        link (.createElement js/document "a")]
+    (set! (.-href link) url)
+    (set! (.-download link) filename)
+    (.click link)
+    (.revokeObjectURL js/URL url)))
+
 (defn preview-table [rows features]
   [:div.agr-table-wrap
    [:table.agr-table.agr-table-sm.agr-table-striped.ortholog-preview
+    [:caption.sr-only "Source genes of the list and their orthologs in the chosen organism"]
     [:thead
      [:tr [:th "Source gene"] [:th "Target gene"]
       (when (:type? features) [:th "Type"])
       (when (:methods? features) [:th.num "Methods"])
       (when (:best? features) [:th "Best score"])
       (when (:best-reverse? features) [:th "Best reverse"])
-      [:th "Relation"]]]
+      (when (:stringency? features) [:th "Stringency"])
+      [:th "Relation within list"]]]
     [:tbody
-     (for [{:keys [gene-id target-id gene target type best? best-reverse? relation] :as row}
+     (for [{:keys [gene-id target-id gene target type best? best-reverse? stringency relation] :as row}
            (take max-preview-rows rows)]
        ^{:key (str gene-id "-" target-id)}
        [:tr {:class (when-not (= :one-to-one relation) "ortholog-flagged")}
@@ -347,51 +405,96 @@
         (when (:methods? features) [:td.num (methods-cell row)])
         (when (:best? features) [:td (yes-no best?)])
         (when (:best-reverse? features) [:td (yes-no best-reverse?)])
-        [:td (relation-labels relation)]])]]])
+        (when (:stringency? features) [:td stringency])
+        [:td (preview/relation-labels relation)]])]]])
 
-(defn unmapped-list [unmapped]
-  (if (empty? unmapped)
-    [:p.agr-note "Every gene in the list has an ortholog."]
-    [:details.ortholog-unmapped
-     [:summary (str (count unmapped) " genes without an ortholog")]
-     [:ul.list-unstyled
-      (for [{:keys [id label]} unmapped]
-        ^{:key id} [:li label])]]))
+(defn unmapped-list [{:keys [none dropped]} show-all?]
+  (let [shown (fn [genes] (if show-all? genes (take max-unmapped-rows genes)))
+        more (- (+ (count none) (count dropped))
+                (+ (count (shown none)) (count (shown dropped))))]
+    (if (and (empty? none) (empty? dropped))
+      [:p.agr-note "Every gene in the list has an ortholog."]
+      [:details.ortholog-unmapped
+       [:summary
+        (str (preview/plural (count none) "gene" "genes") " without an ortholog"
+             (when (seq dropped)
+               (str ", " (preview/plural (count dropped) "gene" "genes") " removed by the filters")))]
+       [:ul.list-unstyled
+        (for [{:keys [id label]} (shown none)]
+          ^{:key id} [:li label])
+        (for [{:keys [id label]} (shown dropped)]
+          ^{:key (str "dropped-" id)} [:li label " (removed by the filters)"])]
+       (when (or (pos? more) show-all?)
+         [:button.agr-btn {:type "button" :on-click #(dispatch [::toggle-unmapped])}
+          (if show-all? "Show fewer" (str "Show all (" more " more)"))])
+       [:button.agr-btn {:type "button"
+                         :on-click #(download! "unmapped-genes.tsv" (preview/unmapped-tsv none dropped))}
+        "Download unmapped genes (TSV)"]])))
 
-(defn preview-filters [{:keys [min-methods best-only?]} max-methods features]
+(defn preview-filters [{:keys [min-methods best-only? stringent-only? relation-filter]}
+                       max-methods no-methods features]
   [:div.agr-filter-bar
    (when (and (:methods? features) (pos? max-methods))
-     [:label (str "At least " (or min-methods 0) " of " max-methods " methods")
+     [:label (str "At least " (or min-methods 0) " of " (preview/plural max-methods "method" "methods"))
       [:input {:type "range" :min 0 :max max-methods :step 1
                :value (or min-methods 0)
+               :aria-valuetext (str (or min-methods 0) " of " (preview/plural max-methods "method" "methods"))
                :on-change #(dispatch [::set-min-methods (oget % :target :value)])}]])
    (when (:best? features)
      [:label
       [:input {:type "checkbox"
                :checked (boolean best-only?)
                :on-change #(dispatch [::set-best-only (oget % :target :checked)])}]
-      " Best matches only"])])
+      " Best matches only"])
+   (when (:stringency? features)
+     [:label
+      [:input {:type "checkbox"
+               :checked (boolean stringent-only?)
+               :on-change #(dispatch [::set-stringent-only (oget % :target :checked)])}]
+      " Stringent only"])
+   [:label "Show relation"
+    [:select.form-control
+     {:value (if relation-filter (name relation-filter) "")
+      :on-change #(dispatch [::set-relation-filter (oget % :target :value)])}
+     [:option {:value ""} "All"]
+     (for [[k l] preview/relation-labels]
+       ^{:key k} [:option {:value (name k)} l])]]
+   (when (and (:methods? features) (pos? (or no-methods 0)))
+     [:span.agr-note {:role "status"}
+      (str (preview/plural no-methods "pair" "pairs") " without method data fail any cutoff above 0.")])])
 
 (defn preview-section
   "Mapping table, relation flags, unmapped genes and filters for the chosen
   organism."
-  [{:keys [loading-preview? features] :as state}]
-  (let [{:keys [rows max-methods relation-counts unmapped]} @(subscribe [::preview-data])]
+  [{:keys [loading-preview? features relation-filter show-all-unmapped? genes genes-failed? genes-truncated?] :as state}]
+  (let [{:keys [rows max-methods no-methods relation-counts unmapped truncated?]} @(subscribe [::preview-data])]
     (cond
-      loading-preview? [:p.agr-loading "Loading the mapping"]
+      loading-preview? [:p.agr-loading {:role "status" :aria-live "polite"} "Loading the mapping"]
+      truncated? [:p.agr-note {:role "status"}
+                  (str "The mapping has " fetch-limit " rows or more, so the preview, filters, "
+                       "relations and unmapped genes are not shown. The saved list is not affected.")]
       (nil? rows) nil
       :else
-      [:div.ortholog-preview-section
-       [preview-filters state max-methods features]
-       [:p.agr-note
-        (str (count rows) " mappings. "
-             (:one-to-many relation-counts 0) " one-to-many, "
-             (:many-to-one relation-counts 0) " many-to-one, "
-             (:many-to-many relation-counts 0) " many-to-many.")]
-       (when (> (count rows) max-preview-rows)
-         [:p.agr-note (str "Showing the first " max-preview-rows " mappings.")])
-       [preview-table rows features]
-       (when unmapped [unmapped-list unmapped])])))
+      (let [shown (preview/by-relation relation-filter rows)]
+        [:div.ortholog-preview-section
+         [preview-filters state max-methods no-methods features]
+         [:p.agr-note {:role "status" :aria-live "polite"}
+          (str (preview/plural (count rows) "mapping" "mappings") ". "
+               (:one-to-many relation-counts 0) " one-to-many, "
+               (:many-to-one relation-counts 0) " many-to-one, "
+               (:many-to-many relation-counts 0) " many-to-many.")]
+         (when (> (count shown) max-preview-rows)
+           [:p.agr-note (str "Showing the first " max-preview-rows " of " (count shown) " mappings.")])
+         (when (seq rows)
+           [:button.agr-btn {:type "button"
+                             :on-click #(download! "ortholog-mapping.tsv" (preview/mapping-tsv rows features))}
+            "Download mapping (TSV)"])
+         [preview-table shown features]
+         (cond
+           unmapped [unmapped-list unmapped show-all-unmapped?]
+           genes-truncated? [:p.agr-note (str "The list has " fetch-limit " genes or more, so unmapped genes are not shown.")]
+           (and (nil? genes) (not genes-failed?))
+           [:p.agr-loading {:role "status" :aria-live "polite"} "Checking the genes of the list"])]))))
 
 (defn convert-panel
   "Organism picker, ortholog count, mapping preview, list name input and save
@@ -404,7 +507,7 @@
     [:section.agr-section.orthologs-panel
      [:h3.agr-section-title "Convert to orthologs"]
      (cond
-       loading-organisms? [:p.agr-loading "Looking for orthologs"]
+       loading-organisms? [:p.agr-loading {:role "status" :aria-live "polite"} "Looking for orthologs"]
        (empty? organisms) [:p.agr-empty "No orthologs found for the genes in this list."]
        :else
        [:<>
@@ -418,8 +521,9 @@
              ^{:key o} [:option {:value o} o])]]
          (when organism
            (if loading-count?
-             [:span.agr-loading "Counting orthologs"]
-             [:span.ortholog-count [:strong targets] " ortholog genes found"]))]
+             [:span.agr-loading {:role "status" :aria-live "polite"} "Counting orthologs"]
+             [:span.ortholog-count {:role "status" :aria-live "polite"}
+              [:strong targets] " " (if (= 1 targets) "ortholog gene" "ortholog genes") " found"]))]
         (when organism [preview-section state])
         [:div.agr-filter-bar
          [:label "New list name"
