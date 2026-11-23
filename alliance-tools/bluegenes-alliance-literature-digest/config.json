@@ -4,6 +4,8 @@
   "threshold": 2000,
   "depends": [
     "Gene.symbol",
+    "Gene.primaryIdentifier",
+    "Gene.organism.shortName",
     "Gene.publications.pubMedId",
     "Gene.publications.title",
     "Gene.publications.year",
