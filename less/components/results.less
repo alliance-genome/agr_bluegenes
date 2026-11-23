@@ -50,6 +50,7 @@
         .convert-to-orthologs,
         .compare-orthologs,
         .send-to-mine,
+        .linkout,
         .track-export,
         .download-bundle {
             display: contents;
@@ -58,6 +59,7 @@
         .orthologs-panel,
         .orthologs-compare-panel,
         .send-to-mine-panel,
+        .linkout-panel,
         .track-export-panel,
         .bundle-error,
         p.convert-to-orthologs {
@@ -130,6 +132,7 @@
     .orthologs-panel,
     .orthologs-compare-panel,
     .send-to-mine-panel,
+    .linkout-panel,
     .track-export-panel,
     .cite-panel,
     .query-details {
@@ -159,6 +162,25 @@
 
         .alert {
             border-radius: var(--agr-radius);
+        }
+    }
+
+    .linkout-panel {
+        .linkout-confirm {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--agr-space-2);
+            margin-top: var(--agr-space-3);
+
+            p {
+                flex: 1 1 100%;
+                margin: 0;
+            }
+        }
+
+        .linkout-reason {
+            margin: var(--agr-space-1) 0 0;
         }
     }
 
