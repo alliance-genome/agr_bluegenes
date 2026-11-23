@@ -741,6 +741,22 @@
         font-weight: 700;
     }
 
+    .upset-region:focus { outline: none; }
+
+    .upset-region:focus-visible .upset-hit,
+    .upset-region[aria-pressed="true"] .upset-hit {
+        stroke: var(--agr-text);
+        stroke-width: 2;
+    }
+
+    .upset-region[aria-pressed="true"] .upset-hit { stroke-dasharray: 4 2; }
+
+    .upset-inclusive {
+        display: block;
+        font-weight: 400;
+        margin: var(--agr-space-2) 0;
+    }
+
     .upset-selection {
         margin-top: var(--agr-space-3);
 
