@@ -645,13 +645,16 @@
 		})
 			.then(
 				function (res) {
-					clearTimeout(timer);
 					if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
+						clearTimeout(timer);
 						return opts.sleep(retryDelay(res, attempt)).then(function () { return postJson(url, body, opts, attempt + 1); });
 					}
 					if (!res.ok) throw new Error('HTTP ' + res.status + (res.status === 429 ? ' after ' + (attempt + 1) + ' attempts' : ''));
 					return res.json();
-				},
+				}
+			)
+			.then(
+				function (json) { clearTimeout(timer); return json; },
 				function (err) {
 					clearTimeout(timer);
 					throw err && err.name === 'AbortError' ? new Error('Request timed out after ' + TIMEOUT_MS / 1000 + ' s') : err;

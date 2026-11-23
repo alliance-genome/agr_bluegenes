@@ -255,6 +255,25 @@ test('fetchAnnotations aborts a request that exceeds the timeout', async () => {
 	}
 });
 
+test('fetchAnnotations aborts when the response body stalls after the headers', async () => {
+	const realSet = globalThis.setTimeout;
+	globalThis.setTimeout = (f, ms) => realSet(f, ms >= 30000 ? 5 : ms);
+	try {
+		await assert.rejects(
+			m.fetchAnnotations('https://x/mine', [1], {
+				fetch: (u, init) => Promise.resolve({
+					status: 200,
+					ok: true,
+					json: () => new Promise((_, rej) => init.signal.addEventListener('abort', () => rej(Object.assign(new Error('a'), { name: 'AbortError' }))))
+				})
+			}),
+			/timed out after 30 s/
+		);
+	} finally {
+		globalThis.setTimeout = realSet;
+	}
+});
+
 test('fetchAnnotations sends genes in chunks of 100, one request at a time, and flags a full result', async () => {
 	const ids = Array.from({ length: 250 }, (_, i) => i + 1);
 	let active = 0;

@@ -1,11 +1,6 @@
 {
-  "accepts": [
-    "id",
-    "ids"
-  ],
-  "classes": [
-    "Gene"
-  ],
+  "accepts": ["id", "ids"],
+  "classes": ["Gene"],
   "threshold": 500,
   "depends": [
     "Gene.primaryIdentifier",
