@@ -248,6 +248,7 @@
     (is (str/includes? r (str "query <- r\"---(" sample-xml ")---\"")))
     (is (str/includes? r "/service/query/results"))
     (is (str/includes? r "format = \"csv\""))
+    (is (str/includes? r "header = FALSE") "the service sends no header row")
     (is (not (str/includes? r "runQuery")))))
 
 (deftest xml-snippet-is-unchanged
@@ -265,3 +266,43 @@
                              :where [{:path "Gene.symbol" :op "=" :value "a"}]})]
     (is (str/includes? xml "<query model=\"genomic\" view=\"Gene.symbol\">"))
     (is (str/includes? xml "<constraint path=\"Gene.symbol\""))))
+
+(deftest r-snippet-names-columns-from-view
+  (let [xml "<query model=\"genomic\" view=\"Gene.symbol Gene.primaryIdentifier\" constraintLogic=\"A\">\n</query>"
+        r (cite/r-snippet (assoc code-mine :xml xml))]
+    (is (str/includes? r "columns <- c(\"Gene.symbol\", \"Gene.primaryIdentifier\")"))
+    (is (str/includes? r "col.names = columns"))))
+
+(def lookup-query
+  {:from "Gene"
+   :select ["Gene.symbol" "Gene.primaryIdentifier"]
+   :where [{:path "Gene" :op "LOOKUP" :value "BRCA1" :extraValue "H. sapiens"}]})
+
+(deftest xml-keeps-lookup-extra-value
+  (let [xml (cite/query->xml {:name "genomic"} lookup-query)]
+    (is (str/includes? xml "extraValue=\"H. sapiens\""))
+    (is (str/includes? xml "op=\"LOOKUP\""))
+    (is (str/includes? xml "value=\"BRCA1\""))
+    (is (not (str/includes? (cite/query->xml {:name "genomic"}
+                                             (update-in lookup-query [:where 0] dissoc :extraValue))
+                            "extraValue")))))
+
+(deftest xml-drops-switched-off-constraints
+  (let [q (assoc lookup-query
+                 :where [{:path "Gene" :op "LOOKUP" :value "BRCA1" :extraValue "H. sapiens"}
+                         {:path "Gene.length" :op ">" :value "1" :switched "OFF"}
+                         {:path "Gene.symbol" :op "=" :value "x" :switched "OFF"}]
+                 :constraintLogic "A and (B or C)")
+        xml (cite/query->xml {:name "genomic"} q)]
+    (is (not (str/includes? xml "Gene.length")))
+    (is (not (str/includes? xml "Gene.symbol\" value")))
+    (is (str/includes? xml "constraintLogic=\"A\""))))
+
+(deftest logic-loses-switched-off-codes
+  (is (= "A and C" (cite/drop-switched-off-logic "A and B and C" ["B"])))
+  (is (= "B and C" (cite/drop-switched-off-logic "A and B and C" ["A"])))
+  (is (= "A or B" (cite/drop-switched-off-logic "A or B or C" ["C"])))
+  (is (= "A and (C)" (cite/drop-switched-off-logic "A and (B or C)" ["B"])))
+  (is (= "A" (cite/drop-switched-off-logic "A and (B or C)" ["B" "C"])))
+  (is (nil? (cite/drop-switched-off-logic "A" ["A"])))
+  (is (nil? (cite/drop-switched-off-logic nil ["A"]))))
