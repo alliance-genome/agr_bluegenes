@@ -1,7 +1,7 @@
 {
   "name": "@alliance/bluegenes-alliance-expression-heatmap",
-  "version": "0.1.0",
-  "description": "Heatmap of expression annotation counts by gene and anatomy term for gene lists, sortable, with CSV export. Based on legumeinfo/lis-expression-heatmap. Derived from legumeinfo/lis-expression-heatmap (MIT).",
+  "version": "0.1.1",
+  "description": "Heatmap of expression annotation counts by gene and anatomy term for gene lists, sortable, with CSV export. Derived from legumeinfo/lis-expression-heatmap (MIT).",
   "main": "dist/bundle.js",
   "scripts": {
     "test": "node --test test/"
