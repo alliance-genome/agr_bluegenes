@@ -1,7 +1,7 @@
 {
   "accepts": ["ids"],
   "classes": ["Gene"],
-  "threshold": 1000,
+  "threshold": 200,
   "depends": [
     "Gene.id",
     "Gene.primaryIdentifier",
