@@ -1,0 +1,824 @@
+{
+ "view": [
+  "DOTerm.identifier",
+  "DOTerm.parents.identifier",
+  "DOTerm.parents.name"
+ ],
+ "results": [
+  [
+   "DOID:0050861",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:5295",
+   "intestinal disease"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:305",
+   "carcinoma"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:0050687",
+   "cell type cancer"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:3119",
+   "gastrointestinal system cancer"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:5672",
+   "large intestine cancer"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:10155",
+   "intestinal cancer"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:299",
+   "adenocarcinoma"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:0050861",
+   "colorectal adenocarcinoma"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:0080199",
+   "colorectal carcinoma"
+  ],
+  [
+   "DOID:0050861",
+   "DOID:9256",
+   "colorectal cancer"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:403",
+   "mouth disease"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:305",
+   "carcinoma"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:0050687",
+   "cell type cancer"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:3119",
+   "gastrointestinal system cancer"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:1749",
+   "squamous cell carcinoma"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:8618",
+   "oral cavity cancer"
+  ],
+  [
+   "DOID:0050866",
+   "DOID:0050866",
+   "oral squamous cell carcinoma"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:863",
+   "nervous system disease"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:936",
+   "brain disease"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:331",
+   "central nervous system disease"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:3093",
+   "nervous system cancer"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:3620",
+   "central nervous system cancer"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:0050902",
+   "medulloblastoma"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:1319",
+   "brain cancer"
+  ],
+  [
+   "DOID:0050902",
+   "DOID:4706",
+   "infratentorial cancer"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:4960",
+   "bone marrow cancer"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:4961",
+   "bone marrow disease"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:74",
+   "hematopoietic system disease"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:2531",
+   "hematologic cancer"
+  ],
+  [
+   "DOID:0050908",
+   "DOID:0050908",
+   "myelodysplastic syndrome"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:8719",
+   "in situ carcinoma"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:0060071",
+   "pre-malignant neoplasm"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:3463",
+   "breast disease"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:8791",
+   "breast carcinoma in situ"
+  ],
+  [
+   "DOID:0060074",
+   "DOID:0060074",
+   "ductal carcinoma in situ"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:5295",
+   "intestinal disease"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:305",
+   "carcinoma"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:0050687",
+   "cell type cancer"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:3119",
+   "gastrointestinal system cancer"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:5672",
+   "large intestine cancer"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:10155",
+   "intestinal cancer"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:0080199",
+   "colorectal carcinoma"
+  ],
+  [
+   "DOID:0080199",
+   "DOID:9256",
+   "colorectal cancer"
+  ],
+  [
+   "DOID:10283",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:10283",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:10283",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:10283",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:10283",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:10283",
+   "DOID:48",
+   "male reproductive system disease"
+  ],
+  [
+   "DOID:10283",
+   "DOID:15",
+   "reproductive system disease"
+  ],
+  [
+   "DOID:10283",
+   "DOID:193",
+   "reproductive organ cancer"
+  ],
+  [
+   "DOID:10283",
+   "DOID:3856",
+   "male reproductive organ cancer"
+  ],
+  [
+   "DOID:10283",
+   "DOID:47",
+   "prostate disease"
+  ],
+  [
+   "DOID:10283",
+   "DOID:10283",
+   "prostate cancer"
+  ],
+  [
+   "DOID:1612",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:1612",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:1612",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:1612",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:1612",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:1612",
+   "DOID:1612",
+   "breast cancer"
+  ],
+  [
+   "DOID:1612",
+   "DOID:3463",
+   "breast disease"
+  ],
+  [
+   "DOID:162",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:162",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:162",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:219",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:219",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:219",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:219",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:219",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:219",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:219",
+   "DOID:5295",
+   "intestinal disease"
+  ],
+  [
+   "DOID:219",
+   "DOID:3119",
+   "gastrointestinal system cancer"
+  ],
+  [
+   "DOID:219",
+   "DOID:5672",
+   "large intestine cancer"
+  ],
+  [
+   "DOID:219",
+   "DOID:10155",
+   "intestinal cancer"
+  ],
+  [
+   "DOID:219",
+   "DOID:9256",
+   "colorectal cancer"
+  ],
+  [
+   "DOID:219",
+   "DOID:5353",
+   "colonic disease"
+  ],
+  [
+   "DOID:219",
+   "DOID:219",
+   "colon cancer"
+  ],
+  [
+   "DOID:3458",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:3458",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:3458",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:3458",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:3458",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:3458",
+   "DOID:305",
+   "carcinoma"
+  ],
+  [
+   "DOID:3458",
+   "DOID:0050687",
+   "cell type cancer"
+  ],
+  [
+   "DOID:3458",
+   "DOID:1612",
+   "breast cancer"
+  ],
+  [
+   "DOID:3458",
+   "DOID:3463",
+   "breast disease"
+  ],
+  [
+   "DOID:3458",
+   "DOID:299",
+   "adenocarcinoma"
+  ],
+  [
+   "DOID:3458",
+   "DOID:3459",
+   "breast carcinoma"
+  ],
+  [
+   "DOID:3458",
+   "DOID:3458",
+   "breast adenocarcinoma"
+  ],
+  [
+   "DOID:3459",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:3459",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:3459",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:3459",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:3459",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:3459",
+   "DOID:1612",
+   "breast cancer"
+  ],
+  [
+   "DOID:3459",
+   "DOID:3463",
+   "breast disease"
+  ],
+  [
+   "DOID:3459",
+   "DOID:3459",
+   "breast carcinoma"
+  ],
+  [
+   "DOID:3748",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:3748",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:3748",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:3748",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:3748",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:3748",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:3748",
+   "DOID:305",
+   "carcinoma"
+  ],
+  [
+   "DOID:3748",
+   "DOID:0050687",
+   "cell type cancer"
+  ],
+  [
+   "DOID:3748",
+   "DOID:3119",
+   "gastrointestinal system cancer"
+  ],
+  [
+   "DOID:3748",
+   "DOID:1749",
+   "squamous cell carcinoma"
+  ],
+  [
+   "DOID:3748",
+   "DOID:6050",
+   "esophageal disease"
+  ],
+  [
+   "DOID:3748",
+   "DOID:5041",
+   "esophageal cancer"
+  ],
+  [
+   "DOID:3748",
+   "DOID:1107",
+   "esophageal carcinoma"
+  ],
+  [
+   "DOID:3748",
+   "DOID:3748",
+   "esophagus squamous cell carcinoma"
+  ],
+  [
+   "DOID:8725",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:8725",
+   "DOID:150",
+   "disease of mental health"
+  ],
+  [
+   "DOID:8725",
+   "DOID:1307",
+   "dementia"
+  ],
+  [
+   "DOID:8725",
+   "DOID:1561",
+   "cognitive disorder"
+  ],
+  [
+   "DOID:8725",
+   "DOID:8725",
+   "vascular dementia"
+  ],
+  [
+   "DOID:9256",
+   "DOID:0050686",
+   "organ system cancer"
+  ],
+  [
+   "DOID:9256",
+   "DOID:162",
+   "cancer"
+  ],
+  [
+   "DOID:9256",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:9256",
+   "DOID:14566",
+   "disease of cellular proliferation"
+  ],
+  [
+   "DOID:9256",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:9256",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:9256",
+   "DOID:5295",
+   "intestinal disease"
+  ],
+  [
+   "DOID:9256",
+   "DOID:3119",
+   "gastrointestinal system cancer"
+  ],
+  [
+   "DOID:9256",
+   "DOID:5672",
+   "large intestine cancer"
+  ],
+  [
+   "DOID:9256",
+   "DOID:10155",
+   "intestinal cancer"
+  ],
+  [
+   "DOID:9256",
+   "DOID:9256",
+   "colorectal cancer"
+  ],
+  [
+   "DOID:9655",
+   "DOID:7",
+   "disease of anatomical entity"
+  ],
+  [
+   "DOID:9655",
+   "DOID:4",
+   "disease"
+  ],
+  [
+   "DOID:9655",
+   "DOID:77",
+   "gastrointestinal system disease"
+  ],
+  [
+   "DOID:9655",
+   "DOID:403",
+   "mouth disease"
+  ],
+  [
+   "DOID:9655",
+   "DOID:9655",
+   "oral mucosa leukoplakia"
+  ]
+ ]
+}
