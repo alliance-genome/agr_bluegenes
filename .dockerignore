@@ -1,0 +1,14 @@
+.git
+.claude
+.playwright-mcp
+.aislop
+node_modules
+alliance-tools/*/node_modules
+cypress
+e2e
+test
+test-results
+playwright-report
+docs
+target/*
+!target/bluegenes.jar

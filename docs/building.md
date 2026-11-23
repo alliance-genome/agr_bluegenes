@@ -126,12 +126,16 @@ There is also a shortcut that in addition, cleans and compiles CSS.
 
 ### docker
 
-BlueGenes has a Dockerfile which you can build with a fresh uberjar.
+BlueGenes has a Dockerfile which you can build with a fresh uberjar. Both base images are pinned by digest; update the digests in the Dockerfile to take a new base. `.dockerignore` keeps everything except `target/bluegenes.jar` out of the build context.
 
     lein uberjar
     docker build -t bluegenes .
 
-The build reads `config/prod/config.edn`, so create it first. It also bakes a tools directory into the image at `/tools` (`BLUEGENES_TOOL_PATH`). That directory holds the `@intermine` tools pinned in `docker/intermine-tools.txt`, downloaded from npm, plus every package in `alliance-tools/`. To build the same directory outside docker, run `scripts/build-tools-dir.sh <tool-path>`. To change an `@intermine` tool version, edit `docker/intermine-tools.txt` and rebuild.
+The build reads `config/prod/config.edn`, so create it first. It also bakes a tools directory into the image at `/tools` (`BLUEGENES_TOOL_PATH`). That directory holds the `@intermine` tools pinned in `docker/intermine-tools.txt`, downloaded from npm, plus every package in `alliance-tools/`. To build the same directory outside docker, run `scripts/build-tools-dir.sh <tool-path>`. Each pin in `docker/intermine-tools.txt` is `name version sha512-integrity`, and the build fails when a tarball does not match its hash. To change an `@intermine` tool, edit that file and rebuild. Get the hash of a new version with `npm view <name>@<version> dist.integrity`. The build needs access to `registry.npmjs.org`, retries 429 and 5xx answers three times, and keeps only `dist/`, `package.json`, `config.json` and `preview.png` of each package. After a bump, run `scripts/audit-tool-hosts.sh <tool-path>` to list hosts that are new in the bundles; add a host to `docker/tool-hosts-allowlist.txt` once you have read how the bundle uses it.
+
+`protein-visualizer` (calls the retired RCSB search v1 API, HTTP 404) and `msa-viewer` (aligns through `sequencealignment.apps.intermine.org`, which has no DNS record) are not baked in because their main function is dead. `go-term-visualizer` stays: it names the dead host `cdn.intermine.org`, but only in a fallback for browsers without native JSON.
+
+The final image runs as the non-root user `nonroot` (uid 65532) and has no npm, so installing or removing tools from the running server does not work. Change the pins and rebuild instead.
 
 Run it and the web server should default to port 5000.
 

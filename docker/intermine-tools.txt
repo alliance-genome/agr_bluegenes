@@ -1,18 +1,17 @@
-@intermine/bluegenes-tissue-expression-visualizer 2.0.0
-@intermine/bluegenes-protein-atlas-tissue-expression-visualizer 2.0.0
-@intermine/bluegenes-human-tissue-expression-visualizer 2.0.1
-@intermine/bluegenes-disease-expression-arrayexpress-visualizer 2.0.0
-@intermine/bluegenes-protein-tissue-localisation 2.0.1
-@intermine/bluegenes-protvista 2.0.0
-@intermine/bluegenes-pathway-visualizer 1.0.3
-@intermine/bluegenes-go-concept-relation 1.0.3
-@intermine/bluegenes-tissue-expression-arrayexpress-visualizer 2.0.0
-@intermine/bluegenes-list-enrichment-visualizer 1.0.2
-@intermine/bluegenes-protein-visualizer 2.1.1
-@intermine/bluegenes-expression-box-swarm-visualizer 2.0.0
-@intermine/bluegenes-go-term-visualizer 2.0.1
-@intermine/bluegenes-interaction-network 1.0.3
-@intermine/bluegenes-cytoscape-interaction-network-viewer 2.0.2
-@intermine/bluegenes-msa-viewer 2.1.1
-@intermine/bluegenes-gwas-visualizer 1.0.0
-@intermine/bluegenes-jbrowse-tool 1.0.1
+# name version sha512-integrity. Get the hash with: npm view <name>@<version> dist.integrity
+@intermine/bluegenes-tissue-expression-visualizer 2.0.0 sha512-vpkvdi0ICWJNuM+OGcnUyP0qo+p9Z2nl4xvHhsVZqWpSSvOCs/BB0Wye63efGgja2Rxlg6I1QoOeEN3a/vvW+w==
+@intermine/bluegenes-protein-atlas-tissue-expression-visualizer 2.0.0 sha512-yt73ZAD0VQq4HPA4WoTXQzUYaJFyO+pP+7RLhrQAH7Pc9f+WEitF1WH1UuUHeE11VmtsDOojy7aGvaupJuGWZw==
+@intermine/bluegenes-human-tissue-expression-visualizer 2.0.1 sha512-VczJRtzvjiIdHjn9tH8mcWi2ncNDrzjovONCPHAOC964UpDayZfBLjBBtaw6XXPPJCxcrJqMzRepJON8HRxn9A==
+@intermine/bluegenes-disease-expression-arrayexpress-visualizer 2.0.0 sha512-sgNQSXxjnp9fEJAyN2JvKB6fJ6l+FLoaHD4KlyVN5BLiwhabiz705rpJBKA1Uc0DwcidG+aDXGE5HknLqyOJlw==
+@intermine/bluegenes-protein-tissue-localisation 2.0.1 sha512-ma0XOqslLhrEziSaB4HqEn0KNmBKZT/dgoYXLI9kifyJSF9CHx18QjPpQdsaz1u2dF/pthQES2pDXC75OiPyFA==
+@intermine/bluegenes-protvista 2.0.0 sha512-U6HlJMdWLPYYJ/MM2vyCpdzbq3SDa+lL6sYFHr9ycfmBFZprLRTq00ly7PI2tGOUr0VEVd1GHv/CDqiWyOd8OA==
+@intermine/bluegenes-pathway-visualizer 1.0.3 sha512-qrlyJlDdBOMbakRo9RhOSZkLGJSZQ5Z6XhnVJ4nbBzrhWrRyyaHt4MrT4zBuRRlKfhenKtUa+c4oe9HiYs+0FQ==
+@intermine/bluegenes-go-concept-relation 1.0.3 sha512-LvX71JcDYhYmaISDR1bX33tutYz80mQffkTwZlm14g1nn0ch7evHSkDhlo/jQtfjCAsjaA+Zqls9ewZ6J6WkBw==
+@intermine/bluegenes-tissue-expression-arrayexpress-visualizer 2.0.0 sha512-SJwGivT3sRRfReS4BFJRxpLRlFRAc+UigVJQAIpTIHN35VfAXKSFiPrVGA65RcxicgmyAdKtrC2EwF+69el6HQ==
+@intermine/bluegenes-list-enrichment-visualizer 1.0.2 sha512-cTDjTy3xfkblmLC+EgSO4GQFsiRLzI42QnTAih8PJKFsr1n7FlhUsk7w4XBKPv+vESkXrXJQnYWLG8xMKRe/jg==
+@intermine/bluegenes-expression-box-swarm-visualizer 2.0.0 sha512-AU1lwLZORNGSMKuYGGOnqeQfSMmqUE7dvdejkI1WjUIPE16rSh91zmMlPWQ5eHnwFAEpsTzCZaOhUpO6FfWdwQ==
+@intermine/bluegenes-go-term-visualizer 2.0.1 sha512-/vtpuC4Luw2/fOhhEY9026tpTewGKr87tx4jgkAMyDx7bFNl9K/dhgCwAWH01KWcoJdVomTAadhwo3jZPZRqPw==
+@intermine/bluegenes-interaction-network 1.0.3 sha512-uSIuNjEolx7eLmEJT82KlNUAwyROKmKYR1yDXrGwmoIjP25ugyQxVBjwHR6/wyvLIC9FrHR8gmwQoF0ciEk03Q==
+@intermine/bluegenes-cytoscape-interaction-network-viewer 2.0.2 sha512-idgPYkhRRyggS884hvnOPvfYHqa3HFtlRXdO5nRix91csrLvZxeDlzcR7tasSdoQEx6cqK8XKZ2bBpccfd7WwQ==
+@intermine/bluegenes-gwas-visualizer 1.0.0 sha512-cS9e2qC9+BvDutgUn+CWeaTg/gXfpctq5MJIT7W1jeycwKgxNz+mqz7zHpLYZUHBLiiO1CxaTFMEANfhtRMuLQ==
+@intermine/bluegenes-jbrowse-tool 1.0.1 sha512-CCzHbdx2JiPCi6vAyXkrh1gHHfU0Q7jOzovjoMAQgkOUyKMJZPr0I7r+UZpMP54KIAKr9SZ2q0YtpfGFxi0Dsw==

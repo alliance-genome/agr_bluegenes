@@ -6,7 +6,7 @@ set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tool_path="${BLUEGENES_TOOL_PATH:-./tools}"
-src_root="$repo/alliance-tools"
+src_root="${BLUEGENES_ALLIANCE_TOOLS:-$repo/alliance-tools}"
 
 # bluegenes-tool-store installs the official tools only when tools.edn is missing,
 # so the server must create tools.edn (start it once) before this script writes one.
