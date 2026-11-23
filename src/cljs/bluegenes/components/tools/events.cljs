@@ -171,14 +171,19 @@
      :style "warning"
      :timeout 10000}))
 
+(defn rejection-fx
+  "Effects for a `saveList` call that cannot run. A missing login also tells the user."
+  [db mine problem reject]
+  (cond-> (settle reject (js/Error. problem))
+    (= problem utils/login-required-message) (assoc :dispatch [:messages/add (login-message db mine)])))
+
 (reg-event-fx
  ::save-list
  (fn [{db :db} [_ mine args resolve reject]]
    (let [service (get-in db [:mines (:current-mine db) :service])
          problem (utils/save-problem db mine args)]
      (if problem
-       (cond-> (settle reject (js/Error. problem))
-         (= problem utils/login-required-message) (assoc :dispatch [:messages/add (login-message db mine)]))
+       (rejection-fx db mine problem reject)
        {:im-chan {:chan (fetch/lists service)
                   :on-success [::save-list-lists service mine args resolve reject]
                   :on-failure [::save-list-failure reject]
@@ -209,12 +214,17 @@
      :style "success"
      :timeout 10000}))
 
+(defn save-list-success-fx
+  "Effects for a saved list: resolve the tool's promise, refresh the lists, tell the user."
+  [resolve mine args listName]
+  (assoc (settle resolve listName)
+         :dispatch-n [[:assets/fetch-lists]
+                      [:messages/add (saved-message mine args listName)]]))
+
 (reg-event-fx
  ::save-list-success
  (fn [_ [_ resolve mine args {:keys [listName]}]]
-   (assoc (settle resolve listName)
-          :dispatch-n [[:assets/fetch-lists]
-                       [:messages/add (saved-message mine args listName)]])))
+   (save-list-success-fx resolve mine args listName)))
 
 (reg-event-fx
  ::save-list-failure

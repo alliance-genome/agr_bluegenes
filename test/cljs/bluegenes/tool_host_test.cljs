@@ -220,9 +220,6 @@
                         #(reset! outcome [:rejected (.-message %)])])
      outcome)))
 
-(defn- message-markup [db]
-  (pr-str (map :markup (vals (:messages db)))))
-
 (deftest save-problem-checks
   (is (nil? (tu/save-problem (mine-db "tok" logged-in) "agr" valid-args)))
   (is (= tu/login-required-message (tu/save-problem (mine-db "tok" nil) "agr" valid-args))
@@ -236,9 +233,17 @@
   (run-test-sync
    (with-redefs [fetch/lists (fn [& _] (throw (js/Error. "no request without a login")))
                  route/href (fn [& args] (pr-str args))]
-     (let [outcome (run-save (mine-db "anon-token" nil) valid-args)]
-       (is (= [:rejected "login required"] @outcome))
-       (is (re-find #"Log in" (message-markup @re-frame.db/app-db)) "the user is told to log in")))))
+     (is (= [:rejected "login required"]
+            @(run-save (mine-db "anon-token" nil) valid-args))))))
+
+(deftest rejection-fx-tells-anonymous-users-to-log-in
+  (with-redefs [route/href (fn [& args] (pr-str args))]
+    (let [db (mine-db "anon-token" nil)
+          [id message] (:dispatch (events/rejection-fx db "agr" tu/login-required-message identity))
+          other (events/rejection-fx db "agr" "saveList: ids must be InterMine object ids" identity)]
+      (is (= :messages/add id))
+      (is (re-find #"Log in" (pr-str (:markup message))))
+      (is (nil? (:dispatch other))))))
 
 (deftest save-list-without-token
   (run-test-sync
@@ -291,21 +296,20 @@
      (rf/dispatch-sync [::events/save-list-unauthorised #(reset! outcome (.-message %)) nil])
      (is (= "login required" @outcome)))))
 
-(deftest save-list-success-message
-  (run-test-sync
-   (with-redefs [route/href (fn [_ params] (str "#/" (:title params)))]
-     (let [outcome (atom nil)]
-       (rf/dispatch-sync [::seed {:current-mine :agr}])
-       (rf/dispatch-sync [::events/save-list-success #(reset! outcome %) "agr" valid-args {:listName "x_1"}])
-       (is (= "x_1" @outcome))
-       (let [[message & more] (vals (:messages @re-frame.db/app-db))
-             text (pr-str (:markup message))]
-         (is (nil? more))
-         (is (= "success" (:style message)))
-         (is (re-find #"x_1" text))
-         (is (re-find #"#/x_1" text) "links to the list")
-         (is (re-find #"3 Genes" text) "counts the ids")
-         (is (re-find #"already taken" text) "says the name was taken"))))))
+(deftest save-list-success-fx-tells-the-user
+  (with-redefs [route/href (fn [_ params] (str "#/" (:title params)))]
+    (let [outcome (atom nil)
+          fx (events/save-list-success-fx #(reset! outcome %) "agr" valid-args "x_1")
+          [[refresh] [id message]] (:dispatch-n fx)
+          text (pr-str (:markup message))]
+      (is (= :assets/fetch-lists refresh))
+      (is (= :messages/add id))
+      (is (= "success" (:style message)))
+      (is (re-find #"#/x_1" text) "links to the list")
+      (is (re-find #"3 Genes" text) "counts the ids")
+      (is (re-find #"already taken" text) "says the name was taken")
+      ((get-in fx [:settle-promise :f]) (get-in fx [:settle-promise :value]))
+      (is (= "x_1" @outcome)))))
 
 (deftest saved-message-exact-name
   (with-redefs [route/href (fn [_ params] (str "#/" (:title params)))]

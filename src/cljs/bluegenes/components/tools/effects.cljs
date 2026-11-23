@@ -68,8 +68,8 @@
   and `onDestroy`."
   [context tool-id]
   (doto (clj->js context)
-    (oset! "saveList" (partial save-list! (:mine context)))
-    (oset! "onDestroy" (partial register-destroy! tool-id))))
+    (aset "saveList" (partial save-list! (:mine context)))
+    (aset "onDestroy" (partial register-destroy! tool-id))))
 
 (reg-fx
  :settle-promise
