@@ -4,96 +4,196 @@ const assert = require('node:assert');
 const { install } = require('./dom-stub.js');
 install();
 const tool = require('../dist/bundle.js');
+const mine = require('./mine-stub.js');
+const { MOUSE, WORM, HUMAN, tick, run, button, geneRows } = mine;
 
-const tick = () => new Promise((r) => setTimeout(r, 20));
-
-const model = (collections) => ({
+const quiet = async (fn) => {
+	const orig = console.error;
+	console.error = () => {};
+	try { return await fn(); } finally { console.error = orig; }
+};
+const subModel = (collections) => ({
 	classes: {
-		Gene: {
-			attributes: { id: {}, primaryIdentifier: {}, symbol: {} },
-			collections: Object.fromEntries(collections.map((c) => [c, { referencedType: 'Ann' }])),
-			references: { organism: { referencedType: 'Organism' } }
-		},
-		Ann: { attributes: { id: {} } },
-		Organism: { attributes: { shortName: {} } }
+		...mine.model.classes,
+		Gene: { ...mine.model.classes.Gene, collections: Object.fromEntries(Object.entries(mine.model.classes.Gene.collections).filter(([k]) => collections.includes(k))) }
 	}
 });
+const SERVICE = { root: 'http://h/mine' };
+const ALL = [MOUSE, WORM, HUMAN];
+tool.settings.retryMs = 0;
 
-test('typesFor keeps all types without a model', () => {
+test('typesFor keeps all types without a model and drops those missing from it', () => {
 	assert.strictEqual(tool.typesFor({}).length, 5);
+	assert.deepStrictEqual(tool.typesFor({ model: subModel(['goAnnotation', 'publications']) }).map((t) => t.key), ['go', 'publications']);
 });
-
-test('typesFor drops types whose collection is missing from the model', () => {
-	const keys = tool.typesFor({ model: model(['goAnnotation', 'publications']) }).map((t) => t.key);
-	assert.deepStrictEqual(keys, ['go', 'publications']);
-});
-
-function stub(queries) {
-	globalThis.fetch = async (url, init) => {
-		const q = decodeURIComponent(init.body.split('query=')[1]);
-		queries.push(q);
-		if (q.includes('Gene.primaryIdentifier')) return { ok: true, json: async () => ({ results: [[1, 'FB:1', 'a', 'Fly'], [2, 'FB:2', 'b', 'Fly']] }) };
-		return { ok: true, json: async () => ({ results: [[1, 10]] }) };
-	};
-}
-
-async function run(service, context) {
-	const el = document.createElement('div');
-	tool.main(el, service, { Gene: { value: [1, 2] } }, {}, {}, () => {}, context);
-	await tick();
-	return el;
-}
 
 test('missing collections are never queried and are named in a note', async () => {
-	const queries = [];
-	stub(queries);
-	const el = await run({ root: 'http://h/mine', model: model(['goAnnotation', 'alleles']) });
-	assert.ok(!queries.some((q) => q.includes('diseaseAnnotation') || q.includes('phenotypeAnnotations') || q.includes('Gene.publications')));
+	const { requests } = mine.install();
+	const el = await run(tool, { ...SERVICE, model: subModel(['goAnnotation', 'alleles']) }, ALL);
+	await tick();
+	assert.deepStrictEqual([...new Set(requests.filter((r) => r.collection).map((r) => r.collection))].sort(), ['alleles', 'goAnnotation']);
 	assert.deepStrictEqual(el.find('th').map((t) => t.textContent).slice(0, 4), ['Organism', 'Genes', 'GO', 'Alleles']);
 	assert.ok(el.textContent.includes('This mine has no annotations for: Disease, Phenotype, Publications.'));
 });
 
+test('each column reads its own collection: alleles are missing for the human gene only', async () => {
+	mine.install();
+	const el = await run(tool, { ...SERVICE, model: mine.model }, ALL);
+	await tick();
+	const human = geneRows(el).find((r) => r.textContent.startsWith('TP53'));
+	assert.deepStrictEqual(human.find('td').slice(2).map((c) => c.textContent), ['Yes', 'Yes', 'Yes', 'Yes', 'No']);
+	const mouse = geneRows(el).find((r) => r.textContent.startsWith('Trp53'));
+	assert.deepStrictEqual(mouse.find('td').slice(2).map((c) => c.textContent), ['Yes', 'Yes', 'Yes', 'Yes', 'Yes']);
+});
+
 test('a model with none of the collections shows the empty message', async () => {
-	stub([]);
-	const el = await run({ root: 'http://h/mine', model: model([]) });
+	mine.install();
+	const el = await run(tool, { ...SERVICE, model: subModel([]) }, ALL);
+	await tick();
 	assert.ok(el.textContent.includes('No annotation coverage to show'));
 });
 
-test('without context the save controls are absent, with it they are shown', async () => {
-	stub([]);
-	const bare = await run({ root: 'http://h/mine' });
-	assert.strictEqual(bare.find('select').length, 0);
-	const withCtx = await run({ root: 'http://h/mine' }, { saveList: async () => 'x' });
-	assert.strictEqual(withCtx.find('select').length, 1);
-	const button = withCtx.find('button').find((b) => /^Save /.test(b.textContent));
-	assert.strictEqual(button.textContent, 'Save 1 gene without GO as list');
-});
-
-test('save sends the ids of genes without the chosen type', async () => {
-	stub([]);
-	let sent;
-	const el = await run({ root: 'http://h/mine' }, { saveList: async (a) => { sent = a; return a.name; } });
-	const button = el.find('button').find((b) => /^Save /.test(b.textContent));
-	button.listeners.click();
+test('duplicate input ids are queried once', async () => {
+	const { requests } = mine.install();
+	await run(tool, SERVICE, [MOUSE, String(MOUSE), WORM, WORM]);
 	await tick();
-	assert.deepStrictEqual(sent.ids, [2]);
-	assert.strictEqual(sent.class, 'Gene');
-	assert.ok(el.textContent.includes('Saved list genes_without_go_annotations_'));
+	const info = requests.find((r) => r.kind === 'info');
+	assert.deepStrictEqual(info.ids, [MOUSE, WORM]);
 });
 
-test('anonymous users get a login message when saving is rejected', async () => {
-	stub([]);
-	const el = await run({ root: 'http://h/mine' }, { saveList: () => Promise.reject(new Error('login required')) });
-	el.find('button').find((b) => /^Save /.test(b.textContent)).listeners.click();
+test('ids the mine does not return are reported', async () => {
+	mine.install();
+	const el = await run(tool, SERVICE, [MOUSE, 999]);
+	await tick();
+	assert.ok(el.textContent.includes('1 id not found in this mine.'));
+});
+
+test('without context the save button is absent, with it Save is offered once a filter is chosen', async () => {
+	mine.install();
+	const bare = await run(tool, SERVICE, ALL);
+	await tick();
+	assert.ok(!bare.find('button').some((b) => /^(Save|Choose)/.test(b.textContent)));
+	const withCtx = await run(tool, SERVICE, ALL, { saveList: async () => 'x' });
+	await tick();
+	assert.strictEqual(button(withCtx, /^Choose which genes/).disabled, true);
+});
+
+function choose(el, mode, organism) {
+	const [orgSelect, modeSelect] = el.find('select');
+	if (organism !== undefined) { orgSelect.value = organism; orgSelect.listeners.change(); }
+	modeSelect.value = mode;
+	modeSelect.listeners.change();
+}
+
+test('save sends the ids of genes without the chosen type and names the list', async () => {
+	mine.install();
+	let sent;
+	const el = await run(tool, SERVICE, ALL, { saveList: async (a) => { sent = a; return a.name; } });
+	await tick();
+	choose(el, 'alleles');
+	const save = button(el, /^Save 1 gene without Alleles as list/);
+	save.listeners.click();
+	await tick();
+	assert.deepStrictEqual(sent.ids, [HUMAN]);
+	assert.strictEqual(sent.class, 'Gene');
+	assert.ok(el.textContent.includes('Saved list genes_without_alleles_annotations_'));
+});
+
+test('after a save the button stays disabled until the selection changes', async () => {
+	mine.install();
+	let calls = 0;
+	const el = await run(tool, SERVICE, ALL, { saveList: async (a) => { calls += 1; return a.name; } });
+	await tick();
+	choose(el, 'alleles');
+	button(el, /^Save 1 gene/).listeners.click();
+	await tick();
+	const after = button(el, /^Save 1 gene/);
+	assert.strictEqual(after.disabled, true);
+	after.listeners.click();
+	await tick();
+	assert.strictEqual(calls, 1);
+	choose(el, 'any');
+	assert.strictEqual(button(el, /^Save 1 gene/).disabled, false);
+});
+
+test('anonymous users get a login message and can try again', async () => {
+	mine.install();
+	const el = await run(tool, SERVICE, ALL, { saveList: () => Promise.reject(new Error('login required')) });
+	await tick();
+	choose(el, 'alleles');
+	button(el, /^Save 1 gene/).listeners.click();
 	await tick();
 	assert.ok(el.textContent.includes('Log in to save lists'));
+	assert.strictEqual(button(el, /^Save 1 gene/).disabled, false);
 });
 
-test('an HTTP 500 fails the whole tool', async () => {
-	globalThis.fetch = async () => ({ ok: false, status: 500 });
-	const orig = console.error;
-	console.error = () => {};
-	const el = await run({ root: 'http://h/mine' });
-	console.error = orig;
-	assert.ok(el.textContent.includes('Could not load annotation coverage'));
+test('an HTTP 500 on the gene query shows the status and fails the tool', async () => {
+	mine.install({ respond: () => ({ ok: false, status: 500 }) });
+	const el = await quiet(async () => { const e = await run(tool, SERVICE, ALL); await tick(); return e; });
+	assert.ok(el.textContent.includes('Could not load annotation coverage from the mine (HTTP 500)'));
+	assert.strictEqual(el.find('p')[0].getAttribute('role'), 'alert');
+});
+
+test('an HTTP 500 on one type fails that column only and Retry reloads it', async () => {
+	let failGo = true;
+	mine.install({ respond: (req) => (req.collection === 'goAnnotation' && failGo ? { ok: false, status: 500 } : undefined) });
+	const el = await quiet(async () => { const e = await run(tool, SERVICE, ALL); await tick(); return e; });
+	assert.ok(el.textContent.includes('Could not load (HTTP 500)'));
+	assert.ok(el.textContent.includes('1 of 1 (100%)'));
+	failGo = false;
+	button(el, /^Retry$/).listeners.click();
+	await tick();
+	assert.ok(!el.textContent.includes('Could not load'));
+});
+
+test('a 429 is retried and the column loads', async () => {
+	let seen = 0;
+	const { requests } = mine.install({ respond: (req) => (req.collection === 'goAnnotation' && ++seen < 3 ? { ok: false, status: 429, headers: { get: () => null } } : undefined) });
+	const el = await run(tool, SERVICE, ALL);
+	await tick();
+	assert.strictEqual(requests.filter((r) => r.collection === 'goAnnotation').length, 3);
+	assert.ok(!el.textContent.includes('Could not load'));
+});
+
+test('a 429 that persists stops after 3 tries and says so', async () => {
+	const { requests } = mine.install({ respond: (req) => (req.collection === 'goAnnotation' ? { ok: false, status: 429, headers: { get: () => null } } : undefined) });
+	const el = await quiet(async () => { const e = await run(tool, SERVICE, ALL); await tick(); return e; });
+	assert.strictEqual(requests.filter((r) => r.collection === 'goAnnotation').length, 3);
+	assert.ok(el.textContent.includes('Could not load (HTTP 429)'));
+});
+
+test('Retry-After is honoured instead of the default backoff', async () => {
+	const saved = tool.settings.retryMs;
+	tool.settings.retryMs = 60000;
+	let seen = 0;
+	mine.install({ respond: (req) => (req.kind === 'info' && ++seen < 2 ? { ok: false, status: 429, headers: { get: () => '0.01' } } : undefined) });
+	const el = await run(tool, SERVICE, ALL);
+	await tick(150);
+	tool.settings.retryMs = saved;
+	assert.ok(el.textContent.includes('Trp53'));
+});
+
+test('a request that never answers times out with a visible message', async () => {
+	const saved = tool.settings.timeoutMs;
+	tool.settings.timeoutMs = 20;
+	globalThis.fetch = (url, init) => new Promise((resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))));
+	const el = await quiet(async () => { const e = await run(tool, SERVICE, ALL); await tick(120); return e; });
+	tool.settings.timeoutMs = saved;
+	assert.ok(el.textContent.includes('Could not load annotation coverage from the mine (timed out after'));
+});
+
+test('loading and the save status are announced to screen readers', async () => {
+	const saved = tool.settings.timeoutMs;
+	tool.settings.timeoutMs = 20;
+	mine.install({ respond: () => new Promise(() => {}) });
+	const el = await run(tool, SERVICE, ALL);
+	assert.strictEqual(el.find('p')[0].getAttribute('role'), 'status');
+	await tick(60);
+	tool.settings.timeoutMs = saved;
+	mine.install();
+	const done = await run(tool, SERVICE, ALL, { saveList: async () => 'x' });
+	await tick();
+	assert.ok(done.find('span').some((s) => s.getAttribute('role') === 'status'));
+	assert.ok(done.find('table').every((t) => t.find('caption').length === 1));
+	assert.ok(done.find('th').every((th) => th.getAttribute('scope') === 'col'));
 });

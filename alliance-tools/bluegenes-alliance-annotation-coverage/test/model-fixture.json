@@ -1,0 +1,118 @@
+{
+ "classes": {
+  "Gene": {
+   "attributes": {
+    "symbol": {
+     "name": "symbol"
+    },
+    "id": {
+     "name": "id"
+    },
+    "primaryIdentifier": {
+     "name": "primaryIdentifier"
+    }
+   },
+   "references": {
+    "organism": {
+     "name": "organism",
+     "referencedType": "Organism"
+    }
+   },
+   "collections": {
+    "diseaseAnnotation": {
+     "name": "diseaseAnnotation",
+     "referencedType": "DiseaseAnnotation"
+    },
+    "phenotypeAnnotations": {
+     "name": "phenotypeAnnotations",
+     "referencedType": "PhenotypeAnnotation"
+    },
+    "alleles": {
+     "name": "alleles",
+     "referencedType": "Allele"
+    },
+    "goAnnotation": {
+     "name": "goAnnotation",
+     "referencedType": "GOAnnotation"
+    },
+    "publications": {
+     "name": "publications",
+     "referencedType": "Publication"
+    }
+   },
+   "extends": [
+    "BiologicalRegion"
+   ]
+  },
+  "GOAnnotation": {
+   "attributes": {
+    "id": {
+     "name": "id"
+    }
+   },
+   "references": {},
+   "collections": {},
+   "extends": [
+    "OntologyAnnotation"
+   ]
+  },
+  "Allele": {
+   "attributes": {
+    "id": {
+     "name": "id"
+    }
+   },
+   "references": {},
+   "collections": {},
+   "extends": [
+    "SequenceCollection",
+    "SequenceFeature"
+   ]
+  },
+  "Publication": {
+   "attributes": {
+    "id": {
+     "name": "id"
+    }
+   },
+   "references": {},
+   "collections": {},
+   "extends": []
+  },
+  "Organism": {
+   "attributes": {
+    "id": {
+     "name": "id"
+    },
+    "shortName": {
+     "name": "shortName"
+    }
+   },
+   "references": {},
+   "collections": {},
+   "extends": []
+  },
+  "PhenotypeAnnotation": {
+   "attributes": {
+    "id": {
+     "name": "id"
+    }
+   },
+   "references": {},
+   "collections": {},
+   "extends": []
+  },
+  "DiseaseAnnotation": {
+   "attributes": {
+    "id": {
+     "name": "id"
+    }
+   },
+   "references": {},
+   "collections": {},
+   "extends": [
+    "OntologyAnnotation"
+   ]
+  }
+ }
+}
