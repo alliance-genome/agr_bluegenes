@@ -7,6 +7,8 @@ const { install } = require('./dom-stub.js');
 install();
 const tool = require('../dist/bundle.js');
 
+tool.settings.backoff = 1;
+
 const fixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8'));
 const RIBBON = fixture('ribbon-tp53-brca1.json');
 const SLIMMER = fixture('slimmer-tp53-go0003824.json');
@@ -425,14 +427,27 @@ test('main throws without arguments', () => {
 const setRows = (n) => Array.from({ length: n }, (_, i) => [`HGNC:${1000 + i}`, `G${i}`, 'H. sapiens', '9606', 5000 + i]);
 
 // The ribbon API answers every requested subject with TP53's counts, except
-// odd-numbered genes, which get the MGI gene's counts.
-function setNet({ rows, log = [], ribbonStatus = 200 } = {}) {
+// odd-numbered genes, which get the MGI gene's counts. The mine answers the
+// rows whose Gene.id is in the query. unmapped lists curies the ribbon API
+// rejects with a 404 naming the first of them; failWhen(curies) returns an
+// HTTP status for a ribbon request or null; delay holds ribbon answers.
+function setNet({ rows, log = [], ribbonStatus = 200, unmapped = [], failWhen = null, delay = 0 } = {}) {
 	return async (url, init) => {
 		log.push({ url: String(url), init });
-		if (String(url).startsWith(ROOT + '/service/query/results')) return json({ results: rows });
+		if (String(url).startsWith(ROOT + '/service/query/results')) {
+			const query = new URLSearchParams(init.body).get('query');
+			const wanted = new Set([...query.matchAll(/<value>([^<]*)<\/value>/g)].map((m) => m[1]));
+			return json({ results: rows.filter((r) => wanted.has(String(r[4]))) });
+		}
+		if (String(url).includes('/bioentityset/slimmer/')) return json(SLIMMER);
 		if (String(url).includes('/ontology/ribbon/')) {
-			if (ribbonStatus !== 200) return json({}, ribbonStatus);
-			const subjects = new URL(url).searchParams.getAll('subject').map((id) => {
+			if (delay) await new Promise((r) => setTimeout(r, delay));
+			const curies = new URL(url).searchParams.getAll('subject');
+			const status = ribbonStatus !== 200 ? ribbonStatus : failWhen && failWhen(curies);
+			if (status) return json({}, status);
+			const bad = curies.find((c) => unmapped.includes(c));
+			if (bad) return json({ detail: 'No UniProtKB IDs found for ' + bad }, 404);
+			const subjects = curies.map((id) => {
 				const src = Number(id.split(':')[1]) % 2 ? RIBBON.subjects[1] : RIBBON.subjects[0];
 				return Object.assign({}, src, { id });
 			});
@@ -463,7 +478,14 @@ test('toCsv quotes commas, quotes and line breaks', () => {
 	assert.strictEqual(tool.toCsv([['a', 'b,c', 'd"e']]), 'a,"b,c","d""e"\r\n');
 });
 
-test('a list of 120 genes is fetched in 3 sequential requests of at most 50 subjects', async () => {
+test('toCsv prefixes text that a spreadsheet would run as a formula', () => {
+	assert.strictEqual(
+		tool.toCsv([['=SUM(A1)', '+1', '-x', '@s', 'ok', 5, -3]]),
+		"'=SUM(A1),'+1,'-x,'@s,ok,5,-3\r\n"
+	);
+});
+
+test('a list of 120 genes is fetched in 8 requests of at most 15 subjects', async () => {
 	const log = [];
 	globalThis.fetch = setNet({ rows: setRows(120), log });
 	const el = fakeEl();
@@ -472,7 +494,7 @@ test('a list of 120 genes is fetched in 3 sequential requests of at most 50 subj
 	await tick();
 	assert.strictEqual(mineCalls(log).length, 1);
 	const calls = ribbonCalls(log);
-	assert.deepStrictEqual(calls.map((c) => new URL(c.url).searchParams.getAll('subject').length), [50, 50, 20]);
+	assert.deepStrictEqual(calls.map((c) => new URL(c.url).searchParams.getAll('subject').length), [15, 15, 15, 15, 15, 15, 15, 15]);
 	assert.ok(calls.every((c) => c.url.includes('subset=goslim_agr')));
 	assert.ok(el.textContent.includes('Download summary as CSV'));
 });
@@ -494,29 +516,16 @@ test('slim term table counts genes per term', async () => {
 
 test('progress line shows chunk progress while the ribbon loads', async () => {
 	const seen = [];
-	const net = setNet({ rows: setRows(60) });
+	const net = setNet({ rows: setRows(90) });
 	const el = fakeEl();
 	globalThis.fetch = async (url, init) => {
 		seen.push(el.textContent);
 		return net(url, init);
 	};
-	tool.main(el, { root: ROOT }, entity(setRows(60).map((r) => r[4])), {}, {}, null, ctx());
+	tool.main(el, { root: ROOT }, entity(setRows(90).map((r) => r[4])), {}, {}, null, ctx());
 	await tick();
 	await tick();
-	assert.ok(seen.some((t) => t.includes('Loading GO annotations: 50 of 60 genes')));
-});
-
-test('more than 300 genes are cut to the first 300 with a message', async () => {
-	const log = [];
-	globalThis.fetch = setNet({ rows: setRows(300), log });
-	const el = fakeEl();
-	const ids = Array.from({ length: 450 }, (_, i) => 5000 + i);
-	tool.main(el, { root: ROOT }, entity(ids), {}, {}, null, ctx());
-	await tick();
-	await tick();
-	const q = new URLSearchParams(mineCalls(log)[0].init.body).get('query');
-	assert.strictEqual(q.split('<value>').length - 1, 300);
-	assert.ok(el.textContent.includes('This list has 450 genes. The ribbon covers the first 300'));
+	assert.ok(seen.some((t) => /Loading GO annotations: \d+ of 90 genes/.test(t) && !t.includes(': 0 of')));
 });
 
 test('clicking a term lists its genes with Alliance links', async () => {
@@ -553,10 +562,12 @@ test('CSV buttons download the summary and the term genes', async () => {
 		termButton(el, 'signaling receptor binding, 2 genes').listeners.click();
 		el.find('button').find((b) => b.textContent === 'Download genes as CSV').listeners.click();
 		assert.deepStrictEqual(clicks, ['go-ribbon-summary.csv', 'go-ribbon-GO-0005102.csv']);
-		const summary = await blobs[0].text();
-		assert.ok(summary.startsWith('Aspect,GO ID,Term,Genes,Gene symbols\r\n'));
-		assert.ok(summary.includes('molecular function,GO:0005102,signaling receptor binding,2,G0; G2'));
-		const genes = await blobs[1].text();
+		assert.strictEqual(blobs[0].type, 'text/csv;charset=utf-8');
+		assert.deepStrictEqual([...new Uint8Array(await blobs[0].arrayBuffer()).slice(0, 3)], [0xef, 0xbb, 0xbf]);
+		const summary = Buffer.from(await blobs[0].arrayBuffer()).toString('utf8').slice(1);
+		assert.ok(summary.startsWith('Aspect,GO ID,Term,Genes,Gene symbols,Alliance IDs\r\n'));
+		assert.ok(summary.includes('molecular function,GO:0005102,signaling receptor binding,2,G0; G2,HGNC:1000; HGNC:1002'));
+		const genes = Buffer.from(await blobs[1].arrayBuffer()).toString('utf8');
 		assert.ok(genes.includes('G0,HGNC:1000,H. sapiens,1'));
 	} finally {
 		URL.createObjectURL = realCreate;
@@ -628,4 +639,246 @@ test('a results page with one id still runs the set view, a report page does not
 	await tick();
 	assert.strictEqual(report.find('button').length, 59);
 	assert.ok(!report.textContent.includes('Download summary'));
+});
+
+// Failure handling and live-data cases.
+const settle = (ms) => new Promise((r) => setTimeout(r, ms));
+const withErrors = async (fn) => {
+	const orig = console.error;
+	const errors = [];
+	console.error = (...a) => errors.push(a);
+	try { await fn(errors); } finally { console.error = orig; }
+};
+const BAD_XIST = fixture('ribbon-404-xist.json');
+const XEN = fixture('ribbon-xenbase-pax6.json');
+
+test('toAllianceCurie keeps Xenbase case and maps bare XB-GENE ids', () => {
+	const c = tool.toAllianceCurie;
+	assert.strictEqual(c(XEN.subject.id, 'X. tropicalis'), 'Xenbase:XB-GENE-484088');
+	assert.strictEqual(c('XENBASE:XB-GENE-484088', '8364'), 'Xenbase:XB-GENE-484088');
+	assert.strictEqual(c('XB-GENE-484088', '8364'), 'Xenbase:XB-GENE-484088');
+	assert.strictEqual(c('XB-GENE-484088', 'H. sapiens'), null);
+	assert.strictEqual(c('Xenbase:', 'X. tropicalis'), null);
+});
+
+test('a Xenopus gene is sent to the ribbon API with its Xenbase curie', async () => {
+	const log = [];
+	globalThis.fetch = fakeNet({ gene: ['Xenbase:XB-GENE-484088', 'pax6', 'X. tropicalis', '8364'], log, ribbon: json(null, 404) });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(9), {}, {});
+	await tick();
+	assert.ok(log.some((l) => l.url.includes('subject=Xenbase%3AXB-GENE-484088')));
+});
+
+test('unmappable genes are dropped from their chunk one by one and named, the other genes load', async () => {
+	const log = [];
+	const rows = setRows(20);
+	globalThis.fetch = setNet({ rows, log, unmapped: ['HGNC:1003', 'HGNC:1004'] });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await settle(60);
+	assert.ok(el.textContent.includes('2 genes have no GO data in the Alliance API: G3, G4'));
+	assert.ok(termButton(el, 'all molecular function, 18 genes'));
+	assert.ok(ribbonCalls(log).some((c) => !c.url.includes('HGNC%3A1003') && !c.url.includes('HGNC%3A1004') && c.url.includes('HGNC%3A1002')));
+});
+
+test('the recorded 404 detail for XIST drops that gene and keeps its neighbours', async () => {
+	const rows = setRows(3);
+	rows[1][0] = 'HGNC:12810';
+	rows[1][1] = 'XIST';
+	globalThis.fetch = async (url) => {
+		if (String(url).includes('/query/results')) return json({ results: rows });
+		const subjects = new URL(url).searchParams.getAll('subject');
+		if (subjects.includes('HGNC:12810')) return json(BAD_XIST, 404);
+		return json({ categories: RIBBON.categories, subjects: subjects.map((id) => Object.assign({}, RIBBON.subjects[0], { id })) });
+	};
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await settle(40);
+	assert.ok(el.textContent.includes('1 gene has no GO data in the Alliance API: XIST'));
+	assert.ok(termButton(el, 'all molecular function, 2 genes'));
+});
+
+test('a failed chunk keeps the loaded genes, reports the gap and retries only that chunk', async () => {
+	await withErrors(async () => {
+		const log = [];
+		const rows = setRows(45);
+		let broken = true;
+		globalThis.fetch = setNet({ rows, log, failWhen: (c) => (broken && c.includes('HGNC:1015') ? 502 : null) });
+		const el = fakeEl();
+		tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+		await settle(80);
+		assert.ok(el.textContent.includes('GO data missing for 15 of 45 genes (API error).'));
+		assert.ok(termButton(el, 'all molecular function, 30 genes'));
+		assert.ok(el.find('p').some((p) => p.getAttribute('role') === 'alert'));
+		broken = false;
+		const before = ribbonCalls(log).length;
+		el.find('button').find((b) => b.textContent === 'Retry').listeners.click();
+		await settle(40);
+		assert.strictEqual(ribbonCalls(log).length, before + 1);
+		assert.ok(ribbonCalls(log).pop().url.includes('HGNC%3A1015'));
+		assert.ok(!el.textContent.includes('GO data missing'));
+		assert.ok(termButton(el, 'all molecular function, 45 genes'));
+	});
+});
+
+test('a 429 is retried with backoff and then succeeds', async () => {
+	const log = [];
+	let n = 0;
+	globalThis.fetch = fakeNet({ gene: TP53, log, ribbon: () => (++n === 1 ? json({}, 429) : json(RIBBON)) });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(1), {}, {});
+	await settle(40);
+	assert.strictEqual(ribbonCalls(log).length, 2);
+	assert.ok(el.find('button').length > 0);
+});
+
+test('a ribbon body that stalls past the timeout aborts and shows the error', async () => {
+	await withErrors(async () => {
+		const saved = Object.assign({}, tool.settings);
+		tool.settings.ribbonTimeout = 20;
+		tool.settings.retries = 0;
+		try {
+			const net = fakeNet({ gene: TP53 });
+			globalThis.fetch = async (url, init) => {
+				if (!String(url).includes('/ontology/ribbon/')) return net(url, init);
+				return { ok: true, status: 200, json: () => new Promise((_, rej) => init.signal.addEventListener('abort', () => rej(new Error('aborted')))) };
+			};
+			const el = fakeEl();
+			tool.main(el, { root: ROOT }, entity(1), {}, {});
+			await settle(80);
+			assert.ok(el.textContent.includes('Could not load the GO ribbon from the API'));
+			assert.ok(el.find('p').some((p) => p.getAttribute('role') === 'alert'));
+		} finally {
+			Object.assign(tool.settings, saved);
+		}
+	});
+});
+
+test('no chunk is requested after the view is replaced', async () => {
+	const log = [];
+	const rows = setRows(120);
+	globalThis.fetch = setNet({ rows, log, delay: 30 });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await tick();
+	tool.main(el, { root: ROOT }, entity([5000]), {}, {}, null, ctx());
+	await settle(250);
+	const late = ribbonCalls(log).filter((c) => c.url.includes('HGNC%3A1119') || c.url.includes('HGNC%3A1100'));
+	assert.strictEqual(late.length, 0);
+	assert.strictEqual(ribbonCalls(log).length, 4 + 1);
+});
+
+test('genes without a curie do not use up the 300 cap', async () => {
+	const log = [];
+	const rows = setRows(400).map((r, i) => (i < 60 ? ['9' + i, 'X' + i, 'H. sapiens', '9606', r[4]] : r));
+	globalThis.fetch = setNet({ rows, log });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await settle(150);
+	const asked = ribbonCalls(log).reduce((n, c) => n + new URL(c.url).searchParams.getAll('subject').length, 0);
+	assert.strictEqual(asked, 300);
+	const text = el.textContent;
+	assert.ok(text.includes('60 genes have no Alliance identifier and are left out.'));
+	assert.ok(text.includes('This list has 340 genes with an Alliance identifier. The ribbon covers the first 300; 40 are left out.'));
+});
+
+test('a list over 500 genes is looked up in batches of 500', async () => {
+	const log = [];
+	const rows = setRows(1200);
+	globalThis.fetch = setNet({ rows, log });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await settle(200);
+	const sizes = mineCalls(log).map((l) => new URLSearchParams(l.init.body).get('query').split('<value>').length - 1);
+	assert.deepStrictEqual(sizes, [500, 500, 200]);
+});
+
+test('a saved term list is named after its source list and says when only the first 300 were analysed', async () => {
+	const rows = setRows(340);
+	globalThis.fetch = setNet({ rows });
+	const saved = [];
+	const saveList = async (req) => { saved.push(req); return req.name; };
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx({ saveList, list: { name: 'l1', title: 'My kinases', size: 340, type: 'Gene' } }));
+	await settle(200);
+	termButton(el, 'all molecular function, 300 genes').listeners.click();
+	el.find('button').find((b) => b.textContent === 'Save genes in this term as a list').listeners.click();
+	await tick();
+	assert.strictEqual(saved[0].name, 'My kinases / all molecular function (GO slim, first 300 of 340)');
+	assert.ok(el.textContent.includes('Only the first 300 of 340 genes in the source were analysed.'));
+
+	const small = setRows(4);
+	globalThis.fetch = setNet({ rows: small });
+	const el2 = fakeEl();
+	tool.main(el2, { root: ROOT }, entity(small.map((r) => r[4])), {}, {}, null, ctx({ saveList, page: 'results' }));
+	await settle(60);
+	termButton(el2, 'all molecular function, 4 genes').listeners.click();
+	el2.find('button').find((b) => b.textContent === 'Save genes in this term as a list').listeners.click();
+	await tick();
+	assert.strictEqual(saved[1].name, 'Results / all molecular function (GO slim)');
+});
+
+test('the gene matrix view shows one row per gene and loads cell details', async () => {
+	const log = [];
+	const rows = setRows(3);
+	globalThis.fetch = setNet({ rows, log });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	await settle(60);
+	el.find('button').find((b) => b.textContent === 'Show gene matrix').listeners.click();
+	assert.ok(el.textContent.includes('G1 (H. sapiens)'));
+	assert.strictEqual(el.find('tbody').pop().find('tr').length, 3);
+	el.find('button').find((b) => (b.getAttribute('aria-label') || '').startsWith('G0, catalytic activity')).listeners.click();
+	await tick();
+	assert.ok(log.some((l) => l.url.includes('/bioentityset/slimmer/') && l.url.includes('subject=HGNC%3A1000')));
+	assert.ok(el.textContent.includes('Evidence code'));
+	assert.ok(el.find('button').some((b) => b.textContent === 'Show term list'));
+});
+
+test('geneMatrixCsv has one row per gene with data and a column per slim term', () => {
+	const genes = [
+		{ curie: RIBBON.subjects[0].id, symbol: 'TP53', species: 'H. sapiens' },
+		{ curie: 'HGNC:0', symbol: 'GONE', species: 'H. sapiens' }
+	];
+	const lines = tool.geneMatrixCsv(RIBBON, genes).split('\r\n');
+	assert.strictEqual(lines.length, 3);
+	assert.strictEqual(lines[0].split(',').length, 3 + 59);
+	assert.ok(lines[1].startsWith('HGNC:11998,TP53,H. sapiens,107'));
+});
+
+test('status, errors and tables carry accessibility roles and header scopes', async () => {
+	const rows = setRows(2);
+	globalThis.fetch = setNet({ rows });
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(rows.map((r) => r[4])), {}, {}, null, ctx());
+	assert.ok(el.find('p').some((p) => p.getAttribute('role') === 'status'));
+	await settle(60);
+	assert.ok(el.find('th').every((th) => th.getAttribute('scope')));
+	assert.ok(el.find('caption').length >= 3);
+	globalThis.fetch = fakeNet({ gene: TP53 });
+	const single = fakeEl();
+	tool.main(single, { root: ROOT }, entity(1), {}, {});
+	await tick();
+	assert.ok(single.find('th').every((th) => th.getAttribute('scope')));
+});
+
+test('an ortholog the API cannot map is left out of the grid and named', async () => {
+	const orthologs = [['MGI:104537', 'Brca1', 'M. musculus', '10090'], ['RGD:2218', 'Tp53', 'R. norvegicus', '10116']];
+	globalThis.fetch = fakeNet({
+		gene: TP53,
+		orthologs,
+		ribbon: (url) => (String(url).includes('RGD%3A2218') ? json({ detail: 'No UniProtKB IDs found for RGD:2218' }, 404) : json(RIBBON))
+	});
+	const el = fakeEl();
+	tool.main(el, { root: ROOT }, entity(8000038), {}, {});
+	await tick();
+	const box = el.find('input')[0];
+	box.checked = true;
+	box.listeners.change();
+	await settle(40);
+	const text = el.textContent;
+	assert.ok(text.includes('No GO data in the Alliance API for: Tp53'));
+	assert.ok(text.includes('Brca1 (M. musculus)'));
+	assert.strictEqual(el.find('tr').length, 2 + 2);
 });
