@@ -2,6 +2,8 @@
   (:require [cljs.test :refer-macros [deftest is testing use-fixtures]]
             [clojure.core.async :as async]
             [re-frame.core :as rf]
+            [reagent.core :as r]
+            [reagent.ratom :as ratom]
             [day8.re-frame.test :refer-macros [run-test-sync]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
@@ -159,70 +161,68 @@
 (rf/reg-sub ::upset-token (fn [db _] (get db :lists-upset-token)))
 
 (defn- stub-rows []
-  (let [orig fetch/rows
-        requests (atom [])]
-    (set! fetch/rows (fn [_ q _] (swap! requests conj q) (async/chan)))
-    (swap! utils/stubbed-variables conj #(set! fetch/rows orig))
-    requests))
+  (let [orig fetch/rows]
+    (set! fetch/rows (fn [_ _ _] (async/chan)))
+    (swap! utils/stubbed-variables conj #(set! fetch/rows orig))))
 
-(defn- count-toasts []
-  (let [toasts (atom 0)]
-    (rf/reg-event-fx :messages/add (fn [_ _] (swap! toasts inc) {}))
-    toasts))
+(def ^:private seeded-db (seed-db {} nil))
+
+(defn- opened []
+  (:db (upset/open-fx {:db seeded-db} [::upset/open])))
+
+(defn- token-of [db] (get-in db [:lists-upset :token]))
 
 (deftest failures-keep-the-panel-and-toast-once
-  (run-test-sync
-   (let [toasts (count-toasts)]
-     (stub-rows)
-     (rf/dispatch-sync [::seed])
-     (rf/dispatch-sync [::upset/open])
-     (let [token @(rf/subscribe [::upset-token])]
-       (rf/dispatch-sync [::upset/failure token {:body {:error "boom"}}])
-       (rf/dispatch-sync [::upset/failure token {:body {:error "boom"}}])
-       (let [state @(rf/subscribe [::upset-state])]
-         (is (:open? state))
-         (is (:failed? state))
-         (is (false? (:loading? state)))
-         (is (= 1 @toasts)))))))
+  (let [db (opened)
+        token (token-of db)
+        first-fail (upset/failure-fx {:db db} [::upset/failure token {}])
+        db' (:db first-fail)
+        again (upset/failure-fx {:db db'} [::upset/failure token {}])]
+    (is (some? (:dispatch first-fail)))
+    (is (true? (get-in db' [:lists-upset :open?])))
+    (is (true? (get-in db' [:lists-upset :failed?])))
+    (is (false? (get-in db' [:lists-upset :loading?])))
+    (is (nil? again))))
 
 (deftest stale-responses-are-ignored
-  (run-test-sync
-   (let [toasts (count-toasts)]
-     (stub-rows)
-     (rf/dispatch-sync [::seed])
-     (rf/dispatch-sync [::upset/open])
-     (let [old @(rf/subscribe [::upset-token])]
-       (rf/dispatch-sync [::upset/failure old {}])
-       (rf/dispatch-sync [::upset/open])
-       (let [new @(rf/subscribe [::upset-token])]
-         (is (not= old new))
-         (rf/dispatch-sync [::upset/failure old {}])
-         (rf/dispatch-sync [::upset/loaded old "a" {:results [[1]]}])
-         (is (true? (:loading? @(rf/subscribe [::upset-state]))))
-         (is (not-any? :ids (:lists @(rf/subscribe [::upset-state]))))
-         (is (= 1 @toasts))
-         (rf/dispatch-sync [::upset/loaded new "a" {:results [[1]]}])
-         (is (= [1] (get-in @(rf/subscribe [::upset-state]) [:lists 0 :ids]))))))))
+  (let [old-db (opened)
+        old (token-of old-db)
+        failed (:db (upset/failure-fx {:db old-db} [::upset/failure old {}]))
+        new-db (:db (upset/open-fx {:db failed} [::upset/open]))
+        new (token-of new-db)]
+    (is (not= old new))
+    (is (nil? (upset/failure-fx {:db new-db} [::upset/failure old {}])))
+    (is (= new-db (upset/loaded-db new-db [::upset/loaded old "a" {:results [[1]]}])))
+    (is (true? (get-in new-db [:lists-upset :loading?])))
+    (is (= [1] (get-in (upset/loaded-db new-db [::upset/loaded new "a" {:results [[1]]}])
+                       [:lists-upset :lists 0 :ids])))))
 
 (deftest open-while-loading-does-not-refetch
-  (run-test-sync
-   (let [requests (stub-rows)]
-     (rf/dispatch-sync [::seed])
-     (rf/dispatch-sync [::upset/open])
-     (rf/dispatch-sync [::upset/open])
-     (is (= 2 (count @requests))))))
+  (let [{:keys [db dispatch-n]} (upset/open-fx {:db seeded-db} [::upset/open])]
+    (is (= 2 (count dispatch-n)))
+    (is (nil? (upset/open-fx {:db db} [::upset/open])))))
 
 (deftest typing-a-name-does-not-recompute-regions
   (run-test-sync
    (stub-rows)
    (rf/dispatch-sync [::seed])
    (rf/dispatch-sync [::upset/open])
-   (let [token @(rf/subscribe [::upset-token])]
-     (rf/dispatch-sync [::upset/loaded token "a" {:results [[1] [2] [3]]}])
-     (rf/dispatch-sync [::upset/loaded token "b" {:results [[3] [4]]}])
-     (let [before @(rf/subscribe [::upset/view-data])]
-       (rf/dispatch-sync [::upset/set-list-name "x"])
-       (is (identical? before @(rf/subscribe [::upset/view-data])))))))
+   (let [token @(rf/subscribe [::upset-token])
+         calls (atom 0)
+         orig upset/regions]
+     (set! upset/regions (fn [lists] (swap! calls inc) (orig lists)))
+     (swap! utils/stubbed-variables conj #(set! upset/regions orig))
+     (let [live (ratom/run! @(rf/subscribe [::upset/view-data]))]
+       (rf/dispatch-sync [::upset/loaded token "a" {:results [[1] [2] [3]]}])
+       (rf/dispatch-sync [::upset/loaded token "b" {:results [[3] [4]]}])
+       (r/flush)
+       (let [before @calls]
+         (rf/dispatch-sync [::upset/set-list-name "x"])
+         (rf/dispatch-sync [::upset/set-list-name "xy"])
+         (r/flush)
+         (is (pos? before))
+         (is (= before @calls)))
+       (ratom/dispose! live)))))
 
 (deftest save-avoids-name-collision-and-region-change-clears-note
   (run-test-sync

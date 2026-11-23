@@ -166,25 +166,25 @@
  (fn [lists]
    (selection-error (vec (remove folder? lists)))))
 
-(reg-event-fx
- ::open
- (fn [{db :db} _]
-   (let [lists (selected-details db)
-         error (selection-error lists)
-         type (:type (first lists))
-         token (inc (get-in db token-path 0))]
-     (cond
-       (get-in db (conj state-path :loading?)) nil
-       error {:db (assoc-in db state-path {:open? true :error error})}
-       :else
-       {:db (-> db
-                (assoc-in token-path token)
-                (assoc-in state-path {:open? true
-                                      :loading? true
-                                      :token token
-                                      :type type
-                                      :lists (mapv #(select-keys % [:name :title]) lists)}))
-        :dispatch-n (mapv (fn [{:keys [name]}] [::fetch-list token type name]) lists)}))))
+(defn open-fx [{db :db} _]
+  (let [lists (selected-details db)
+        error (selection-error lists)
+        type (:type (first lists))
+        token (inc (get-in db token-path 0))]
+    (cond
+      (get-in db (conj state-path :loading?)) nil
+      error {:db (assoc-in db state-path {:open? true :error error})}
+      :else
+      {:db (-> db
+               (assoc-in token-path token)
+               (assoc-in state-path {:open? true
+                                     :loading? true
+                                     :token token
+                                     :type type
+                                     :lists (mapv #(select-keys % [:name :title]) lists)}))
+       :dispatch-n (mapv (fn [{:keys [name]}] [::fetch-list token type name]) lists)})))
+
+(reg-event-fx ::open open-fx)
 
 (reg-event-fx
  ::fetch-list
@@ -213,20 +213,23 @@
   (and (get-in db (conj state-path :open?))
        (= token (get-in db (conj state-path :token)))))
 
-(reg-event-db
- ::loaded
- (fn [db [_ token list-name response]]
-   (if (and (current? db token) (not (get-in db (conj state-path :failed?))))
-     (update-in db state-path assign-ids list-name response)
-     db)))
+(defn- live? [db token]
+  (and (current? db token) (not (get-in db (conj state-path :failed?)))))
 
-(reg-event-fx
- ::failure
- (fn [{db :db} [_ token res]]
-   (when (and (current? db token) (not (get-in db (conj state-path :failed?))))
-     {:db (update-in db state-path assoc :loading? false :failed? true)
-      :dispatch (failure-message "Failed to fetch list contents."
-                                 (if (sequential? res) (first res) res))})))
+(defn loaded-db [db [_ token list-name response]]
+  (if (live? db token)
+    (update-in db state-path assign-ids list-name response)
+    db))
+
+(reg-event-db ::loaded loaded-db)
+
+(defn failure-fx [{db :db} [_ token res]]
+  (when (live? db token)
+    {:db (update-in db state-path assoc :loading? false :failed? true)
+     :dispatch (failure-message "Failed to fetch list contents."
+                                (if (sequential? res) (first res) res))}))
+
+(reg-event-fx ::failure failure-fx)
 
 (reg-event-db
  ::close
