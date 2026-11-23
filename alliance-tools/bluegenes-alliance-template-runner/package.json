@@ -1,6 +1,6 @@
 {
   "name": "@alliance/bluegenes-alliance-template-runner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Runs public mine templates that look up genes against the current gene, list or results set.",
   "main": "dist/bundle.js",
   "scripts": {

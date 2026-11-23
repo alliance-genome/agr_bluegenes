@@ -1,0 +1,389 @@
+{
+ "templates": {
+  "Gene_Orthologs": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene --> Orthologs",
+   "description": "For a given gene retrieve orthologs in other MOD organisms.",
+   "select": [
+    "Gene.primaryIdentifier",
+    "Gene.secondaryIdentifier",
+    "Gene.symbol",
+    "Gene.name",
+    "Gene.homologues.source",
+    "Gene.organism.shortName",
+    "Gene.homologues.homologue.organism.shortName",
+    "Gene.homologues.homologue.primaryIdentifier",
+    "Gene.homologues.homologue.secondaryIdentifier",
+    "Gene.homologues.algorithmsAttempted",
+    "Gene.homologues.algorithmsMatch",
+    "Gene.homologues.isBestScore",
+    "Gene.homologues.isBestReverseScore",
+    "Gene.homologues.algorithms"
+   ],
+   "name": "Gene_Orthologs",
+   "comment": "",
+   "tags": [
+    "im:aspect:Homology",
+    "im:public"
+   ],
+   "rank": "6",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.primaryIdentifier": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "A",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "ZFIN:ZDB-GENE-030131-2808"
+    }
+   ]
+  },
+  "Gene_Homologs": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene --> Non-Fungal and S. cerevisiae Homologs",
+   "description": "Retrieve all DiOPT homologs for a specified <i>S. cerevisiae</i> <a href = \"https://sites.google.com/view/yeastgenome-help/analyze-help/yeastmine\">gene</a>.",
+   "select": [
+    "Gene.symbol",
+    "Gene.secondaryIdentifier",
+    "Gene.name",
+    "Gene.sgdAlias",
+    "Gene.homologues.homologue.organism.shortName",
+    "Gene.homologues.homologue.primaryIdentifier",
+    "Gene.homologues.homologue.symbol",
+    "Gene.homologues.type",
+    "Gene.homologues.dataSets.dataSource.name",
+    "Gene.homologues.algorithms",
+    "Gene.homologues.algorithmsMatch",
+    "Gene.homologues.algorithmsAttempted",
+    "Gene.homologues.isBestScore",
+    "Gene.homologues.isBestReverseScore"
+   ],
+   "constraintLogic": "A and B and D",
+   "name": "Gene_Homologs",
+   "comment": "",
+   "tags": [
+    "im:aspect:Genome",
+    "im:aspect:Homology",
+    "im:aspect:YeastMine",
+    "im:public"
+   ],
+   "rank": "22",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.homologues.homologue.organism.shortName": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene.homologues.dataSets.dataSource.name",
+     "op": "ONE OF",
+     "code": "D",
+     "editable": false,
+     "switchable": false,
+     "switched": "LOCKED",
+     "values": [
+      "DiOPT"
+     ]
+    },
+    {
+     "path": "Gene.organism.shortName",
+     "op": "=",
+     "code": "B",
+     "editable": false,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "S. cerevisiae"
+    },
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "A",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "ACT1"
+    }
+   ]
+  },
+  "Gene_GenomicDNA": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene-->Genomic DNA",
+   "description": "Retrieve genomic DNA (with introns) for the specified gene.",
+   "select": [
+    "Gene.primaryIdentifier",
+    "Gene.secondaryIdentifier",
+    "Gene.symbol",
+    "Gene.name",
+    "Gene.sgdAlias",
+    "Gene.organism.shortName",
+    "Gene.sequence.length",
+    "Gene.sequence.residues",
+    "Gene.description",
+    "Gene.qualifier"
+   ],
+   "constraintLogic": "(C or D) and E",
+   "name": "Gene_GenomicDNA",
+   "comment": "",
+   "tags": [
+    "im:aspect:Genome",
+    "im:public"
+   ],
+   "rank": "unranked",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.primaryIdentifier": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene.status",
+     "op": "IS NULL",
+     "code": "D",
+     "editable": false,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "IS NULL"
+    },
+    {
+     "path": "Gene.status",
+     "op": "=",
+     "code": "C",
+     "editable": false,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "Active"
+    },
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "E",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "CDC28",
+     "extraValue": "S. cerevisiae"
+    }
+   ]
+  },
+  "Gene_DOTerm": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene --> DO Terms",
+   "description": "Retrieve all Disease Ontology (DO) annotations for a specified gene. Wild card queries (such as *YAL*) are supported.",
+   "select": [
+    "Gene.primaryIdentifier",
+    "Gene.symbol",
+    "Gene.featureType",
+    "Gene.diseaseAnnotation.ontologyTerm.identifier",
+    "Gene.diseaseAnnotation.ontologyTerm.name",
+    "Gene.diseaseAnnotation.evidence.code.code",
+    "Gene.diseaseAnnotation.qualifier",
+    "Gene.diseaseAnnotation.evidence.publications.pubMedId",
+    "Gene.organism.shortName",
+    "Gene.diseaseAnnotation.evidence.withText"
+   ],
+   "name": "Gene_DOTerm",
+   "comment": "",
+   "tags": [
+    "im:aspect:Disease",
+    "im:public"
+   ],
+   "rank": "7",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.primaryIdentifier": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene.diseaseAnnotation.evidence",
+     "type": "DiseaseEvidence"
+    },
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "A",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "FAA1"
+    }
+   ]
+  },
+  "Gene_GOTerms": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene --> GO Terms",
+   "description": "Retrieve all GO annotations for a specified gene.",
+   "select": [
+    "Gene.primaryIdentifier",
+    "Gene.featureType",
+    "Gene.goAnnotation.ontologyTerm.identifier",
+    "Gene.goAnnotation.ontologyTerm.name",
+    "Gene.goAnnotation.ontologyTerm.namespace",
+    "Gene.goAnnotation.evidence.code.code",
+    "Gene.goAnnotation.qualifier",
+    "Gene.goAnnotation.evidence.code.withText",
+    "Gene.goAnnotation.evidence.publications.pubMedId",
+    "Gene.organism.shortName",
+    "Gene.symbol",
+    "Gene.name",
+    "Gene.goAnnotation.evidence.publications.pubXrefId"
+   ],
+   "name": "Gene_GOTerms",
+   "comment": "",
+   "tags": [
+    "im:aspect:Function",
+    "im:public"
+   ],
+   "rank": "16",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.primaryIdentifier": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "A",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "SGD:S000005857"
+    }
+   ]
+  },
+  "Gene_Transcript": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene --> Transcripts",
+   "description": "Retrieve <a href = \"https://sites.google.com/view/yeastgenome-help/analyze-help/yeastmine#h.p_uyw_Yd2T3HAF\">transcript</a> iso-forms for a given  gene. ",
+   "select": [
+    "Gene.secondaryIdentifier",
+    "Gene.transcripts.primaryIdentifier",
+    "Gene.transcripts.chromosome.primaryIdentifier",
+    "Gene.transcripts.chromosomeLocation.start",
+    "Gene.transcripts.chromosomeLocation.end",
+    "Gene.transcripts.chromosomeLocation.strand",
+    "Gene.transcripts.in_gal",
+    "Gene.transcripts.in_ypd",
+    "Gene.transcripts.publications.pubMedId"
+   ],
+   "constraintLogic": "A and B and C",
+   "name": "Gene_Transcript",
+   "comment": "",
+   "tags": [
+    "im:aspect:Expression",
+    "im:aspect:Genome",
+    "im:public"
+   ],
+   "rank": "13",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.secondaryIdentifier": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene.transcripts.dataSets.name",
+     "op": "=",
+     "code": "C",
+     "editable": false,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "SGD data set"
+    },
+    {
+     "path": "Gene.organism.shortName",
+     "op": "=",
+     "code": "B",
+     "editable": false,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "S. cerevisiae"
+    },
+    {
+     "path": "Gene.transcripts",
+     "type": "MRNA"
+    },
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "A",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "YHR191C"
+    }
+   ]
+  },
+  "Gene_Protein_Half_Life": {
+   "model": {
+    "name": "genomic"
+   },
+   "title": "Gene --> Protein Half-life",
+   "description": "Retrieve Protein half-life for a given gene(s). This study had reported value of >=100 hours for the most stable proteins. To facilitate sorting and searching this values have been substituted  '10000' hours.",
+   "select": [
+    "Gene.primaryIdentifier",
+    "Gene.secondaryIdentifier",
+    "Gene.symbol",
+    "Gene.description",
+    "Gene.proteins.symbol",
+    "Gene.proteins.proteinHalfLife.experiment",
+    "Gene.proteins.proteinHalfLife.value",
+    "Gene.proteins.proteinHalfLife.units",
+    "Gene.proteins.proteinHalfLife.publication.pubMedId",
+    "Gene.organism.shortName"
+   ],
+   "name": "Gene_Protein_Half_Life",
+   "comment": "",
+   "tags": [
+    "im:aspect:Proteins",
+    "im:aspect:YeastMine",
+    "im:public",
+    "im:report"
+   ],
+   "rank": "20",
+   "authorized": false,
+   "orderBy": [
+    {
+     "Gene.secondaryIdentifier": "ASC"
+    }
+   ],
+   "where": [
+    {
+     "path": "Gene",
+     "op": "LOOKUP",
+     "code": "A",
+     "editable": true,
+     "switchable": false,
+     "switched": "LOCKED",
+     "value": "act1",
+     "extraValue": "S. cerevisiae"
+    }
+   ]
+  }
+ }
+}
