@@ -327,6 +327,22 @@ test('fly highlight queries UniProt accessions, strips isoforms and dedupes', as
 	assert.ok(el.textContent.includes('4 of 4 genes'));
 });
 
+test('highlighting before the first frame loads keeps the new frame', async () => {
+	freshDocument();
+	tool.timing.iframeMs = 100;
+	globalThis.fetch = async () => ok([row('R-HSA-1', 'P', 1, 'HGNC:1', 'ABC')]);
+	const el = document.createElement('div');
+	mount(el);
+	await new Promise((r) => setTimeout(r, 50));
+	byText(el, /Highlight 1/).listeners.click();
+	await tick();
+	await new Promise((r) => setTimeout(r, 70));
+	const frames = el.find('iframe');
+	assert.strictEqual(frames.length, 1);
+	assert.ok(frames[0].src.includes('FLG=ABC'));
+	assert.strictEqual(el.find('img').length, 0);
+});
+
 test('highlight reports genes without a UniProt accession', async () => {
 	freshDocument();
 	let calls = 0;

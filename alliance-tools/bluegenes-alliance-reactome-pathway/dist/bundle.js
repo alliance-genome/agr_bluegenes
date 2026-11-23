@@ -258,6 +258,7 @@
 
     // The Reactome pathway browser runs in an iframe on reactome.org, so its scripts never share the BlueGenes origin.
     function showDiagram(holder, id, flags) {
+        clearTimeout(holder.__agrReactomeTimer);
         clear(holder);
         var done = false;
         var frame = node('iframe', null, 'alliance-reactome-frame');
@@ -268,7 +269,7 @@
         frame.style.width = '100%';
         frame.style.height = '600px';
         frame.style.border = '0';
-        var timer = setTimeout(function () {
+        var timer = holder.__agrReactomeTimer = setTimeout(function () {
             if (done) return;
             done = true;
             clear(holder);
