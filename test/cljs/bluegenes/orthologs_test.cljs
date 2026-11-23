@@ -239,6 +239,8 @@
          (orthologs/description {:list-source "L" :organism "D. rerio" :min-methods 0}
                                 "2026-11-23"))))
 
+(def preview-features {:methods? true :best? true})
+
 (deftest truncated-preview
   (run-test-sync
    (rf/dispatch [::seed (assoc seeded-db :results
@@ -261,8 +263,6 @@
      (rf/dispatch [::orthologs/list-genes-success "L" {:results (repeat orthologs/fetch-limit [1 "G1" "g1"])}])
      (is (true? (:genes-truncated? @(rf/subscribe [::orthologs]))))
      (is (nil? (:unmapped @(rf/subscribe [::orthologs/preview-data])))))))
-
-(def preview-features {:methods? true :best? true})
 
 (deftest preview-events
   (run-test-sync

@@ -381,7 +381,7 @@
     (set! (.-href link) url)
     (set! (.-download link) filename)
     (.click link)
-    (.revokeObjectURL js/URL url)))
+    (js/setTimeout #(.revokeObjectURL js/URL url) 1000)))
 
 (defn preview-table [rows features]
   [:div.agr-table-wrap
