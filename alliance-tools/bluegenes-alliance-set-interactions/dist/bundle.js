@@ -6,7 +6,8 @@
  *
  * For the genes of a list or results set it POSTs one query for Gene.interactions
  * whose participant2 is in the same set, then builds the edge table, degree
- * ranking, SIF/TSV exports and a circular SVG layout in the browser.
+ * ranking, SIF/TSV exports and a circular SVG layout in the browser. The query is
+ * paged and capped at MAX_ROWS rows, with a warning when the cap is hit.
  */
 (function (root) {
 	'use strict';
@@ -23,6 +24,12 @@
 		'Gene.interactions.details.experiment.publication.pubMedId'
 	];
 	var MAX_ROWS = 50000;
+	var PAGE_SIZE = 5000;
+	var MAX_TRIES = 4;
+	var MIN_HUBS = 3;
+	var LABEL_NODES = 20;
+	var PMID_SHOWN = 10;
+	var settings = { timeoutMs: 60000, backoffMs: 1000 };
 	var MAX_NODES = 150;
 	var HUB_COUNT = 20;
 	var PAGE_ROWS = 100;
@@ -60,18 +67,85 @@
 			'</query>';
 	}
 
-	function postRows(rootUrl, query) {
-		var body = 'format=json&size=' + MAX_ROWS + '&query=' + encodeURIComponent(query);
-		return fetch(serviceRoot(rootUrl) + '/query/results', {
+	function sleep(ms) {
+		return new Promise(function (resolve) { setTimeout(resolve, ms); });
+	}
+
+	function httpError(status) {
+		var err = new Error('HTTP ' + status);
+		err.status = status;
+		return err;
+	}
+
+	// POST with a timeout and up to MAX_TRIES attempts, backing off on HTTP 429.
+	function post(rootUrl, body, parse, attempt) {
+		var tries = attempt || 0;
+		var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+		var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, settings.timeoutMs);
+		var opts = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
 			body: body
-		})
-			.then(function (res) {
-				if (!res.ok) throw new Error('HTTP ' + res.status);
-				return res.json();
-			})
-			.then(function (json) { return (json && json.results) || []; });
+		};
+		if (ctrl) opts.signal = ctrl.signal;
+		return fetch(serviceRoot(rootUrl) + '/query/results', opts).then(
+			function (res) {
+				if (res.status === 429 && tries + 1 < MAX_TRIES) {
+					clearTimeout(timer);
+					return sleep(settings.backoffMs * Math.pow(2, tries)).then(function () {
+						return post(rootUrl, body, parse, tries + 1);
+					});
+				}
+				if (!res.ok) {
+					clearTimeout(timer);
+					throw httpError(res.status);
+				}
+				return new Promise(function (resolve) { resolve(parse(res)); }).then(
+					function (v) { clearTimeout(timer); return v; },
+					function (err) { clearTimeout(timer); throw err; }
+				);
+			},
+			function (err) {
+				clearTimeout(timer);
+				throw err;
+			}
+		);
+	}
+
+	// Pages through the result and stops one row past MAX_ROWS, so a result of exactly MAX_ROWS is not flagged.
+	function fetchRows(rootUrl, query) {
+		var rows = [];
+		function page(start) {
+			var size = Math.min(PAGE_SIZE, MAX_ROWS + 1 - rows.length);
+			var body = 'format=json&start=' + start + '&size=' + size + '&query=' + encodeURIComponent(query);
+			return post(rootUrl, body, function (res) {
+				return res.json().then(function (json) { return (json && json.results) || []; });
+			}).then(function (batch) {
+				rows = rows.concat(batch);
+				if (batch.length < size) return { rows: rows, truncated: false };
+				if (rows.length > MAX_ROWS) return { rows: rows.slice(0, MAX_ROWS), truncated: true };
+				return page(start + size);
+			});
+		}
+		return page(0);
+	}
+
+	function buildCountQuery(ids) {
+		return '<query model="genomic" view="Gene.id">' +
+			oneOf('Gene.id', ids) +
+			'<constraint path="Gene.interactions.id" op="IS NOT NULL"/>' +
+			'</query>';
+	}
+
+	function fetchInteractingCount(rootUrl, ids) {
+		var body = 'format=count&query=' + encodeURIComponent(buildCountQuery(ids));
+		return post(rootUrl, body, function (res) {
+			return res.text().then(function (t) {
+				var n = parseInt(t, 10);
+				if (isNaN(n)) throw new Error('bad count');
+				return n;
+			});
+		});
 	}
 
 	function nodeOf(id, pid, symbol) {
@@ -83,11 +157,12 @@
 	}
 
 	// One edge per unordered gene pair, relation and detection method; publications are merged.
+	// A gene paired with itself is kept and flagged as a self edge.
 	function buildEdges(rows) {
 		var byKey = {};
 		var edges = [];
 		rows.forEach(function (r) {
-			if (!r[1] || !r[4] || r[1] === r[4]) return;
+			if (!r[1] || !r[4]) return;
 			var n1 = nodeOf(r[0], r[1], r[2]);
 			var n2 = nodeOf(r[3], r[4], r[5]);
 			var pair = n1.pid < n2.pid ? [n1, n2] : [n2, n1];
@@ -95,13 +170,38 @@
 			var method = r[7] || '';
 			var key = edgeKey(pair[0], pair[1], relation, method);
 			if (!byKey[key]) {
-				byKey[key] = { a: pair[0], b: pair[1], relation: relation, method: method, pmids: [] };
+				byKey[key] = { a: pair[0], b: pair[1], relation: relation, method: method, pmids: [], self: n1.pid === n2.pid };
 				edges.push(byKey[key]);
 			}
 			var pmid = r[8] == null ? '' : String(r[8]);
 			if (pmid && byKey[key].pmids.indexOf(pmid) === -1) byKey[key].pmids.push(pmid);
 		});
 		return edges;
+	}
+
+	function pushNew(list, v) {
+		if (v && list.indexOf(v) === -1) list.push(v);
+	}
+
+	// One group per gene pair and relation, best supported first.
+	function groupEdges(edges) {
+		var byKey = {};
+		var groups = [];
+		edges.forEach(function (e) {
+			var key = [e.a.pid, e.b.pid, e.relation].join('\u0001');
+			var g = byKey[key];
+			if (!g) {
+				g = byKey[key] = { a: e.a, b: e.b, relation: e.relation, self: e.self, methods: [], pmids: [] };
+				groups.push(g);
+			}
+			pushNew(g.methods, e.method);
+			e.pmids.forEach(function (p) { pushNew(g.pmids, p); });
+		});
+		return groups.sort(function (x, y) {
+			return y.pmids.length - x.pmids.length || y.methods.length - x.methods.length ||
+				(x.a.symbol < y.a.symbol ? -1 : x.a.symbol > y.a.symbol ? 1 : 0) ||
+				(x.b.symbol < y.b.symbol ? -1 : x.b.symbol > y.b.symbol ? 1 : 0);
+		});
 	}
 
 	function filterEdges(edges, f) {
@@ -124,6 +224,7 @@
 	function degreeRanking(edges) {
 		var map = {};
 		edges.forEach(function (e) {
+			if (e.self) return;
 			addNeighbour(map, e.a, e.b);
 			addNeighbour(map, e.b, e.a);
 		});
@@ -134,19 +235,38 @@
 			});
 	}
 
+	// Genes with at least 2 partners and a degree in the top decile, at most count of them.
 	function hubIds(ranking, count) {
-		return ranking.slice(0, count).map(function (r) { return r.node.id; });
+		if (!ranking.length) return [];
+		var min = Math.max(2, ranking[Math.ceil(ranking.length / 10) - 1].degree);
+		return ranking
+			.filter(function (r) { return r.degree >= min; })
+			.slice(0, count)
+			.map(function (r) { return r.node.id; });
 	}
 
-	function sifName(node) {
-		return String(node.symbol || node.pid).replace(/\s+/g, '_');
+	function symbolPids(edges) {
+		var map = {};
+		edges.forEach(function (e) {
+			[e.a, e.b].forEach(function (n) {
+				var list = map[n.symbol] || (map[n.symbol] = []);
+				pushNew(list, n.pid);
+			});
+		});
+		return map;
+	}
+
+	function sifName(node, shared) {
+		var name = String(node.symbol || node.pid).replace(/\s+/g, '_');
+		return shared[node.symbol] && shared[node.symbol].length > 1 ? name + '_' + node.pid : name;
 	}
 
 	function toSif(edges) {
+		var shared = symbolPids(edges);
 		var seen = {};
 		var lines = [];
 		edges.forEach(function (e) {
-			var line = [sifName(e.a), e.relation || 'interacts_with', sifName(e.b)].join('\t');
+			var line = [sifName(e.a, shared), e.relation || 'interacts_with', sifName(e.b, shared)].join('\t');
 			if (seen[line]) return;
 			seen[line] = true;
 			lines.push(line);
@@ -155,16 +275,16 @@
 	}
 
 	function toTsv(edges) {
-		var lines = [['gene_a', 'gene_b', 'relation', 'detection_method', 'pubmed_ids'].join('\t')];
+		var lines = [['gene_a', 'gene_a_id', 'gene_b', 'gene_b_id', 'relation', 'detection_method', 'pubmed_ids'].join('\t')];
 		edges.forEach(function (e) {
-			lines.push([e.a.symbol, e.b.symbol, e.relation, e.method, e.pmids.join(',')].join('\t'));
+			lines.push([e.a.symbol, e.a.pid, e.b.symbol, e.b.pid, e.relation, e.method, e.pmids.join(',')].join('\t'));
 		});
 		return lines.join('\n');
 	}
 
 	function pairCount(edges) {
 		var seen = {};
-		edges.forEach(function (e) { seen[e.a.pid + '|' + e.b.pid] = true; });
+		edges.forEach(function (e) { if (!e.self) seen[e.a.pid + '|' + e.b.pid] = true; });
 		return Object.keys(seen).length;
 	}
 
@@ -174,9 +294,11 @@
 		var half = SVG_SIZE / 2;
 		var radius = half - 40;
 		var byPid = {};
+		var selfPids = {};
+		edges.forEach(function (e) { if (e.self) selfPids[e.a.pid] = true; });
 		var nodes = top.map(function (r, i) {
 			var angle = (2 * Math.PI * i) / top.length - Math.PI / 2;
-			var n = { node: r.node, degree: r.degree, x: half + radius * Math.cos(angle), y: half + radius * Math.sin(angle) };
+			var n = { node: r.node, degree: r.degree, self: !!selfPids[r.node.pid], x: half + radius * Math.cos(angle), y: half + radius * Math.sin(angle) };
 			byPid[r.node.pid] = n;
 			return n;
 		});
@@ -184,7 +306,7 @@
 		var links = [];
 		edges.forEach(function (e) {
 			var key = e.a.pid + '|' + e.b.pid;
-			if (seen[key] || !byPid[e.a.pid] || !byPid[e.b.pid]) return;
+			if (e.self || seen[key] || !byPid[e.a.pid] || !byPid[e.b.pid]) return;
 			seen[key] = true;
 			links.push({ from: byPid[e.a.pid], to: byPid[e.b.pid] });
 		});
@@ -209,19 +331,20 @@
 		return b;
 	}
 
+	function openGene(n, navigate) {
+		if (typeof navigate === 'function') navigate('report', { type: 'Gene', id: n.id });
+	}
+
 	function geneLink(n, navigate) {
-		var a = node('a', n.symbol);
-		a.href = '#';
-		a.addEventListener('click', function (ev) {
-			if (ev && ev.preventDefault) ev.preventDefault();
-			if (typeof navigate === 'function') navigate('report', { type: 'Gene', id: n.id });
-		});
-		return a;
+		var b = node('button', n.symbol, 'agr-link');
+		b.type = 'button';
+		b.addEventListener('click', function () { openGene(n, navigate); });
+		return b;
 	}
 
 	function pmidCell(pmids) {
 		var span = node('span');
-		pmids.forEach(function (p, i) {
+		pmids.slice(0, PMID_SHOWN).forEach(function (p, i) {
 			if (i) span.appendChild(document.createTextNode(', '));
 			var a = node('a', p);
 			a.href = PUBMED_URL + p;
@@ -229,6 +352,7 @@
 			a.rel = 'noopener';
 			span.appendChild(a);
 		});
+		if (pmids.length > PMID_SHOWN) span.appendChild(document.createTextNode(' +' + (pmids.length - PMID_SHOWN) + ' more in the TSV'));
 		return span;
 	}
 
@@ -239,17 +363,27 @@
 		tr.appendChild(td);
 	}
 
-	function buildTable(heads, rows) {
+	// The row at index focusRow, when given, is focusable so "Show more" can move focus to it.
+	function buildTable(caption, heads, rows, focusRow) {
 		var wrap = node('div', null, 'agr-table-wrap');
 		var t = node('table', null, 'agr-table agr-table-sm');
+		t.appendChild(node('caption', caption, 'agr-sr-only'));
 		var headRow = node('tr');
-		heads.forEach(function (h) { headRow.appendChild(node('th', h)); });
+		heads.forEach(function (h) {
+			var th = node('th', h);
+			th.setAttribute('scope', 'col');
+			headRow.appendChild(th);
+		});
 		var thead = node('thead');
 		thead.appendChild(headRow);
 		var tbody = node('tbody');
-		rows.forEach(function (cells) {
+		rows.forEach(function (cells, i) {
 			var tr = node('tr');
 			cells.forEach(function (c) { appendCell(tr, c); });
+			if (i === focusRow) {
+				tr.setAttribute('tabindex', '-1');
+				wrap.focusTarget = tr;
+			}
 			tbody.appendChild(tr);
 		});
 		t.appendChild(thead);
@@ -258,18 +392,26 @@
 		return wrap;
 	}
 
-	function edgeTable(edges, navigate) {
-		var rows = edges.map(function (e) {
-			return [geneLink(e.a, navigate), geneLink(e.b, navigate), e.relation, e.method, pmidCell(e.pmids)];
+	function edgeTable(groups, navigate, focusRow) {
+		var rows = groups.map(function (g) {
+			return [
+				geneLink(g.a, navigate),
+				g.self ? 'self' : geneLink(g.b, navigate),
+				g.relation,
+				g.pmids.length,
+				g.methods.length ? g.methods.length + ': ' + g.methods.join('; ') : '',
+				pmidCell(g.pmids)
+			];
 		});
-		return buildTable(['Gene A', 'Gene B', 'Relation', 'Detection method', 'PMID'], rows);
+		return buildTable('Interactions by gene pair and relation, most publications first',
+			['Gene A', 'Gene B', 'Relation', 'Publications', 'Detection methods', 'PMID'], rows, focusRow);
 	}
 
 	function rankingTable(ranking, navigate) {
 		var rows = ranking.slice(0, HUB_COUNT).map(function (r) {
 			return [geneLink(r.node, navigate), r.degree];
 		});
-		return buildTable(['Gene', 'Interaction partners in set'], rows);
+		return buildTable('Genes with the most interaction partners in the set', ['Gene', 'Interaction partners in set'], rows);
 	}
 
 	function svgNode(tag, attrs) {
@@ -278,28 +420,63 @@
 		return e;
 	}
 
-	function networkSvg(layout) {
-		var svg = svgNode('svg', { viewBox: '0 0 ' + SVG_SIZE + ' ' + SVG_SIZE, role: 'img', 'aria-label': 'Interaction network' });
+	function networkSvg(layout, navigate) {
+		var half = SVG_SIZE / 2;
+		var svg = svgNode('svg', {
+			viewBox: '0 0 ' + SVG_SIZE + ' ' + SVG_SIZE,
+			role: 'group',
+			'aria-label': 'Interaction network of ' + layout.nodes.length + ' genes. The table of genes by number of partners lists the same genes.'
+		});
 		layout.links.forEach(function (l) {
 			svg.appendChild(svgNode('line', { x1: l.from.x.toFixed(1), y1: l.from.y.toFixed(1), x2: l.to.x.toFixed(1), y2: l.to.y.toFixed(1), class: 'agr-edge' }));
 		});
-		layout.nodes.forEach(function (n) {
-			var c = svgNode('circle', { cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: Math.min(3 + n.degree, 12), class: 'agr-node' });
+		layout.nodes.forEach(function (n, i) {
+			var r = Math.min(3 + n.degree, 12);
+			var open = function () { openGene(n.node, navigate); };
+			if (n.self) svg.appendChild(svgNode('circle', { cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: r + 3, class: 'agr-self' }));
+			var c = svgNode('circle', {
+				cx: n.x.toFixed(1), cy: n.y.toFixed(1), r: r, class: 'agr-node',
+				tabindex: '0', role: 'link',
+				'aria-label': n.node.symbol + ', ' + n.degree + ' partners' + (n.self ? ', interacts with itself' : '')
+			});
+			c.addEventListener('click', open);
+			c.addEventListener('keydown', function (ev) {
+				if (ev && (ev.key === 'Enter' || ev.key === ' ')) {
+					if (ev.preventDefault) ev.preventDefault();
+					open();
+				}
+			});
 			var title = svgNode('title', {});
 			title.textContent = n.node.symbol + ' (' + n.degree + ')';
 			c.appendChild(title);
 			svg.appendChild(c);
+			if (i < LABEL_NODES) {
+				var left = n.x < half;
+				var label = svgNode('text', {
+					x: (n.x + (left ? -(r + 4) : r + 4)).toFixed(1), y: (n.y + 3).toFixed(1),
+					'text-anchor': left ? 'end' : 'start', class: 'agr-label', 'aria-hidden': 'true'
+				});
+				label.textContent = n.node.symbol;
+				svg.appendChild(label);
+			}
 		});
 		return svg;
 	}
 
 	function download(name, text, type) {
 		var a = node('a');
-		a.href = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(text);
+		var blobUrl = null;
+		if (typeof Blob === 'function' && typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+			blobUrl = URL.createObjectURL(new Blob([text], { type: type + ';charset=utf-8' }));
+			a.href = blobUrl;
+		} else {
+			a.href = 'data:' + type + ';charset=utf-8,' + encodeURIComponent(text);
+		}
 		a.download = name;
 		document.body.appendChild(a);
 		if (a.click) a.click();
 		document.body.removeChild(a);
+		if (blobUrl) setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 1000);
 	}
 
 	function select(label, values, onChange) {
@@ -317,9 +494,8 @@
 		return s;
 	}
 
-	function saveHubs(ctx, ranking, status) {
+	function saveHubs(ctx, ids, status) {
 		var title = (ctx.context.list && (ctx.context.list.title || ctx.context.list.name)) || 'gene set';
-		var ids = hubIds(ranking, HUB_COUNT);
 		status.textContent = 'Saving...';
 		ctx.context.saveList({ name: title + ' interaction hubs', class: 'Gene', ids: ids, tags: ['alliance-interactions'] })
 			.then(function (name) { status.textContent = 'Saved list ' + name; })
@@ -337,45 +513,70 @@
 		bar.appendChild(button('Download SIF', function () { download('interactions.sif', toSif(edges), 'text/plain'); }));
 		bar.appendChild(button('Download TSV', function () { download('interactions.tsv', toTsv(edges), 'text/tab-separated-values'); }));
 		if (canSave(ctx.context) && ranking.length) {
+			var hubs = hubIds(ranking, HUB_COUNT);
 			var status = node('span', null, 'agr-note');
-			bar.appendChild(button('Save hubs as list', function () { saveHubs(ctx, ranking, status); }));
+			if (hubs.length >= MIN_HUBS) {
+				bar.appendChild(button('Save hubs as list (' + hubs.length + ' genes)', function () { saveHubs(ctx, hubs, status); }));
+			} else {
+				status.textContent = 'Fewer than ' + MIN_HUBS + ' genes have 2 or more partners, so there are no hubs to save';
+			}
 			bar.appendChild(status);
 		}
 		return bar;
 	}
 
+	function selfCount(edges) {
+		var seen = {};
+		edges.forEach(function (e) { if (e.self) seen[e.a.pid] = true; });
+		return Object.keys(seen).length;
+	}
+
 	function summaryText(edges, ranking) {
-		return edges.length + ' edges between ' + pairCount(edges) + ' gene pairs, ' + ranking.length + ' genes';
+		var selfs = selfCount(edges);
+		return pairCount(edges) + ' gene pairs, ' + edges.length + ' pair-method records, ' + ranking.length + ' genes with partners' +
+			(selfs ? ', ' + selfs + ' with self-interactions' : '');
 	}
 
 	function renderNetwork(wrap, ctx, all) {
 		var filter = { relation: '', method: '' };
 		var shown = PAGE_ROWS;
 		var view = node('div');
+		var summary = node('p', null, 'agr-note alliance-set-interactions-summary');
+		summary.setAttribute('aria-live', 'polite');
 		var filters = node('div', null, 'agr-filters');
 		filters.appendChild(select('Relation', distinctValues(all, 'relation'), function (v) { filter.relation = v; shown = PAGE_ROWS; draw(); }));
 		filters.appendChild(select('Detection method', distinctValues(all, 'method'), function (v) { filter.method = v; shown = PAGE_ROWS; draw(); }));
 		wrap.appendChild(filters);
+		wrap.appendChild(summary);
 		wrap.appendChild(view);
 
-		function draw() {
+		function draw(focusFrom) {
 			var edges = filterEdges(all, filter);
 			var ranking = degreeRanking(edges);
 			clear(view);
-			view.appendChild(node('p', summaryText(edges, ranking), 'agr-note alliance-set-interactions-summary'));
+			summary.textContent = summaryText(edges, ranking);
 			if (!edges.length) {
 				view.appendChild(node('p', 'No edges match the filters', 'agr-empty'));
 				return;
 			}
+			var groups = groupEdges(edges);
 			view.appendChild(actions(ctx, edges, ranking));
-			view.appendChild(node('h4', 'Genes by number of partners'));
-			view.appendChild(rankingTable(ranking, ctx.navigate));
-			view.appendChild(node('h4', 'Network (top ' + Math.min(MAX_NODES, ranking.length) + ' genes by degree)'));
-			view.appendChild(networkSvg(circularLayout(edges, MAX_NODES)));
-			view.appendChild(node('h4', 'Edges'));
-			view.appendChild(edgeTable(edges.slice(0, shown), ctx.navigate));
-			if (edges.length > shown) {
-				view.appendChild(button('Show more (' + (edges.length - shown) + ' left)', function () { shown += PAGE_ROWS; draw(); }));
+			if (ranking.length) {
+				view.appendChild(node('h4', 'Genes by number of partners'));
+				view.appendChild(rankingTable(ranking, ctx.navigate));
+				view.appendChild(node('h4', 'Network (top ' + Math.min(MAX_NODES, ranking.length) + ' genes by degree)'));
+				view.appendChild(networkSvg(circularLayout(edges, MAX_NODES), ctx.navigate));
+			}
+			view.appendChild(node('h4', 'Interactions'));
+			var table = edgeTable(groups.slice(0, shown), ctx.navigate, focusFrom);
+			view.appendChild(table);
+			if (focusFrom !== undefined && table.focusTarget && table.focusTarget.focus) table.focusTarget.focus();
+			if (groups.length > shown) {
+				view.appendChild(button('Show more (' + (groups.length - shown) + ' left)', function () {
+					var from = shown;
+					shown += PAGE_ROWS;
+					draw(from);
+				}));
 			}
 		}
 		draw();
@@ -385,6 +586,36 @@
 		var raw = entity && entity.Gene && entity.Gene.value;
 		if (raw === undefined || raw === null || raw === '') return [];
 		return Array.isArray(raw) ? raw : [raw];
+	}
+
+	function errorText(err) {
+		if (err && err.status === 429) return 'The mine is busy (HTTP 429) and did not answer after ' + MAX_TRIES + ' attempts.';
+		if (err && err.status) return 'The mine returned HTTP ' + err.status + '.';
+		if (err && err.name === 'AbortError') return 'The mine did not answer within ' + Math.round(settings.timeoutMs / 1000) + ' s.';
+		return 'Could not reach the mine.';
+	}
+
+	function showError(wrap, err, retry) {
+		var box = node('p', 'Could not load interactions. ' + errorText(err) + ' ', 'agr-error');
+		box.setAttribute('role', 'alert');
+		box.appendChild(button('Retry', retry));
+		wrap.appendChild(box);
+	}
+
+	function explainEmpty(wrap, rootUrl, ids, stale) {
+		var plain = 'No interactions among these genes';
+		return fetchInteractingCount(rootUrl, ids).then(
+			function (n) {
+				if (stale()) return;
+				wrap.appendChild(node('p', n === 0
+					? plain + '. None of the ' + ids.length + ' genes has interaction data in AllianceMine. Move to a human or mouse list with the orthologs tool for better coverage.'
+					: plain + '. ' + n + ' of ' + ids.length + ' genes have interaction data in AllianceMine, none of them with another gene in this set.', 'agr-empty'));
+			},
+			function () {
+				if (stale()) return;
+				wrap.appendChild(node('p', plain, 'agr-empty'));
+			}
+		);
 	}
 
 	function main(el, service, imEntity, state, config, navigate, context) {
@@ -402,22 +633,24 @@
 			return;
 		}
 		wrap.appendChild(node('p', 'Loading interactions among ' + ids.length + ' genes...', 'agr-loading'));
-		postRows(service.root, buildSetQuery(ids))
-			.then(function (rows) {
+		fetchRows(service.root, buildSetQuery(ids))
+			.then(function (result) {
 				if (stale()) return;
 				clear(wrap);
-				var edges = buildEdges(rows);
-				if (!edges.length) {
-					wrap.appendChild(node('p', 'No interactions among these genes', 'agr-empty'));
-					return;
+				if (result.truncated) {
+					var warn = node('p', 'Only the first ' + MAX_ROWS + ' interaction rows were loaded, so the network is incomplete. Use a smaller list.', 'agr-warning');
+					warn.setAttribute('role', 'alert');
+					wrap.appendChild(warn);
 				}
+				var edges = buildEdges(result.rows);
+				if (!edges.length) return explainEmpty(wrap, service.root, ids, stale);
 				renderNetwork(wrap, { navigate: navigate, context: context }, edges);
 			})
 			.catch(function (err) {
 				if (stale()) return;
 				console.error('set-interactions: query failed', err);
 				clear(wrap);
-				wrap.appendChild(node('p', 'Could not load interactions from the mine', 'agr-error'));
+				showError(wrap, err, function () { main(el, service, imEntity, state, config, navigate, context); });
 			});
 	}
 
@@ -427,7 +660,9 @@
 		buildEdges: buildEdges,
 		filterEdges: filterEdges,
 		degreeRanking: degreeRanking,
+		groupEdges: groupEdges,
 		hubIds: hubIds,
+		settings: settings,
 		toSif: toSif,
 		toTsv: toTsv,
 		circularLayout: circularLayout
