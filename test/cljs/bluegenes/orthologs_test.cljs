@@ -43,11 +43,23 @@
     (is (= "ToyMine has no Gene.homologues.homologue.organism.shortName, Gene.homologues.homologue.id"
            (orthologs/blocked-reason {:Gene {:attributes {:id {}}}} "ToyMine")))))
 
+(def type-constraint
+  {:path "Gene.homologues.type" :op "ONE OF" :values ["orthologue" "least diverged orthologue"]})
+
 (deftest queries
   (is (= {:from "Gene"
           :select ["Gene.homologues.homologue.organism.shortName"]
           :where [{:path "Gene" :op "IN" :value "my list"}]}
          (orthologs/organisms-query "my list")))
+  (testing "organisms, count and saved list all carry the ortholog type constraint"
+    (is (= [{:path "Gene" :op "IN" :value "my list"} type-constraint]
+           (:where (orthologs/organisms-query "my list" {:type? true}))))
+    (is (= type-constraint
+           (last (:where (orthologs/orthologs-query "my list" "M. musculus" {} {:type? true})))))
+    (is (= type-constraint
+           (nth (:where (orthologs/orthologs-query "my list" "M. musculus" {:best-only? true}
+                                                   {:type? true :best? true}))
+                2))))
   (is (= {:from "Gene"
           :select ["Gene.homologues.homologue.id"]
           :where [{:path "Gene" :op "IN" :value "my list"}
@@ -121,8 +133,8 @@
            (is (= 3 (:count state)))
            (is (false? (:loading-count? state))))
          (wait-for [::orthologs/list-genes-success]
-           (is (= [(orthologs/organisms-query "L")
-                   (orthologs/orthologs-query "L" "M. musculus")]
+           (is (= [(orthologs/organisms-query "L" (:features @(rf/subscribe [::orthologs])))
+                   (orthologs/orthologs-query "L" "M. musculus" {} (:features @(rf/subscribe [::orthologs])))]
                   (keep (fn [[query options]] (when (:summaryPath options) query))
                         @fetch-calls)))
            (is (some #(= (preview/preview-query "L" "M. musculus"
@@ -145,8 +157,8 @@
                       (fn [_ [_ next-evt]]
                         {:dispatch [::noop next-evt]}))
      (set! save/im-list-from-query
-           (fn [_service name query]
-             (reset! saved [name query])
+           (fn [_service name query & [options]]
+             (reset! saved [name query options])
              ((stub-fetch-fn {:listName name}))))
      (swap! utils/stubbed-variables conj #(set! save/im-list-from-query orig-save))
      (rf/dispatch [::orthologs/save])
@@ -155,6 +167,10 @@
          (is (= "L orthologs in M. musculus_1" (first @saved))))
        (testing "the saved query is the orthologs query"
          (is (= (orthologs/orthologs-query "L" "M. musculus") (second @saved))))
+       (testing "the list records its source and filters"
+         (let [options (nth @saved 2)]
+           (is (= "orthologs" (:tags options)))
+           (is (re-matches #"Orthologs of L in M\. musculus; \d{4}-\d{2}-\d{2}" (:description options)))))
        (testing "state is cleared and lists are refetched"
          (is (nil? @(rf/subscribe [::orthologs]))))))))
 
@@ -200,7 +216,7 @@
   (let [classes {:Gene {:collections {:homologues {:referencedType "Homologue"}}}
                  :Homologue {:attributes {:type {} :isBestScore {}}
                              :references {:homologue {:referencedType "Gene"}}}}]
-    (is (= {:type? true :methods? false :best? true :best-reverse? false}
+    (is (= {:type? true :methods? false :best? true :best-reverse? false :stringency? false}
            (orthologs/model-features classes)))
     (is (every? true? (vals (orthologs/model-features nil))) "unknown model offers all")))
 
@@ -214,7 +230,39 @@
     (is (= 1 (orthologs/shown-targets {:count 7 :rows rows :best-only? true})))
     (is (= 0 (orthologs/shown-targets {:count 7 :rows rows :min-methods 10 :best-only? true})))))
 
+(deftest descriptions
+  (is (= "Orthologs of L in M. musculus, at least 6 methods, best matches only, stringent only; 2026-11-23"
+         (orthologs/description {:list-source "L" :organism "M. musculus" :min-methods 6
+                                 :best-only? true :stringent-only? true}
+                                "2026-11-23")))
+  (is (= "Orthologs of L in D. rerio; 2026-11-23"
+         (orthologs/description {:list-source "L" :organism "D. rerio" :min-methods 0}
+                                "2026-11-23"))))
+
 (def preview-features {:methods? true :best? true})
+
+(deftest truncated-preview
+  (run-test-sync
+   (rf/dispatch [::seed (assoc seeded-db :results
+                               {:orthologs {:open? true :list-source "L" :organism "M. musculus"
+                                            :features preview-features :loading-preview? true
+                                            :genes []}})])
+   (testing "a response at the limit is flagged and the preview data is withheld"
+     (rf/dispatch [::orthologs/preview-success "L" "M. musculus"
+                   {:results (repeat orthologs/fetch-limit [1 "G1" "g1" 10 "T10" "t10" 9 10 true])}])
+     (is (true? (:truncated? @(rf/subscribe [::orthologs]))))
+     (is (= {:truncated? true} @(rf/subscribe [::orthologs/preview-data])))
+     (is (= 7 (orthologs/shown-targets (assoc @(rf/subscribe [::orthologs]) :count 7 :min-methods 5)))
+         "the server count stands in"))
+   (testing "a short response is not flagged"
+     (rf/dispatch [::orthologs/preview-success "L" "M. musculus"
+                   {:results [[1 "G1" "g1" 10 "T10" "t10" 9 10 true]]}])
+     (is (false? (:truncated? @(rf/subscribe [::orthologs]))))
+     (is (= 1 (count (:rows @(rf/subscribe [::orthologs/preview-data]))))))
+   (testing "list genes at the limit are flagged"
+     (rf/dispatch [::orthologs/list-genes-success "L" {:results (repeat orthologs/fetch-limit [1 "G1" "g1"])}])
+     (is (true? (:genes-truncated? @(rf/subscribe [::orthologs]))))
+     (is (nil? (:unmapped @(rf/subscribe [::orthologs/preview-data])))))))
 
 (deftest preview-events
   (run-test-sync
@@ -235,17 +283,20 @@
 
 (deftest preview-data-sub
   (run-test-sync
-   (let [rows (preview/parse-rows [[1 "G1" "g1" 10 "T10" "t10" 9 10 true]
-                                   [2 "G2" "g2" 10 "T10" "t10" 3 10 false]]
-                                  preview-features)]
+   (let [rows (preview/flag-relations
+               (preview/parse-rows [[1 "G1" "g1" 10 "T10" "t10" 9 10 true]
+                                    [2 "G2" "g2" 10 "T10" "t10" 3 10 false]]
+                                   preview-features))]
      (rf/dispatch [::seed (assoc seeded-db :results
                                  {:orthologs {:rows rows
                                               :genes (preview/parse-genes [[1 "G1" "g1"] [2 "G2" "g2"] [3 "G3" "g3"]])}})])
      (let [data @(rf/subscribe [::orthologs/preview-data])]
        (is (= [:many-to-one :many-to-one] (map :relation (:rows data))))
-       (is (= ["g3"] (map :label (:unmapped data))))
+       (is (= ["g3"] (map :label (:none (:unmapped data)))))
+       (is (empty? (:dropped (:unmapped data))))
        (is (= 10 (:max-methods data))))
      (rf/dispatch [::orthologs/set-min-methods "5"])
      (let [data @(rf/subscribe [::orthologs/preview-data])]
-       (is (= [:one-to-one] (map :relation (:rows data))))
-       (is (= ["g2" "g3"] (map :label (:unmapped data))))))))
+       (is (= [:many-to-one] (map :relation (:rows data))) "relation does not follow the cutoff")
+       (is (= ["g3"] (map :label (:none (:unmapped data)))) "g2 has an ortholog")
+       (is (= ["g2"] (map :label (:dropped (:unmapped data)))))))))
