@@ -1,0 +1,267 @@
+{
+ "classes": {
+  "Gene": {
+   "extends": [
+    "BiologicalRegion"
+   ],
+   "attributes": {
+    "primaryIdentifier": {},
+    "secondaryIdentifier": {},
+    "symbol": {},
+    "name": {},
+    "sgdAlias": {},
+    "description": {},
+    "qualifier": {},
+    "status": {},
+    "featureType": {}
+   },
+   "collections": {
+    "homologues": {
+     "referencedType": "Homologue"
+    },
+    "diseaseAnnotation": {
+     "referencedType": "DiseaseAnnotation"
+    },
+    "goAnnotation": {
+     "referencedType": "GOAnnotation"
+    },
+    "transcripts": {
+     "referencedType": "Transcript"
+    },
+    "proteins": {
+     "referencedType": "Protein"
+    }
+   },
+   "references": {
+    "organism": {
+     "referencedType": "Organism"
+    },
+    "sequence": {
+     "referencedType": "Sequence"
+    }
+   }
+  },
+  "BiologicalRegion": {
+   "extends": [
+    "SequenceFeature"
+   ]
+  },
+  "SequenceFeature": {
+   "extends": [
+    "BioEntity"
+   ]
+  },
+  "BioEntity": {
+   "extends": [
+    "Annotatable"
+   ]
+  },
+  "Annotatable": {
+   "extends": []
+  },
+  "Homologue": {
+   "extends": [],
+   "attributes": {
+    "source": {},
+    "algorithmsAttempted": {},
+    "algorithmsMatch": {},
+    "isBestScore": {},
+    "isBestReverseScore": {},
+    "algorithms": {},
+    "type": {}
+   },
+   "references": {
+    "homologue": {
+     "referencedType": "Gene"
+    }
+   },
+   "collections": {
+    "dataSets": {
+     "referencedType": "DataSet"
+    }
+   }
+  },
+  "Organism": {
+   "extends": [],
+   "attributes": {
+    "shortName": {}
+   }
+  },
+  "DataSet": {
+   "extends": [],
+   "references": {
+    "dataSource": {
+     "referencedType": "DataSource"
+    }
+   },
+   "attributes": {
+    "name": {}
+   }
+  },
+  "DataSource": {
+   "extends": [],
+   "attributes": {
+    "name": {}
+   }
+  },
+  "Sequence": {
+   "extends": [],
+   "attributes": {
+    "length": {},
+    "residues": {}
+   }
+  },
+  "DiseaseAnnotation": {
+   "extends": [
+    "OntologyAnnotation"
+   ],
+   "references": {
+    "ontologyTerm": {
+     "referencedType": "OntologyTerm"
+    }
+   },
+   "collections": {
+    "evidence": {
+     "referencedType": "OntologyEvidence"
+    }
+   },
+   "attributes": {
+    "qualifier": {}
+   }
+  },
+  "OntologyAnnotation": {
+   "extends": []
+  },
+  "OntologyTerm": {
+   "extends": [],
+   "attributes": {
+    "identifier": {},
+    "name": {},
+    "namespace": {}
+   }
+  },
+  "OntologyEvidence": {
+   "extends": [],
+   "references": {
+    "code": {
+     "referencedType": "OntologyAnnotationEvidenceCode"
+    }
+   },
+   "collections": {
+    "publications": {
+     "referencedType": "Publication"
+    }
+   }
+  },
+  "OntologyAnnotationEvidenceCode": {
+   "extends": [],
+   "attributes": {
+    "code": {},
+    "withText": {}
+   }
+  },
+  "Publication": {
+   "extends": [],
+   "attributes": {
+    "pubMedId": {},
+    "pubXrefId": {}
+   }
+  },
+  "DiseaseEvidence": {
+   "extends": [
+    "OntologyEvidence"
+   ]
+  },
+  "GOAnnotation": {
+   "extends": [
+    "OntologyAnnotation"
+   ],
+   "references": {
+    "ontologyTerm": {
+     "referencedType": "OntologyTerm"
+    }
+   },
+   "collections": {
+    "evidence": {
+     "referencedType": "OntologyEvidence"
+    }
+   },
+   "attributes": {
+    "qualifier": {}
+   }
+  },
+  "Transcript": {
+   "extends": [
+    "BiologicalRegion"
+   ],
+   "attributes": {
+    "primaryIdentifier": {}
+   },
+   "references": {
+    "chromosome": {
+     "referencedType": "Chromosome"
+    },
+    "chromosomeLocation": {
+     "referencedType": "Location"
+    }
+   },
+   "collections": {
+    "publications": {
+     "referencedType": "Publication"
+    },
+    "dataSets": {
+     "referencedType": "DataSet"
+    }
+   }
+  },
+  "Chromosome": {
+   "extends": [
+    "BiologicalRegion"
+   ],
+   "attributes": {
+    "primaryIdentifier": {}
+   }
+  },
+  "Location": {
+   "extends": [],
+   "attributes": {
+    "start": {},
+    "end": {},
+    "strand": {}
+   }
+  },
+  "MRNA": {
+   "extends": [
+    "Transcript"
+   ]
+  },
+  "Protein": {
+   "extends": [
+    "BioEntity"
+   ],
+   "attributes": {
+    "symbol": {}
+   },
+   "collections": {
+    "proteinHalfLife": {
+     "referencedType": "ProteinHalfLife"
+    }
+   }
+  },
+  "ProteinHalfLife": {
+   "extends": [
+    "BioEntity"
+   ],
+   "attributes": {
+    "experiment": {},
+    "value": {},
+    "units": {}
+   },
+   "references": {
+    "publication": {
+     "referencedType": "Publication"
+    }
+   }
+  }
+ }
+}
