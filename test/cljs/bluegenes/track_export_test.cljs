@@ -67,9 +67,9 @@
 
 (deftest flank-end-and-types
   (testing "end is clamped at a known chromosome length"
-    (is (= [900 5000] (te/flank-span 1000 4900 100 5000)))
-    (is (= [900 5100] (te/flank-span 1000 4900 100 nil)))
-    (is (= [900 5100] (te/flank-span 1000 4900 100 4000))))
+    (is (= [900 5000] (te/flank-span 1000 4950 100 5000)))
+    (is (= [900 5050] (te/flank-span 1000 4950 100 nil)))
+    (is (= [900 5050] (te/flank-span 1000 4950 100 4000))))
   (testing "a bad flank is zero, not NaN"
     (is (= [1000 2000] (te/flank-span 1000 2000 "abc")))
     (is (= [900 2100] (te/flank-span 1000 2000 "100"))))
@@ -191,7 +191,7 @@
      (rf/reg-fx :im-chan (fn [m] (reset! request m)))
      (rf/reg-fx ::te/save-files (fn [files] (reset! saved files)))
      (rf/dispatch [::set-db])
-     (with-redefs [fetch/rows (utils/stub-fetch-fn nil)]
+     (with-redefs [fetch/rows (utils/stub-fetch-fn {})]
        (rf/dispatch [::te/download {:kind :list :name "L" :label "L"}]))
      (testing "options are taken once, a bad flank is zero"
        (is (true? (get-in @rf-db/app-db [:results :track-export :busy?])))

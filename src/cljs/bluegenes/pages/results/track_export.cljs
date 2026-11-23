@@ -136,7 +136,7 @@
   "GFF3 column 9 value with only the reserved characters percent-encoded."
   [v]
   (str/replace (or v "") #"[;=&,%\t\r\n]"
-               #(str "%" (.padStart (.toString (.charCodeAt % 0) 16) 2 "0"))))
+               #(str "%" (.toUpperCase (.padStart (.toString (.charCodeAt % 0) 16) 2 "0")))))
 
 (defn gff3-line [flank {:keys [chromosome start end strand id symbol organism length] :as gene}]
   (let [[s e] (flank-span start end flank length)]
