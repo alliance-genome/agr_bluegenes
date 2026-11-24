@@ -219,3 +219,11 @@ test('main reports a partial result when the page cap is reached', async () => {
 	assert.strictEqual(n, 25);
 	assert.ok(el.textContent.includes('Partial result'));
 });
+
+test('repeatFlags marks cells that repeat the row above, left to right', () => {
+	const a = { species: 'M. musculus', geneSymbol: 'Pten', alleleId: '1' };
+	assert.deepStrictEqual(tool.repeatFlags(undefined, a), { species: false, gene: false, allele: false });
+	assert.deepStrictEqual(tool.repeatFlags(a, { ...a }), { species: true, gene: true, allele: true });
+	assert.deepStrictEqual(tool.repeatFlags(a, { ...a, alleleId: '2' }), { species: true, gene: true, allele: false });
+	assert.deepStrictEqual(tool.repeatFlags(a, { ...a, species: 'C. elegans' }), { species: false, gene: false, allele: false });
+});

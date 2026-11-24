@@ -133,20 +133,46 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:fo
 .agr-table {
   width: 100%;
   border-collapse: collapse;
-  th { font-weight: 700; text-align: left; padding: var(--agr-space-2) var(--agr-space-3); border-bottom: 2px solid var(--agr-border); }
+  font-variant-numeric: tabular-nums;
+  th {
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: var(--agr-primary-dark);
+    text-align: left;
+    white-space: nowrap;
+    padding: var(--agr-space-2) var(--agr-space-3);
+    background: var(--agr-table-head-bg);
+    border-bottom: 2px solid var(--agr-primary-light);
+  }
   td { padding: var(--agr-space-2) var(--agr-space-3); border-top: 1px solid var(--agr-border); vertical-align: top; }
   // Row groups: a rule between consecutive tbody elements.
-  tbody + tbody { border-top: 1px solid var(--agr-border); }
-  tbody tr:hover { background: var(--agr-bg-hover); }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody + tbody { border-top: 1px solid var(--agr-border-strong); }
+  tbody tr:hover { background: var(--agr-table-row-hover); }
+  // A row that continues the group above (same species, gene or allele)
+  // drops its rule, so each group reads as one block.
+  tbody tr.agr-row-cont td { border-top-color: transparent; }
+  // A cell repeating the value above stays in the DOM for copy and screen
+  // readers, and is hidden from view.
+  tbody td.agr-cell-repeat, tbody td.agr-cell-repeat * { color: transparent; pointer-events: none; }
+  .num { text-align: right; }
+  a { text-decoration: none; }
+  a:hover { text-decoration: underline; }
 }
 .agr-table-striped tbody tr:nth-child(odd) { background: var(--agr-bg-light); }
-.agr-table-sm { th, td { padding: var(--agr-space-1) var(--agr-space-2); } }
-// Wrap wide tables so they scroll inside their own container.
+.agr-table-sm { th, td { padding: var(--agr-space-1) var(--agr-space-2); } th { padding-top: 6px; padding-bottom: 6px; } }
+// Wrap wide tables so they scroll inside their own container. The border and
+// rounded corners frame the table; a tall table scrolls under a sticky header.
 .agr-table-wrap {
-  overflow-x: auto;
+  overflow: auto;
   max-width: 100%;
+  max-height: 70vh;
   margin-bottom: var(--agr-space-4);
+  border: 1px solid var(--agr-border);
+  border-radius: var(--agr-radius);
+  background: var(--agr-bg);
+  > .agr-table th { position: sticky; top: 0; z-index: 1; }
+  > .agr-table tbody tr:first-child td { border-top: 0; }
   // A button directly after a table sits clear of it.
   + .agr-btn, + .agr-btn-primary, + .agr-btn-danger { margin-top: var(--agr-space-2); }
 }
