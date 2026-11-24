@@ -37,6 +37,21 @@
   [path-str]
   (second (re-matches #"[^\.]+\.(.*)" path-str)))
 
+(defn organism-path?
+  "Whether `view` ends in organism.shortName or organism.name, whose values
+  are species names and render in italics."
+  [view]
+  (boolean (re-find #"\.organism\.(shortName|name)$" (str view))))
+
+(defn summary-label
+  "Label for a summary row. Organism paths read \"Organism\". Other headers
+  keep their last part; mines join the parts with \" > \" or \" . \", as in
+  \"Gene > Organism . Short Name\"."
+  [header view]
+  (if (organism-path? view)
+    "Organism"
+    (last (str/split (str header) #" [>.] "))))
+
 ;; We don't use the `imcljs.path` functions here as we're manually building a
 ;; path by appending a tail to a different root.
 (defn ->query-ref+coll [summary-fields object-type object-id ref+coll]

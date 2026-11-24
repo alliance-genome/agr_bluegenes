@@ -279,18 +279,18 @@
 (let [limit 200]
   (defn summary-cell []
     (let [show-more* (r/atom false)]
-      (fn [cell]
-        (let [value (second cell)
-              missing? (or (nil? value) (and (string? value) (str/blank? value)))
+      (fn [[header value view]]
+        (let [missing? (or (nil? value) (and (string? value) (str/blank? value)))
               too-long? (< limit (-> value str count))
-              cell-header (-> cell first (str/split " > ") last)
               ?limit (when (and too-long? (not @show-more*)) limit)]
           [:<>
-           [:dt cell-header]
+           [:dt (utils/summary-label header view)]
            (if missing?
              [:dd.agr-na "Not available"]
              [:dd
-              (anchor-if-url value ?limit)
+              (if (utils/organism-path? view)
+                [:em (anchor-if-url value ?limit)]
+                (anchor-if-url value ?limit))
               (when too-long?
                 [:button.btn.btn-link.show-more-button
                  {:on-click #(swap! show-more* not)}
@@ -325,12 +325,14 @@
       nil)))
 
 (defn summary []
-  (let [{:keys [columnHeaders results]} @(subscribe [::subs/report-summary])
+  (let [{:keys [columnHeaders views results]} @(subscribe [::subs/report-summary])
         fasta               @(subscribe [::subs/fasta])
         chromosome-location @(subscribe [::subs/chromosome-location])
         fasta-length        @(subscribe [::subs/fasta-length])
         strand              @(subscribe [::subs/strand])
-        entries (concat (sort-by key (filter val (zipmap columnHeaders (first results))))
+        entries (concat (->> (map vector columnHeaders (first results) views)
+                             (filter second)
+                             (sort-by #(utils/summary-label (first %) (nth % 2))))
                         (when (not-empty chromosome-location)
                           [^{:type :location} ["Chromosome Location" chromosome-location]])
                         (when strand

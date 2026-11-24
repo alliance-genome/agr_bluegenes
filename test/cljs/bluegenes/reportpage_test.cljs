@@ -4,7 +4,8 @@
             [re-frame.core :as rf]
             [re-frame.db :refer [app-db]]
             [day8.re-frame.test :refer-macros [run-test-sync]]
-            [bluegenes.pages.reportpage.events :as events]))
+            [bluegenes.pages.reportpage.events :as events]
+            [bluegenes.pages.reportpage.utils :as report-utils]))
 
 (use-fixtures :each utils/fixtures)
 
@@ -75,3 +76,16 @@
   (let [summary {:views ["Gene.primaryIdentifier" "Gene.organism.shortName"]
                  :results [["S000001855" "S. cerevisiae"]]}]
     (is (= yeast-gene (events/lookup-value summary)))))
+
+(deftest summary-label-organism
+  (testing "organism paths read Organism and render in italics"
+    (is (= "Organism" (report-utils/summary-label "Gene > Organism . Short Name" "Gene.organism.shortName")))
+    (is (= "Organism" (report-utils/summary-label "Gene > Organism > Name" "Gene.organism.name")))
+    (is (report-utils/organism-path? "Gene.organism.shortName"))
+    (is (not (report-utils/organism-path? "Gene.organism.taxonId")))))
+
+(deftest summary-label-last-part
+  (testing "other headers keep their last part, joined by > or ."
+    (is (= "Standard Name" (report-utils/summary-label "Gene > Standard Name" "Gene.symbol")))
+    (is (= "Short Name" (report-utils/summary-label "Gene > Chromosome . Short Name" "Gene.chromosome.shortName")))
+    (is (= "Primary DBID" (report-utils/summary-label "Primary DBID" "Gene.primaryIdentifier")))))
