@@ -210,6 +210,15 @@
 		});
 	}
 
+	// Which leading cells repeat the row above: species, then gene, then allele.
+	// A cell repeats only when every cell to its left repeats too.
+	function repeatFlags(prev, e) {
+		var species = !!prev && prev.species === e.species;
+		var gene = species && prev.geneSymbol === e.geneSymbol;
+		var allele = gene && prev.alleleId === e.alleleId;
+		return { species: species, gene: gene, allele: allele };
+	}
+
 	function renderTable(entries, kind, navigate) {
 		var tableWrap = node('div', null, 'agr-table-wrap');
 		var table = node('table', null, 'agr-table agr-table-sm');
@@ -224,14 +233,15 @@
 		table.appendChild(thead);
 
 		var tbody = node('tbody');
-		entries.forEach(function (e) {
-			var tr = node('tr');
-			var speciesCell = node('td');
+		entries.forEach(function (e, i) {
+			var rep = repeatFlags(entries[i - 1], e);
+			var tr = node('tr', null, rep.allele ? 'agr-row-cont' : null);
+			var speciesCell = node('td', null, rep.species ? 'agr-cell-repeat' : null);
 			speciesCell.appendChild(node('em', e.species));
 			tr.appendChild(speciesCell);
-			tr.appendChild(node('td', e.geneSymbol + (e.own ? ' (this gene)' : '')));
+			tr.appendChild(node('td', e.geneSymbol + (e.own ? ' (this gene)' : ''), rep.gene ? 'agr-cell-repeat' : null));
 
-			var alleleCell = node('td');
+			var alleleCell = node('td', null, rep.allele ? 'agr-cell-repeat' : null);
 			var a = node('a', e.alleleSymbol);
 			a.href = '#';
 			a.addEventListener('click', function (ev) {
@@ -574,6 +584,7 @@
 		aggregate: aggregate,
 		termCounts: termCounts,
 		filterTerms: filterTerms,
+		repeatFlags: repeatFlags,
 		render: render,
 		SOURCES: SOURCES
 	};
