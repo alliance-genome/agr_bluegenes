@@ -16,6 +16,21 @@
          selected-features  (remove #(not (second %)) features)]
      (= (count features) (count selected-features)))))
 
+(defn visible-feature-keys
+  "Keywords of a node and all its descendants that have data."
+  [[class-kw {:keys [descendants]}]]
+  (cons class-kw (mapcat visible-feature-keys
+                         (filter (comp pos? :count second) descendants))))
+
+(reg-sub
+ :regions/feature-type-counts
+ :<- [:regions/sequence-feature-types]
+ :<- [:regions/feature-types]
+ (fn [[tree feature-types]]
+   (let [ks (distinct (mapcat visible-feature-keys (filter (comp pos? :count second) tree)))]
+     {:selected (count (filter feature-types ks))
+      :total (count ks)})))
+
 (reg-sub
  :regions/error
  (fn [db]

@@ -105,6 +105,18 @@
                           (assoc total next (not status)))
                         {class-kw (not status)} descendants)))))
 
+(reg-event-db
+ :regions/set-feature-type-branch
+ (fn [db [_ class target]]
+   (let [class-kw (keyword (:name class))
+         m (get-in db [:mines (get db :current-mine) :service :model])
+         descendants (keys (entity/extended-by m class-kw))]
+     (update-in db [:regions :settings :feature-types]
+                merge
+                (reduce (fn [total next]
+                          (assoc total next (boolean target)))
+                        {class-kw (boolean target)} descendants)))))
+
 (defn set-default-feature-types [db]
   (let [model (get-in db [:mines (get db :current-mine) :service :model])
         feature-types (entity/extended-by model :SequenceFeature)]

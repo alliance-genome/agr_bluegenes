@@ -9,7 +9,7 @@
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [bluegenes.components.export-query :as export-query]
-            [bluegenes.pages.regions.utils :refer [strand-indicator]]
+            [bluegenes.pages.regions.utils :refer [strand-indicator strand-cell]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall oset!]]
             [bluegenes.route :as route]
@@ -22,13 +22,18 @@
 
 (def result-id "region-result-")
 
+(defn feature-count-label [n]
+  (case n
+    0 "No overlapping features"
+    1 "1 overlapping feature"
+    (str n " overlapping features")))
+
 (defn region-header
   "Header for each region. includes paginator and number of features."
   [idx {:keys [chromosome from to strand results] :as feature} paginator]
-  [:h3 {:id (str result-id idx)}
-   [:strong "Region: "]
-   [:span (str chromosome " " from ".." to " ") [strand-indicator strand]]
-   [:small.features-count (count results) " overlapping features"]
+  [:h3.region-heading {:id (str result-id idx)}
+   [:span.region-coords (str chromosome ":" from ".." to) " " [strand-indicator strand]]
+   [:small.features-count (feature-count-label (count results))]
    (when (seq results) paginator)])
 
 (defn table-paginator
@@ -36,22 +41,24 @@
   [pager results]
   (let [page-count (int (.ceil js/Math (/ (count results) (:show @pager))))]
     [:div.pull-right.paginator
-     [:button
-      {:disabled (< (:page @pager) 1)
+     [:button.agr-btn.agr-btn-sm
+      {:type "button"
+       :disabled (< (:page @pager) 1)
        :on-click (fn [] (swap! pager update :page dec))}
-      "< Previous"]
+      "Previous"]
      [:span.currentpage "Page " (inc (:page @pager)) " of " page-count]
-     [:button
-      {:disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
-       :on-click (fn [] (swap! pager update :page inc))} "Next >"]]))
+     [:button.agr-btn.agr-btn-sm
+      {:type "button"
+       :disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
+       :on-click (fn [] (swap! pager update :page inc))} "Next"]]))
 
 (defn table-header
   "Header for results table."
   []
-  [:div.grid-3_xs-3
-   [:div.col [:h4 "Feature"]]
-   [:div.col [:h4 "Feature Type"]]
-   [:div.col [:h4 "Location"]]])
+  [:div.grid-3_xs-3.table-head
+   [:div.col "Feature"]
+   [:div.col "Feature type"]
+   [:div.col "Location"]])
 
 (def !dispatch
   ^{:doc
@@ -80,16 +87,17 @@
      [:div.grid-3_xs-3.single-feature
       [:div.col.feature-name
        (when symbol [:strong symbol])
-       primaryIdentifier]
+       [:span.feature-id primaryIdentifier]]
       [:div.col the-type]
-      [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)
-       [strand-indicator strand]]]]))
+      [:div.col.feature-location
+       (:primaryIdentifier locatedOn) ":" start ".." [:wbr] end
+       [:span.feature-strand (strand-cell strand)]]]]))
 
 (defn create-list [features list-basename]
   (let [class->features (group-by :class features)]
     [:div.dropdown.create-list-dropdown
-     [:button.btn.btn-default.btn-raised.btn-xs.dropdown-toggle
-      {:data-toggle "dropdown"}
+     [:button.agr-btn.agr-btn-sm.dropdown-toggle
+      {:type "button" :data-toggle "dropdown"}
       "Create list by feature type" [:span.caret]]
      [:div.dropdown-menu.dropdown-mixed-content
       (into [:ul]
@@ -123,13 +131,13 @@
                      (take (:show @pager))
                      (map (fn [result]
                             [table-row idx result]))))]
-         [:hr]
          [:div.results-footer
-          [export-query/main (prepare-export-query @subquery)
-           :label "Export features: "]
+          [export-query/export-select (prepare-export-query @subquery)
+           :label "Export features"]
           [create-list results (str chromosome ":" from ".." to)]
-          [:button.btn.btn-default.btn-raised.btn-xs
-           {:on-click #(dispatch [:regions/view-query @subquery feature])}
+          [:button.agr-btn.agr-btn-sm
+           {:type "button"
+            :on-click #(dispatch [:regions/view-query @subquery feature])}
            "View in results table"]]]
         [:div.results.noresults
          [region-header idx feature]
@@ -166,7 +174,7 @@
 (defn results-count-summary [results]
   (when (seq results)
     (into [:div.results-counts
-           [:span.skip-to "Skip to:"]
+           [:span.skip-to "Skip to"]
            [:span.results-count
             {:on-click #(scroll-into-view! nil)}
             "Top"]]
@@ -176,7 +184,7 @@
             [:span.results-count
              {:class (when (zero? amount) :noresults)
               :on-click #(scroll-into-view! (str result-id index))}
-             [:strong chromosome] ": " amount " results"]))))
+             [:strong chromosome] " " amount]))))
 
 (defn results-section []
   (let [results   (subscribe [:regions/results])
@@ -190,11 +198,12 @@
                         [:div
                          (when (seq all-results)
                            [:div.results-actions
-                            [export-query/main (prepare-export-query @query)
-                             :label "Export features within all regions:"]
+                            [export-query/export-select (prepare-export-query @query)
+                             :label "Export features in all regions"]
                             [create-list all-results "All Regions"]
-                            [:button.btn.btn-default.btn-raised.btn-xs
-                             {:on-click #(dispatch [:regions/view-query @query])}
+                            [:button.agr-btn.agr-btn-sm
+                             {:type "button"
+                              :on-click #(dispatch [:regions/view-query @query])}
                              "View all in results table"]])
                          [:div.results-summary {:id skip-to-id}
                           [results-count-summary @results]]

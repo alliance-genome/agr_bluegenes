@@ -4,20 +4,15 @@
             [reagent.dom :as dom]
             [bluegenes.pages.regions.graphs :as graphs]
             [bluegenes.components.table :as table]
-            [bluegenes.components.loader :refer [loader]]
             [bluegenes.pages.regions.events]
-            [bluegenes.pages.regions.subs]
+            [bluegenes.pages.regions.subs :as subs]
             [bluegenes.pages.regions.results :refer [results-section]]
-            [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.components.icons :refer [icon]]
-            [bluegenes.pages.regions.utils :refer [linear->log log->linear parse-bp bp->int int->bp]]
+            [bluegenes.pages.regions.utils :refer [parse-bp]]
             [clojure.string :as str]
             [oops.core :refer [oget ocall]]
             [goog.functions :refer [debounce]]))
-
-(def css-transition-group
-  (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
 (defn dropdown-hover [{:keys [data children]}]
   [:span.dropdown.dropdown-hover
@@ -52,53 +47,79 @@
        (filter (comp pos? :count second))
        (sort-by (comp :displayName second))))
 
+(defn node-state
+  "One of :all, :some or :none, from the selection state of a node and its visible descendants."
+  [feature-types node]
+  (let [ks (subs/visible-feature-keys node)
+        selected (count (filter feature-types ks))]
+    (cond
+      (zero? selected) :none
+      (= selected (count ks)) :all
+      :else :some)))
+
 (defn feature-branch
   "Recursively building a tree of user-selectable features as checkboxes"
-  []
+  [expanded*]
   (let [feature-types (subscribe [:regions/feature-types])]
-    (fn [[class-kw {:keys [displayName descendants count] :as n}]]
-      [:li {:class (if (class-kw @feature-types) "selected")
-            :on-click (fn [e]
-                        (.stopPropagation e)
-                        (dispatch [:regions/toggle-feature-type n]))}
-       (if (class-kw @feature-types)
-         [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
-         [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
-       (str displayName)
-       (when-not (empty? descendants)
-         (into [:ul.features-tree]
-               (map (fn [d] [feature-branch d]) (non-empty-classes descendants))))])))
+    (fn [expanded* [class-kw {:keys [displayName descendants] :as n}]]
+      (let [children (non-empty-classes descendants)
+            state (node-state @feature-types [class-kw n])
+            open? (contains? @expanded* class-kw)
+            id (str "ft-" (name class-kw))]
+        [:li.ft-row-item
+         [:div.ft-row {:class (when (seq children) "ft-parent")}
+          (if (seq children)
+            [:button.ft-chevron
+             {:type "button"
+              :class (when open? "open")
+              :aria-expanded (boolean open?)
+              :aria-label (str (if open? "Collapse " "Expand ") displayName)
+              :on-click #(swap! expanded* (fn [s] (if open? (disj s class-kw) (conj s class-kw))))}
+             [icon "chevron-right"]]
+            [:span.ft-spacer])
+          [:input {:type "checkbox"
+                   :id id
+                   :checked (= state :all)
+                   :ref (fn [el] (when el (set! (.-indeterminate el) (= state :some))))
+                   :on-change #(dispatch [:regions/set-feature-type-branch n (not= state :all)])}]
+          [:label {:for id} displayName]]
+         (when (and (seq children) open?)
+           (into [:ul.features-tree]
+                 (map (fn [d] [feature-branch expanded* d]) children)))]))))
 
 (defn feature-types-tree
   "UI component for checkbox features selection"
   []
-  (let [known-feature-types (subscribe [:regions/sequence-feature-types])]
+  (let [known-feature-types (subscribe [:regions/sequence-feature-types])
+        expanded* (reagent/atom #{})]
     (fn []
+      ;; Branches start collapsed so the top level fits on screen; chevrons open them.
       (into [:ul.features-tree.features-tree-root]
-            (map (fn [f] [feature-branch f]) (non-empty-classes @known-feature-types))))))
+            (map (fn [f] [feature-branch expanded* f]) (non-empty-classes @known-feature-types))))))
 
 (def coordinate-systems
   ^{:doc "Supported genomic coordinate systems. First element is the default."}
   [:base :interbase])
+
+(def coordinate-labels {:base "Base" :interbase "Interbase"})
 
 (defn coordinate-system-selection
   "UI component allowing user to choose which genomic coordinate system. Defaults to base."
   []
   (let [coordinates (subscribe [:regions/coordinates])]
     (fn []
-      (into [:div.radio-group
-             [:label "Coordinates"]]
-            (for [coord-kw coordinate-systems]
-              [:label.radio-inline
-               [:input {:type "radio"
-                        :name "coordinates"
-                        :value (name coord-kw)
-                        :checked (= coord-kw (or @coordinates
-                                                 (first coordinate-systems)))
-                        :on-change #(dispatch [:regions/set-coordinates coord-kw])}]
-               [:span.circle]
-               [:span.check]
-               (name coord-kw)])))))
+      [:div.region-field
+       [:div.region-label "Coordinates"]
+       (into [:div.region-radios]
+             (for [coord-kw coordinate-systems]
+               [:label.region-radio
+                [:input {:type "radio"
+                         :name "coordinates"
+                         :value (name coord-kw)
+                         :checked (= coord-kw (or @coordinates
+                                                  (first coordinate-systems)))
+                         :on-change #(dispatch [:regions/set-coordinates coord-kw])}]
+                (coordinate-labels coord-kw)]))])))
 
 (def strand-specific-help
   [:div
@@ -110,12 +131,16 @@
   []
   (let [strand-specific (subscribe [:regions/strand-specific])]
     (fn []
-      [:div.togglebutton
-       [:label "Strand-specific"
-        [:input {:type "checkbox"
-                 :checked (true? @strand-specific)
-                 :on-change #(dispatch [:regions/toggle-strand-specific])}]
-        [:span.toggle]
+      [:div.region-field
+       [:div.switch-container.region-strand
+        [:span.switch-label.region-label "Strand-specific"]
+        [:span.switch
+         [:input {:type "checkbox"
+                  :role "switch"
+                  :aria-label "Strand-specific"
+                  :checked (true? @strand-specific)
+                  :on-change #(dispatch [:regions/toggle-strand-specific])}]
+         [:span.slider.round]]
         [dropdown-hover
          {:data strand-specific-help
           :children [icon "question"]}]]])))
@@ -123,65 +148,25 @@
 (def !dispatch
   (debounce dispatch 250))
 
-(defn input-slider [input* range* & {:keys [reverse? lock?]}]
-  (let [update-input #(!dispatch [(cond
-                                    lock? :regions/extend-region-both
-                                    reverse? :regions/extend-region-start
-                                    :else :regions/extend-region-end) %])
-        set-region! (fn [a value]
-                      (swap! a (cond
-                                 lock? #(assoc % :start value :end value)
-                                 reverse? #(assoc % :start value)
-                                 :else #(assoc % :end value))))
-        get-region (fn [m] (get m (if reverse? :start :end)))
-        set-tick! (fn [value]
-                    (when-let [[string number] (parse-bp value)]
-                      (update-input string)
-                      (set-region! input* string)
-                      (set-region! range* (log->linear number))))
-        input
-        [:input.form-control
-         {:type "text"
-          :on-change #(when-let [[string number] (parse-bp (oget % :target :value))]
-                        (update-input string)
-                        (set-region! input* string)
-                        (set-region! range* (log->linear number)))
-          :value (get-region @input*)}]
-        range
-        [:div
-         [:div.slider-ticks
-          {:class (when reverse? :reverse)}
-          [:span] ; 1
-          [:span] ; 10
-          [:span] ; 100
-          [:a {:role "button"
-               :on-click #(set-tick! "1k")}
-           "1k"]
-          [:a {:role "button"
-               :on-click #(set-tick! "10k")}
-           "10k"]
-          [:a {:role "button"
-               :on-click #(set-tick! "100k")}
-           "100k"]
-          [:a {:role "button"
-               :on-click #(set-tick! "1M")}
-           "1M"]
-          [:a {:role "button"
-               :on-click #(set-tick! "10M")}
-           "10M"]]
-         [:input.form-control
-          {:type "range"
-           :style (when reverse? {:direction "rtl"})
-           :min 0
-           :max 70
-           :on-change #(let [value (int (oget % :target :value))]
-                         (set-region! range* value)
-                         (update-input (int->bp (linear->log value)))
-                         (set-region! input* (int->bp (linear->log value))))
-           :value (get-region @range*)}]]]
-    (if reverse?
-      [:<> range input]
-      [:<> input range])))
+(defn extend-input
+  "Text input for one side of the extension. Updates the local input atom and the debounced app-db event."
+  [input* label side lock?]
+  [:div.extend-side
+   [:label.extend-sublabel label]
+   [:input.form-control
+    {:type "text"
+     :placeholder "0"
+     :aria-label (str label " extension")
+     :value (get @input* side)
+     :on-change (fn [e]
+                  (when-let [[string _] (parse-bp (oget e :target :value))]
+                    (!dispatch [(cond
+                                  lock? :regions/extend-region-both
+                                  (= side :start) :regions/extend-region-start
+                                  :else :regions/extend-region-end) string])
+                    (swap! input* (if lock?
+                                    #(assoc % :start string :end string)
+                                    #(assoc % side string)))))}]])
 
 (defn extend-region-selection
   "UI component allowing user to extend search region, on one of both sides."
@@ -189,142 +174,165 @@
   (let [unlock-extend (subscribe [:regions/unlock-extend])
         extend-start (subscribe [:regions/extend-start])
         extend-end (subscribe [:regions/extend-end])
-        input* (reagent/atom {:start (or (not-empty @extend-start) 0) :end (or (not-empty @extend-end) 0)})
-        range* (reagent/atom {:start (log->linear (bp->int @extend-start)) :end (log->linear (bp->int @extend-end))})]
+        input* (reagent/atom {:start (or (not-empty @extend-start) 0) :end (or (not-empty @extend-end) 0)})]
     (fn []
-      [:div.extend-region
-       [:label "Extend regions"]
-       [input-slider input* range* :reverse? true :lock? (not @unlock-extend)]
-       [:button.btn
-        {:class (when-not @unlock-extend :linked)
-         :on-click #(dispatch [:regions/toggle-unlock-extend])}
-        [icon "lock"]]
-       [input-slider input* range* :lock? (not @unlock-extend)]])))
+      (let [lock? (not @unlock-extend)]
+        [:div.region-field.extend-region
+         [:div.region-label "Extend regions"]
+         [:div.extend-row
+          [extend-input input* "Upstream" :start lock?]
+          [:button.agr-btn.agr-btn-sm.extend-lock
+           {:type "button"
+            :class (when lock? :linked)
+            :aria-pressed (boolean lock?)
+            :aria-label "Link both sides"
+            :title "Link both sides"
+            :on-click #(dispatch [:regions/toggle-unlock-extend])}
+           [icon "lock"]]
+          [extend-input input* "Downstream" :end lock?]]
+         [:div.region-hint "Accepts bp, 1k, 10k, 1M"]]))))
+
+(defn dedupe-by
+  "Keeps the first item for each distinct value of f."
+  [f coll]
+  (vals (reduce (fn [m x] (if (contains? m (f x)) m (assoc m (f x) x))) (array-map) coll)))
 
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
   []
   (let [organism (subscribe [:regions/organism])
+        organisms (subscribe [:cache/organisms])
         organisms-with-data (subscribe [:regions/organisms])]
     (fn []
-      [:div.organism-selection
-       [:label "Organism"]
-       [im-controls/organism-dropdown
-        {:selected-value (if-let [sn (:shortName @organism)]
-                           sn
-                           "All Organisms")
-         :on-change (fn [organism]
-                      (dispatch [:regions/set-selected-organism organism]))
-         :organisms-pred (when-let [orgs (not-empty @organisms-with-data)]
-                           (comp orgs :shortName))}]])))
+      (let [pred (when-let [orgs (not-empty @organisms-with-data)]
+                   (comp orgs :shortName))
+            selected (:shortName @organism)
+            ;; Keep a stored organism selectable even when the filter drops it,
+            ;; so the select always shows what the search will use.
+            listed (cond->> @organisms pred (filter pred))
+            options (->> (cond-> (vec listed)
+                           (and selected (not-any? #(= selected (:shortName %)) listed))
+                           (conj @organism))
+                         (sort-by :shortName)
+                         (dedupe-by :shortName))]
+        [:div.region-field
+         [:label.region-label {:for "region-organism"} "Organism"]
+         (into [:select.form-control
+                {:id "region-organism"
+                 :class (when selected "organism-set")
+                 :value (or selected "")
+                 :on-change (fn [e]
+                              (let [sn (oget e :target :value)]
+                                (dispatch [:regions/set-selected-organism
+                                           (when-not (str/blank? sn)
+                                             (first (filter #(= sn (:shortName %)) options)))])))}
+                [:option {:value ""} "All organisms"]]
+               (map (fn [{sn :shortName}] [:option {:key sn :value sn} sn]) options))]))))
 
 ; Input box for regions
 (defn region-input-box
   "UI component allowing user to type in the regions they wish to search for"
   []
   (reagent/create-class
-   (let [to-search (subscribe [:regions/to-search])
-         results (subscribe [:regions/results])]
+   (let [to-search (subscribe [:regions/to-search])]
      {:reagent-render
       (fn []
-        [:textarea.form-control
-         {:rows (if @results 3 6)
-          :placeholder "Type genome regions here, or click [SHOW EXAMPLE] below."
-          :value @to-search
+        [:textarea.form-control.region-textarea
+         {:rows 6
+          :id "region-textarea"
+          :placeholder "One region per line, for example 2L:11334..12296"
+          :value (or @to-search "")
           :on-change (fn [e]
                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}])
       :component-did-mount (fn [this] (.focus (dom/dom-node this)))})))
 
-(defn clear-textbox
-  "Interactive UI component to clear any entered text present in the region input textarea."
-  []
-  (let [to-search (subscribe [:regions/to-search])]
-    (fn []
-      [css-transition-group
-       {:transition-name "fade"
-        :transition-enter-timeout 2000
-        :transition-leave-timeout 2000
-        :component "div"}
-       (when @to-search
-         [:div.clear-textbox
-          ;;this is a fancy x-like character, aka &#10006; - NOT just x
-          {:on-click #(dispatch [:regions/set-to-search nil])
-           :title "Clear this textbox"} "✖"])])))
-
 (defn region-input []
-  [:div.region-input
-   [:label "Regions to search "
-    [dropdown-hover
-     {:data region-search-help
-      :children [icon "question"]}]]
-   [:div.region-text
-    [clear-textbox]
-    [region-input-box]]])
+  (let [search-example (subscribe [:regions/example-search])]
+    (fn []
+      (let [example-text @search-example]
+        [:div.region-field
+         [:div.region-label-row
+          [:label.region-label {:for "region-textarea"}
+           "Regions to search"
+           [dropdown-hover
+            {:data region-search-help
+             :children [icon "question"]}]]
+          [:div.region-helpers
+           [:button.agr-btn.agr-btn-sm
+            {:type "button"
+             :disabled (empty? example-text)
+             :title (when (empty? example-text) "No example available")
+             :on-click #(dispatch [:regions/set-to-search (str/replace example-text "\\n" "\n")])}
+            "Show example"]
+           [:button.agr-btn.agr-btn-sm
+            {:type "button"
+             :on-click #(dispatch [:regions/clear-inputs])}
+            "Clear"]]]
+         [region-input-box]]))))
 
 (defn checkboxes
   "UI component ot allow user to select which types of overlapping features to find"
-  [to-search]
-  (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])
+  []
+  (let [counts (subscribe [:regions/feature-type-counts])
         results (subscribe [:regions/results])]
-    (fn [to-search]
-      [:div.checkboxes
-       [:label
-        [:svg.icon
-         {:title (if @all-selected? "Deselect all" "Select all")
-          :on-click (if @all-selected?
-                      #(dispatch [:regions/deselect-all-feature-types])
-                      #(dispatch [:regions/select-all-feature-types]))}
-         (if @all-selected?
-           [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
-           [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])] "Features to include"]
-       ;; having the container around the tree is important because the tree is recursive
-       ;; and we know for sure that the container is the final parent! :)
-       [:div.feature-tree-container
-        {:class (when @results :shrinkified)}
-        [feature-types-tree]]])))
+    (fn []
+      (let [{:keys [selected total]} @counts]
+        [:div.region-card.features-card
+         [:div.region-label-row
+          [:div.region-label "Features to include"]
+          [:span.region-count (str selected " of " total " selected")]]
+         [:div.region-helpers.region-field
+          [:button.agr-btn.agr-btn-sm
+           {:type "button"
+            :disabled (= selected total)
+            :on-click #(dispatch [:regions/select-all-feature-types])}
+           "Select all"]
+          [:button.agr-btn.agr-btn-sm
+           {:type "button"
+            :disabled (zero? selected)
+            :on-click #(dispatch [:regions/deselect-all-feature-types])}
+           "Select none"]]
+         ;; having the container around the tree is important because the tree is recursive
+         ;; and we know for sure that the container is the final parent! :)
+         [:div.feature-tree-container
+          {:class (when-not @results :no-results)}
+          [feature-types-tree]]]))))
 
 (defn input-section
   "Entire UI input section / top half of the region search"
   []
   (let [feature-types (subscribe [:regions/feature-types])
         to-search (subscribe [:regions/to-search])
-        search-example (subscribe [:regions/example-search])
         force-remount-extend-region (subscribe [:regions/force-remount-extend-region])]
     (fn []
       [:div.input-section
-       ; Parameters section
-       [:div.organism-and-regions
+       [:div.region-card.form-card
         [region-input]
-        [coordinate-system-selection]
-        [strand-specific-selection]
-        ;; This is a clever trick to force `extend-region-selection` to
-        ;; remount, which causes its inputs to reload their state from app-db.
-        ;; Used to reset them back to defaults.
-        ^{:key @force-remount-extend-region}
-        [extend-region-selection]
-        [organism-selection]
-        (let [example-text @search-example]
-          [:div.btn-group.action-buttons
-           [:button.btn.btn-default.btn-raised.btn-block
-            {:disabled (empty? example-text)
-             :title (when (empty? example-text) "No example available")
-             :on-click #(dispatch [:regions/set-to-search (str/replace example-text "\\n" "\n")])}
-            "Show Example"]
-           [:button.btn.btn-default.btn-raised.btn-block
-            {:on-click #(dispatch [:regions/clear-inputs])}
-            "Clear"]
-           [:button.btn.btn-primary.btn-raised.btn-block
-            {:disabled (or (str/blank? @to-search)
-                           (empty? (filter (fn [[name enabled?]] enabled?) @feature-types)))
-             :on-click (fn [e] (dispatch [:regions/run-query])
-                         (ocall (oget e "target") "blur"))
-             :title "Enter something into the 'Regions to search' box or click on [SHOW EXAMPLE]"}
-            "Search"]])]
-       ; Results section
-       [checkboxes to-search]])))
+        [:div.form-options
+         [:div.region-row
+          [coordinate-system-selection]
+          [organism-selection]]
+         [strand-specific-selection]
+         ;; This is a clever trick to force `extend-region-selection` to
+         ;; remount, which causes its inputs to reload their state from app-db.
+         ;; Used to reset them back to defaults.
+         ^{:key @force-remount-extend-region}
+         [extend-region-selection]]
+        [:div.region-actions
+         [:button.agr-btn.agr-btn-primary
+          {:type "button"
+           :disabled (or (str/blank? @to-search)
+                         (empty? (filter (fn [[_ enabled?]] enabled?) @feature-types)))
+           :on-click (fn [e] (dispatch [:regions/run-query])
+                       (ocall (oget e "target") "blur"))
+           :title "Enter regions or use Show example"}
+          "Search"]
+         (when (str/blank? @to-search)
+           [:span.region-hint.region-actions-hint "Enter at least one region"])]]
+       [checkboxes]])))
 
 (defn main []
   [:div.agr-page.regionsearch
-   [:h2.agr-page-title "Region Search"]
+   [:h2.agr-page-title "Region search"]
    [input-section]
    [results-section]])
