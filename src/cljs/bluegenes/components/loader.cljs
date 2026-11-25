@@ -1,17 +1,17 @@
 (ns bluegenes.components.loader
   (:require [re-frame.core :refer [subscribe]]))
 
+(defn bar-loader
+  "The seven bars of the start-up loader."
+  []
+  [:div.bar-loader {:role "status" :aria-label "Loading"}
+   (for [i (range 7)]
+     ^{:key i} [:span.bar-loader-bar])])
+
 (defn loader [whatever]
   [:div
    [:div.loading (str "LOADING " whatever)]
-   [:div#loader
-    [:div.worm.loader-organism]
-    [:div.zebra.loader-organism]
-    [:div.human.loader-organism]
-    [:div.yeast.loader-organism]
-    [:div.rat.loader-organism]
-    [:div.mouse.loader-organism]
-    [:div.fly.loader-organism]]])
+   [bar-loader]])
 
 (defn mini-loader [size]
   [:div.mini-loader {:class size :role "status" :aria-label "Loading"}

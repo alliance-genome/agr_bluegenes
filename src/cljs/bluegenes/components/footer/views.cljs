@@ -2,9 +2,9 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [bluegenes.version :as version]
             [clojure.string :as str]
+            [bluegenes.config :refer [server-vars]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [version-string->vec height-publisher]]
-            [bluegenes.components.icons :refer [icon]]
             [bluegenes.route :as route]))
 
 (defn link [href label]
@@ -12,6 +12,74 @@
 
 (defn pretty-version [vstring]
   (->> vstring version-string->vec (str/join ".")))
+
+(def ^:private agr "https://www.alliancegenome.org")
+
+;; Link groups copied from the alliancegenome.org footer. A column holds
+;; [heading links] groups, or [heading path] for a heading that is a link.
+;; An :external link opens a new tab.
+(def link-columns
+  [[["Data and Tools"
+     [["Downloads" "/downloads"]
+      ["API" "/swagger-ui" :external]
+      ["AllianceMine" "/bluegenes/alliancemine" :external]
+      ["JBrowse 2" "/jbrowse2/" :external]
+      ["Disease Portal" "/disease-portal"]
+      ["Ontology Browser" "/ontology/disease"]
+      ["SimpleMine" "/agr_simplemine.cgi" :external]
+      ["Submit Data" "/submit-data"]
+      ["Textpresso" "/textpresso"]
+      ["BLAST Service" "/blastservice"]
+      ["Tools" "/prototypes"]
+      ["Pavi" "/pavi" :external]]]]
+   [["Members"
+     [["FlyBase" "/members/flybase"]
+      ["MGD" "/members/mgd"]
+      ["RGD" "/members/rgd"]
+      ["SGD" "/members/sgd"]
+      ["WormBase" "/members/wormbase"]
+      ["Xenbase" "/members/xenbase"]
+      ["ZFIN" "/members/zfin"]
+      ["GOC" "/members/goc"]]]]
+   [["News"
+     [["News / Events" "/news"]
+      ["Release Notes" "/release-notes"]
+      ["Event Calendar" "/event-calendar"]]]
+    ["About"
+     [["About Us" "/about-us"]
+      ["Funding" "/funding"]
+      ["Publications" "/publications"]
+      ["Organization" "/organization-and-governance"]
+      ["Licensing, Privacy" "/privacy-warranty-licensing"]]]]
+   [["Help"
+     [["FAQ" "/faq"]
+      ["Glossary" "/glossary"]
+      ["Tutorials" "/tutorials"]
+      ["User Docs" "/help"]]]
+    ["Community"
+     [["Alliance Users" "https://community.alliancegenome.org/categories" :external]
+      ["Facebook" "https://www.facebook.com/AllianceOfGenomeResources" :external]
+      ["Mastodon" "https://genomic.social/@AllianceGenome" :external]
+      ["Bluesky" "https://bsky.app/profile/alliancegenome.bsky.social" :external]
+      ["Github" "https://github.com/alliance-genome" :external]]]
+    ["Contact Us" "/contact-us"]]
+   [["Cite Us" "/cite-us"]]])
+
+(defn- href [path]
+  (if (str/starts-with? path "http") path (str agr path)))
+
+(defn- link-group [[heading links]]
+  (if (string? links)
+    [:div.footer-group
+     [:a.footer-heading {:href (href links)} heading]]
+    [:div.footer-group
+     [:span.footer-heading heading]
+     (into [:ul]
+           (for [[label path external?] links]
+             [:li
+              (if external?
+                [:a.external {:href (href path) :target "_blank" :rel "noopener"} label]
+                [:a {:href (href path)} label])]))]))
 
 ;; The query builder's fixed panel ends above the footer.
 (defonce ^:private publish-footer-height! (height-publisher "--agr-footer-height"))
@@ -22,9 +90,21 @@
         intermine-version (some-> @(subscribe [:version]) pretty-version)
         api-version       @(subscribe [:api-version])
         release-version   (when-let [v @(subscribe [:release-version])]
-                            (nth (re-find #"\"(.*)\"" v) 1 (str/trim v)))]
+                            (nth (re-find #"\"(.*)\"" v) 1 (str/trim v)))
+        ;; The query builder fills the window above the footer, so it gets
+        ;; only the version row.
+        compact?          (= @(subscribe [:active-panel]) :querybuilder-panel)]
     [:footer.footer {:ref publish-footer-height!}
-     [:div.section.column
+     (when-not compact?
+       [:div.footer-main
+        [:a.footer-logo {:href agr}
+         [:img {:src (str (:bluegenes-deploy-path @server-vars) "/images/alliance-logo-light.png")
+                :alt "Alliance of Genome Resources"}]]
+        (into [:div.footer-columns]
+              (for [column link-columns]
+                (into [:div.footer-column]
+                      (for [group column] [link-group group]))))])
+     [:div.footer-base
       [:span.version
        "BlueGenes "
        [:span
@@ -35,38 +115,4 @@
        [poppable {:data [:span (str "Version: " intermine-version)
                          [:br] (str "API: " api-version)
                          [:br] (str "Build: " release-version)]
-                  :children [link "http://www.intermine.org" "InterMine"]}]]
-      [:div.column.inner
-       [:span.thin "Funded by"]
-       [:span
-        [link "https://www.wellcome.ac.uk/" "Wellcome Trust"]
-        [:span.thin " | "]
-        [link "https://www.nih.gov/" "NIH"]
-        [:span.thin " | "]
-        [link "https://bbsrc.ukri.org/" "BBSRC"]]]]
-     [:div.section
-      (when-let [github-url @(subscribe [:current-mine/url :github])]
-        [link github-url
-         [poppable {:data [:span "Check out our open-source software"]
-                    :children [icon "github" 2]}]])
-      (when-let [email @(subscribe [:current-mine/support-email])]
-        [link (str "mailto:" email)
-         [poppable {:data [:span "Send us an email"]
-                    :children [icon "mail" 2]}]])
-      (when-let [news-url @(subscribe [:current-mine/news])]
-        [link news-url
-         [poppable {:data [:span "Read our blog"]
-                    :children [icon "blog" 2]}]])
-      (when-let [twitter-url @(subscribe [:current-mine/url :twitter])]
-        [link twitter-url
-         [poppable {:data [:span "Follow us on Twitter"]
-                    :children [icon "twitter" 2]}]])
-      (when-let [discord-url @(subscribe [:current-mine/url :discord])]
-        [link discord-url
-         [poppable {:data [:span "Chat with us on Discord"]
-                    :children [icon "discord" 2]}]])]
-     [:div.section.column
-      [link @(subscribe [:current-mine/citation])
-       (str "Cite " @(subscribe [:current-mine-human-name]))]
-      [link @(subscribe [:current-mine/url :aboutUs]) "About us"]
-      [link @(subscribe [:current-mine/url :privacyPolicy]) "Privacy policy"]]]))
+                  :children [link "http://www.intermine.org" "InterMine"]}]]]]))

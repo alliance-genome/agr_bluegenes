@@ -142,7 +142,9 @@
  (fn [{db :db} [_ mine]]
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
-         not-home?       (not= (:active-panel db) :home-panel)
+         ;; Panels that render with no mine assets stay up while the new
+         ;; mine boots; any other panel switches to home.
+         leave-panel?    (not (#{:home-panel :templates-panel} (:active-panel db)))
          in-mines?       (contains? (:mines db) mine-kw)
          registry-mine   (get-in db [:registry mine-kw])
          conf-mine       (get-in db [:env :mines mine-kw])
@@ -163,9 +165,9 @@
          (not in-mines?) (assoc-in [:db :mines mine-kw]
                                    (or conf-mine (read-registry-mine registry-mine)))
          ;; Switch to home page.
-         not-home? (update :db assoc
-                           :active-panel :home-panel
-                           :panel-params nil)
+         leave-panel? (update :db assoc
+                              :active-panel :home-panel
+                              :panel-params nil)
          ;; We are being a bit naughty here, manually pulling the plug
          ;; on the async-flow, but it's the only way to abruptly halt
          ;; an in-progress flow (we don't want two overlapping!).

@@ -19,11 +19,48 @@
        (filter #(str/starts-with? % "im:aspect:"))
        (keep #(-> (re-matches #"im:aspect:(.*)" %) second not-empty))))
 
+(defn category-colour
+  "Colour group of a template category, used as the tag-colour-* class.
+  Mine categories get the mine's organism; data categories keep the old
+  datatype colours; the rest are grey."
+  [category]
+  (condp re-find (str/lower-case (str category))
+    #"worm" "worm"
+    #"mouse" "mouse"
+    #"yeast" "yeast"
+    #"fly" "fly"
+    #"genom|homolog" "gene"
+    #"literature|publication" "literature"
+    #"protein" "protein"
+    #"interaction" "interaction"
+    #"function" "function"
+    #"disease" "disease"
+    "other"))
+
 (defn categories [templates]
   (into []
         (comp (mapcat (comp categories-from-tags :tags val))
               (distinct))
         templates))
+
+(defn mine-categories-last
+  "Categories named after a mine (e.g. YeastMine) moved after the others,
+  each group keeping its order."
+  [mine-names categories]
+  (let [mine? (set mine-names)]
+    (into (vec (remove mine? categories)) (filter mine? categories))))
+
+(defn template-sources
+  "Mines the Templates page offers as sources: the default mine, then the
+  configured mines with :home-templates, sorted by name."
+  [mines default-ns]
+  (let [others (->> (vals mines)
+                    (filter :home-templates)
+                    (remove #(= (:id %) default-ns))
+                    (sort-by :name))]
+    (if-let [default-mine (get mines default-ns)]
+      (into [default-mine] others)
+      (vec others))))
 
 ;; Generate web service URL for a template query.
 

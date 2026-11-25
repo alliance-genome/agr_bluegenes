@@ -33,6 +33,32 @@
     30% { opacity: 1; transform: scaleY(1); }
 }
 
+// The start-up loader's bars (see loader-style in index.clj).
+.bar-loader {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+
+    .bar-loader-bar {
+        display: block;
+        width: 8px;
+        height: 32px;
+        border-radius: 4px;
+        background: var(--agr-primary);
+        opacity: 0.25;
+        transform-origin: bottom;
+        animation: agr-bar 1.4s ease-in-out infinite;
+
+        .delays(@i) when (@i > 1) {
+            &:nth-child(@{i}) { animation-delay: (@i - 1) * 0.1s; }
+            .delays(@i - 1);
+        }
+        .delays(7);
+    }
+}
+
 .mine-loader {
     display: flex;
     align-items: center;
@@ -66,34 +92,7 @@
             letter-spacing: 0.08em;
         }
 
-        #loader {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 6px;
-            height: 32px;
-            margin-top: 0;
-            margin-bottom: var(--agr-space-5);
-
-            .loader-organism {
-                display: block;
-                width: 8px;
-                height: 32px;
-                border: 0;
-                border-radius: 4px;
-                background: var(--agr-primary);
-                opacity: 0.25;
-                transform-origin: bottom;
-                animation: agr-bar 1.4s ease-in-out infinite;
-            }
-            .worm { animation-delay: 0s; }
-            .zebra { animation-delay: 0.1s; }
-            .human { animation-delay: 0.2s; }
-            .yeast { animation-delay: 0.3s; }
-            .rat { animation-delay: 0.4s; }
-            .mouse { animation-delay: 0.5s; }
-            .fly { animation-delay: 0.6s; }
-        }
+        .bar-loader { margin-bottom: var(--agr-space-5); }
 
         p {
             font-size: 16px;

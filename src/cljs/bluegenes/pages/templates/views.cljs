@@ -6,11 +6,12 @@
             [bluegenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
             [bluegenes.components.ui.constraint :refer [constraint]]
-            [bluegenes.components.ui.results_preview :refer [preview-table]]
+            [bluegenes.components.ui.results_preview :refer [fmt-num preview-table]]
             [oops.core :refer [oget ocall]]
-            [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows compatible-version? sanitize-html]]
-            [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
+            [bluegenes.utils :refer [ascii->svg-arrows compatible-version? sanitize-html
+                                     italicize-species-html
+                                     webapp-template-url]]
+            [bluegenes.pages.templates.helpers :refer [categories-from-tags category-colour]]
             [bluegenes.components.top-scroll :as top-scroll]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
@@ -18,20 +19,39 @@
             [bluegenes.components.bootstrap :refer [poppable]]))
 
 (defn categories []
-  (let [categories (subscribe [:template-chooser-categories])
-        selected-category (subscribe [:selected-template-category])]
-    (fn []
-      (into [:ul.nav.nav-pills.template-categories
-             [:li {:on-click #(dispatch [:template-chooser/set-category-filter nil])
-                   :class (if (nil? @selected-category) "active")}
-              [:a.type-all "All"]]]
-            (map (fn [category]
-                   [:li {:on-click #(dispatch [:template-chooser/set-category-filter category])
-                         :class
-                         (if (= category @selected-category) " active")}
-                    [:a {:class (str
-                                 "type-" category)} category]])
-                 @categories)))))
+  (let [categories @(subscribe [:template-chooser-categories])
+        selected-category @(subscribe [:selected-template-category])]
+    (into [:select.form-control.template-category-select
+           {:id "template-category-filter"
+            :value (or selected-category "")
+            :on-change #(dispatch [:template-chooser/set-category-filter
+                                   (not-empty (oget % :target :value))])}
+           [:option {:value ""} "All"]]
+          (for [category categories]
+            [:option {:value category} category]))))
+
+(defn sources
+  "Mine buttons; each opens this page on that mine's templates."
+  []
+  (let [mines @(subscribe [:template-chooser/sources])
+        current-mine @(subscribe [:current-mine-name])]
+    (when (next mines)
+      [:div.template-filter.source-filter
+       [:span.control-label "Source"]
+       (into [:div.template-sources {:role "group"}]
+             (for [{:keys [id external? service] mine-name :name} mines
+                   :let [active? (= id current-mine)]]
+               (if external?
+                 ;; BlueGenes cannot run this mine; open its own webapp.
+                 [:a {:href (webapp-template-url (:root service) nil)
+                      :target "_blank" :rel "noopener"}
+                  mine-name [icon "external"]]
+                 [:a {:href (route/href ::route/templates {:mine (name id)})
+                      :class (when active? "active")
+                      :aria-current (when active? "page")
+                      ;; Categories differ per mine, so the filter starts over.
+                      :on-click #(dispatch [:template-chooser/set-category-filter nil])}
+                  mine-name])))])))
 
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
@@ -44,7 +64,7 @@
        [:a.dropdown-toggle.action-button
         {:data-toggle "dropdown"
          :role "button"}
-        [icon "file"] "Web service URL"]
+        [icon "code"] [:span "Web service URL"]]
        [:div.dropdown-menu
         [:form {:on-submit #(.preventDefault %)}
          [:div.web-service-url-container
@@ -85,11 +105,7 @@
         ;; authorized to delete the template.
         authorized? @(subscribe [:template-chooser/authorized?])]
     [:div.col-xs-8.preview
-     [:div.preview-header
-      [:h4 "Results Preview"]
-      (when loading?
-        [:div.preview-header-loader
-         [mini-loader "tiny"]])]
+     [:h4.preview-title "Results preview"]
      [:div.preview-table-container
       (cond
         preview-error [:div
@@ -97,45 +113,50 @@
         :else [preview-table
                :query-results results-preview
                :loading? loading?])]
-     [:div.btn-group
-      [:button.btn.btn-primary.btn-raised.view-results
+     [:div.template-actions
+      [:button.agr-btn-primary
        {:type "button"
         :on-click (fn [] (dispatch [:templates/send-off-query]))}
        (if (or loading? preview-error (< results-count 1))
          "Open in results page"
          (str "View "
-              results-count
+              (fmt-num results-count)
               (if (> results-count 1) " rows" " row")))]
-      [:button.btn.btn-default.btn-raised
-       {:type "button"
-        :disabled (not changed-selected?)
-        :on-click (fn [] (dispatch [:templates/reset-template]))}
-       "Reset"]
-      [:button.btn.btn-default.btn-raised
+      [:button.agr-btn
        {:type "button"
         :on-click (fn [] (dispatch [:templates/edit-query]))}
        "Edit query"]
       (when authed?
-        [:button.btn.btn-default.btn-raised
+        [:button.agr-btn
          {:type "button"
           :on-click (fn [] (dispatch [:templates/edit-template]))}
          "Edit template"])
-      (when authorized?
-        [:button.btn.btn-link
+      ;; Reset appears once a constraint has changed.
+      (when changed-selected?
+        [:button.btn-link.template-reset
          {:type "button"
+          :on-click (fn [] (dispatch [:templates/reset-template]))}
+         "Reset"])
+      (when authorized?
+        [:button.btn-link
+         {:type "button"
+          :aria-label "Delete template"
           :on-click (fn [] (dispatch [:templates/delete-template]))}
-         [icon "bin"]])]
-     [:div.more-actions
-      [web-service-url]]]))
+         [icon "bin"]])
+      [:span.more-actions
+       [web-service-url]]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
     [:div.switch-container
      [:span.switch-label "Optional"]
      [:span.switch
-      [:input {:type "checkbox" :checked (case status "ON" true "OFF" false false)}]
-      [:span.slider.round {:on-click on-change}]]
-     [:span.switch-status status]]))
+      [:input {:type "checkbox"
+               :role "switch"
+               :aria-label "Optional"
+               :checked (case status "ON" true "OFF" false false)
+               :on-change on-change}]
+      [:span.slider.round {:on-click on-change :title status}]]]))
 
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value greater than, less than, etc."
@@ -191,27 +212,24 @@
   [tagvec authorized]
   (let [aspects (for [category (categories-from-tags tagvec)]
                   [:span.tag-type
-                   {:class (str "type-" category)
+                   {:class (str "tag-colour-" (category-colour category))
                     :on-click (fn [evt]
                                 (.stopPropagation evt)
                                 (dispatch [:template-chooser/set-category-filter category]))}
                    category])]
-    ;; This element should still be present even when it has no contents.
-    ;; The "View >>" button is absolute positioned, so otherwise it would
-    ;; overlap with the template's description.
     (into [:div.template-tags
            [:div.permissions
-            (when (contains? (set tagvec) "im:public")
+            ;; Most templates are public, so only the private ones get a mark.
+            (when-not (contains? (set tagvec) "im:public")
               [:span.permission
-               [poppable {:data "This is a public template, visible to all users whether logged in or not."
-                          :children [icon "globe"]}]])
+               [poppable {:data "This is a private template, visible only to you."
+                          :children [icon "lock"]}]])
             (when authorized
               [:span.permission
                [poppable {:data "This template is owned by you."
                           :children [icon "user-circle" nil ["authorized"]]}]])]]
 
-          (when (seq aspects)
-            (cons "Categories: " aspects)))))
+          aspects)))
 
 (defn template
   "UI element for a single template."
@@ -225,23 +243,22 @@
        :id (name id)
        :on-click #(when (not selected?)
                     (dispatch [::route/navigate ::route/template {:template (name id)}]))}
-      (into [:h4]
-            (if (ascii-arrows title)
-              (ascii->svg-arrows title)
-              [[:span title]]))
+      (into [:h4] (ascii->svg-arrows title))
       [:div.description
-       {:dangerouslySetInnerHTML {:__html (sanitize-html (:description query))}}]
+       {:dangerouslySetInnerHTML {:__html (italicize-species-html (sanitize-html (:description query)))}}]
       (when selected?
-        [:div.body
+        ;; Few constraints sit in a row above a full-width preview.
+        [:div.body {:class (when (<= (count (filter :editable (:where query))) 3) "stacked")}
          [select-template-settings]
          [preview-results]])
-      (if selected?
-        [:button.view
-         {:on-click #(dispatch [::route/navigate ::route/templates])}
-         "Close <<"]
-        [:button.view
-         "View >>"])
-      [tags (:tags query) (:authorized query)]]]))
+      [:div.template-footer
+       (if selected?
+         [:button.view
+          {:type "button"
+           :on-click #(dispatch [::route/navigate ::route/templates])}
+          "Close"]
+         [:button.view {:type "button"} "View"])
+       [tags (:tags query) (:authorized query)]]]]))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."
@@ -316,6 +333,7 @@
 (defn filters []
   [:div.template-filters
    [:div.template-filter-container.agr-page
+    [sources]
     [:div.template-filter.text-filter
      [:label.control-label
       {:for "template-text-filter"}
@@ -323,8 +341,8 @@
      [:div.filter-input
       [template-filter]
       [authorized-filter]]]
-    [:div.template-filter
-     [:label.control-label "Filter by category"]
+    [:div.template-filter.category-filter
+     [:label.control-label {:for "template-category-filter"} "Category"]
      [categories]]]])
 
 (defn main []

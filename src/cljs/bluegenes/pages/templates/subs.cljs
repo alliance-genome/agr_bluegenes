@@ -3,6 +3,7 @@
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
             [bluegenes.pages.templates.helpers :as template-helpers :refer [template-matches?]]
             [bluegenes.utils :refer [parse-template-rank template-contains-string?]]
+            [bluegenes.config :refer [read-default-ns]]
             [clojure.string :as str]))
 
 (reg-sub
@@ -48,8 +49,16 @@
 (reg-sub
  :template-chooser-categories
  :<- [:templates]
- (fn [templates]
-   (template-helpers/categories templates)))
+ :<- [:env/mines]
+ (fn [[templates mines]]
+   (template-helpers/mine-categories-last (map :name (vals mines))
+                                          (template-helpers/categories templates))))
+
+(reg-sub
+ :template-chooser/sources
+ :<- [:env/mines]
+ (fn [mines]
+   (template-helpers/template-sources mines (read-default-ns))))
 
 (reg-sub
  :templates-by-rank

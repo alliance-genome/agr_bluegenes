@@ -21,7 +21,12 @@
 (s/def ::root ::non-empty-string)
 (s/def ::name ::non-empty-string)
 (s/def ::namespace ::non-empty-string)
-(s/def ::additional-mine (s/keys :req-un [::root ::name ::namespace]))
+;; true shows the mine's 10 best ranked templates on the home page; a vector
+;; of template names shows those, in that order.
+(s/def ::home-templates (s/or :ranked boolean?
+                              :named (s/coll-of ::non-empty-string :kind vector?)))
+(s/def ::additional-mine (s/keys :req-un [::root ::name ::namespace]
+                                 :opt-un [::home-templates]))
 (s/def ::bluegenes-additional-mines (s/coll-of ::additional-mine :kind vector?))
 
 (s/def ::bluegenes-config (s/keys :req-un [::bluegenes-tool-path

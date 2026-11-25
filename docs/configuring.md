@@ -31,6 +31,17 @@ Copy and paste `config/defaults/config.edn` to `config/dev/config.edn` or `confi
 
 Each entry in `:bluegenes-additional-mines` accepts optional `:logo` (square icon) and `:wordmark` keys, with the same meaning as `BLUEGENES_DEFAULT_LOGO` and `BLUEGENES_DEFAULT_WORDMARK`. Files for paths starting with `/` go under `resources/public/images/`. Mines without these keys keep the logo from their `/service/branding`.
 
+An additional mine can also add a tab of its own templates to the "Go by Most Popular Queries" panel on the home page with `:home-templates`. Set it to `true` for the mine's 10 best ranked templates, or to a vector of template names to choose them and their order:
+
+```clojure
+{:root "https://flymine.alliancegenome.org/flymine"
+ :name "FlyMine"
+ :namespace "flymine"
+ :home-templates ["Gene_Alleles" "Gene_GO"]}
+```
+
+Mine tabs follow the default mine's own template tabs, sorted by mine name. A default-mine tab named after a mine (for example AllianceMine's `im:aspect:YeastMine`) goes last. The links open the template in BlueGenes on that mine.
+
 ### Analytics (optional)
 
 For now, the only supported statistics service is [Google analytics](https://analytics.google.com/). If you wish to use this service, configure your domain and then add your Google Analytics ID using the `GOOGLE_ANALYTICS` key listed above.

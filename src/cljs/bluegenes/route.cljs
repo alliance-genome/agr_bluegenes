@@ -134,6 +134,7 @@
       [{:parameters {:path [:mine]}
         :start (fn []
                  (dispatch [:home/clear])
+                 (dispatch [:home/fetch-mine-templates])
                  (dispatch [:set-active-panel :home-panel
                             nil
                             [:bluegenes.events.blog/fetch-rss]]))}]}]

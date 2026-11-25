@@ -6,8 +6,8 @@
             [bluegenes.components.navbar.nav :refer [mine-icon mine-wordmark-src]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element
-                                     get-mine-ns get-mine-url]]
+            [bluegenes.utils :refer [ascii->svg-arrows italicize-species md-paragraph md-element
+                                     get-mine-ns get-mine-url webapp-template-url]]
             [goog.string :as gstring]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
@@ -49,34 +49,42 @@
           [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]])]]))
 
 (defn template-queries []
-  (let [categories @(subscribe [:templates-by-popularity/all-categories])
-        current-category (or @(subscribe [:home/active-template-category])
-                             (first categories))
-        templates @(subscribe [:templates-by-popularity/category current-category])]
+  (let [tabs @(subscribe [:home/template-tabs])
+        active-id @(subscribe [:home/active-template-category])
+        {current-id :id :keys [mine templates webapp-root]} (or (some #(when (= (:id %) active-id) %) tabs)
+                                                                (first tabs))]
     [:div.section
      [:h2.agr-section-title "Go by Most Popular Queries"]
      [:div.template-preview
       [:ul.agr-tabs.template-tabs {:role "tablist"}
        (doall
-        (for [category categories
-              :let [selected? (= category current-category)]]
-          ^{:key category}
+        (for [{:keys [id label]} tabs
+              :let [selected? (= id current-id)]]
+          ^{:key id}
           [:li {:class (when selected? "active")}
            [:button {:type "button"
                      :role "tab"
                      :aria-selected selected?
-                     :on-click #(dispatch [:home/select-template-category category])}
-            (str/replace category #"^im:aspect:" "")]]))]
+                     :on-click #(dispatch [:home/select-template-category id])}
+            label]]))]
       [:ul.template-list
        (doall
-        (for [{:keys [title name]} templates]
-          ^{:key name}
+        (for [{template-name :name :keys [title]} templates]
+          ^{:key template-name}
           [:li
-           (into [:a {:href (route/href ::route/template {:template name})}]
-                 (if (ascii-arrows title)
-                   (ascii->svg-arrows title)
-                   [[:span title]]))]))]
-      [:a.more-queries {:href (route/href ::route/templates)}
+           ;; A configured mine's template opens in BlueGenes on that mine, or
+           ;; in the mine's own webapp when BlueGenes cannot run it.
+           (into [:a (if webapp-root
+                       {:href (webapp-template-url webapp-root template-name)
+                        :target "_blank" :rel "noopener"}
+                       {:href (route/href ::route/template
+                                          (cond-> {:template template-name}
+                                            mine (assoc :mine (name mine))))})]
+                 (ascii->svg-arrows title))]))]
+      [:a.more-queries (if webapp-root
+                         {:href (webapp-template-url webapp-root nil)
+                          :target "_blank" :rel "noopener"}
+                         {:href (route/href ::route/templates (when mine {:mine (name mine)}))})
        "More queries here"]]]))
 
 (def post-time-formatter (time-format/formatter "MMMM d, Y"))
@@ -144,14 +152,16 @@
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
         current-neighbourhood (or @(subscribe [:home/active-mine-neighbourhood])
                                   (first all-neighbourhoods))]
-    (into [:div.mine-neighbourhood-filter]
-          (for [neighbourhood all-neighbourhoods]
-            [:label
-             [:input {:type "radio"
-                      :name neighbourhood
-                      :checked (= neighbourhood current-neighbourhood)
-                      :on-change #(dispatch [:home/select-mine-neighbourhood neighbourhood])}]
-             neighbourhood]))))
+    ;; "All" is always present; a lone "All" filters nothing.
+    (when (next all-neighbourhoods)
+      (into [:div.mine-neighbourhood-filter]
+            (for [neighbourhood all-neighbourhoods]
+              [:label
+               [:input {:type "radio"
+                        :name neighbourhood
+                        :checked (= neighbourhood current-neighbourhood)
+                        :on-change #(dispatch [:home/select-mine-neighbourhood neighbourhood])}]
+               neighbourhood])))))
 
 (defn short-description
   "Mine description with markdown links reduced to their text, or nil when empty."
@@ -172,7 +182,7 @@
      [:span.mine-card-text
       [:span.mine-card-name (or name "default")]
       (when-let [desc (short-description description)]
-        [:span.mine-card-desc desc])]]))
+        (into [:span.mine-card-desc] (italicize-species desc)))]]))
 
 (defn mine-selector-preview []
   (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
@@ -222,7 +232,7 @@
     :url "http://intermine.org/"}
    {:text "The [BlueGenes](https://github.com/intermine/bluegenes) frontend for InterMine has been developed through the support of the [Wellcome Trust](https://wellcome.ac.uk/)."
     :image [icon-comp "bluegenes-logo-text"
-            :style {:width 240 :height "auto"}]
+            :style {:width 150 :height "auto"}]
     :url "http://intermine.org/"}])
 
 (defn credits-fallback []
@@ -253,7 +263,7 @@
         entries @(subscribe [:current-mine/credits])
         all-entries (concat entries credits-intermine)]
     [:div.section.credits
-     [:h2.agr-section-title (str mine-name " is made possible by")]
+     [:h2.credits-title (str mine-name " is made possible by")]
      (when (empty? entries)
        [credits-fallback])
      (into [:div.credits-list]

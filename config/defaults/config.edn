@@ -14,24 +14,28 @@
                               :name "WormMine"
                               :namespace "wormmine"
                               :logo "/images/mines/wormmine-icon.png"
-                              :wordmark "/images/mines/wormmine-wordmark.png"}
+                              :wordmark "/images/mines/wormmine-wordmark.png"
+                              :home-templates true}
                              {:root "https://flymine.alliancegenome.org/flymine"
                               :name "FlyMine"
                               :namespace "flymine"
                               :logo "/images/mines/flymine-icon.png"
-                              :wordmark "/images/mines/flymine-wordmark.png"}
+                              :wordmark "/images/mines/flymine-wordmark.png"
+                              :home-templates true}
                              {:root "https://yeastmine.alliancegenome.org/yeastmine"
                               :name "YeastMine"
                               :namespace "yeastmine"
                               :logo "/images/mines/yeastmine-icon.png"
                               :wordmark "/images/mines/yeastmine-wordmark.png"
                               :abbrev "S. cerevisiae"
-                              :default-organism "S. cerevisiae"}
+                              :default-organism "S. cerevisiae"
+                              :home-templates true}
                              {:root "https://mousemine.alliancegenome.org/mousemine"
                               :name "MouseMine"
                               :namespace "mousemine"
                               :logo "/images/mines/mousemine-icon.png"
                               :wordmark "/images/mines/mousemine-wordmark.png"
+                              :home-templates true
                               :external true}
                              {:root "https://www.humanmine.org/humanmine"
                               :name "HumanMine"

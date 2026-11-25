@@ -3,10 +3,11 @@
 .switch-container {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    margin: 3px 5px;
+    justify-content: flex-start;
+    margin: var(--agr-space-1) 0 0;
 }
 
+// The query builder still shows ON/OFF next to its switch.
 .switch-status {
     padding-left: 6px;
     font-weight: bold;
@@ -15,9 +16,9 @@
 }
 
 .switch-label {
-    padding-right: 6px;
-    // font-weight: bold;
-    font-size: 0.8em;
+    padding-right: var(--agr-space-2);
+    font-size: 12px;
+    color: var(--agr-muted);
 }
 
 .switch {
@@ -28,7 +29,18 @@
   height: 20px;
 
   /* Hide default HTML checkbox */
-  input {display:none;}
+  /* Hidden, but still in the tab order. */
+  input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+
+  input:focus-visible + .slider {
+    outline: 2px solid var(--agr-primary);
+    outline-offset: 2px;
+  }
 
   /* The slider */
   .slider {
@@ -38,7 +50,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--agr-border-strong);
     -webkit-transition: .4s;
     transition: .4s;
   }
@@ -56,7 +68,7 @@
   }
 
   input:checked + .slider {
-    background-color: #2196F3;
+    background-color: var(--agr-primary-dark);
   }
 
   input:focus + .slider {

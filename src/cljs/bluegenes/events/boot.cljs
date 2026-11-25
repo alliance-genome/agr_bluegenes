@@ -123,11 +123,12 @@
 
 (defn init-configured-mine
   "Parse configured mine data passed from BlueGenes config."
-  [{:keys [root name namespace external logo wordmark]}]
+  [{:keys [root name namespace external logo wordmark home-templates]}]
   (cond-> {:id (keyword namespace)
            :name name
            :service {:root root}
            :external? external}
+    home-templates (assoc :home-templates home-templates)
     (not (str/blank? logo)) (assoc :logo logo)
     (not (str/blank? wordmark)) (assoc :wordmark wordmark)))
 

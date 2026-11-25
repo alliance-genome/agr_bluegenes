@@ -156,6 +156,14 @@
     (get-in mine [:service :root])
     (:url mine)))
 
+(defn webapp-template-url
+  "URL of a template, or of the template list when template-name is nil, in
+  the classic webapp at a mine's root. Used for mines BlueGenes cannot run."
+  [root template-name]
+  (if template-name
+    (str root "/template.do?name=" (js/encodeURIComponent template-name) "&scope=all")
+    (str root "/templates.do")))
+
 (defn read-xml-query
   "Read an InterMine PathQuery in XML into an EDN Clojure map.
   Will throw on invalid XML."
@@ -334,6 +342,22 @@
                         (string/lower-case))]
       (every? #(string/includes? all-text %) ss))))
 
+(def ^:private species-re
+  "Genus (full or abbreviated) and species of the Alliance organisms."
+  #"\b((?:[A-Z][a-z]+|[A-Z]\.) ?(?:cerevisiae|melanogaster|elegans|briggsae|musculus|norvegicus|rerio|sapiens|laevis|tropicalis|pombe))\b")
+
+(defn italicize-species
+  "Splits a string into strings and [:em species] elements, for hiccup."
+  [s]
+  ;; JS split keeps captured groups, so species sit at the odd indices.
+  (map-indexed (fn [i part] (if (odd? i) [:em part] part))
+               (.split (str s) (js/RegExp. (.-source species-re) "g"))))
+
+(defn italicize-species-html
+  "Wraps species names in an HTML string in <em>."
+  [html]
+  (some-> html (string/replace (js/RegExp. (.-source species-re) "g") "<em>$1</em>")))
+
 (defn ascii-arrows
   "Returns a seq of all arrows present in a template title.
   Useful for checking whether there are any arrows present."
@@ -356,9 +380,11 @@
               (map (fn [part]
                      (interpose [icon "arrow-left"]
                                 (map (fn [subpart]
-                                       [:span (if (and (number? max-length) (> (count subpart) max-length))
+                                       (into [:span]
+                                             (italicize-species
+                                              (if (and (number? max-length) (> (count subpart) max-length))
                                                 (str (subs subpart 0 max-length) "...")
-                                                subpart)])
+                                                subpart))))
                                      (string/split part #"<-+"))))
                    (string/split s #"-+>")))))
 

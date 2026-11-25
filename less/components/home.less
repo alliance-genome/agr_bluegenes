@@ -353,40 +353,53 @@
     }
 
     // ---- Funders ----------------------------------------------------
+    // Kept small and set apart at the bottom so the page's own content leads.
     .credits {
+        margin-top: var(--agr-space-6);
         padding-top: var(--agr-space-5);
         border-top: 1px solid var(--agr-border);
+
+        .credits-title {
+            margin: 0 0 var(--agr-space-3);
+            color: var(--agr-muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
     }
 
     .credits-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: var(--agr-space-5);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--agr-space-4) var(--agr-space-5);
         align-items: start;
     }
 
     .credits-entry {
         color: var(--agr-muted);
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 1.45;
 
         // Fixed-height logo slot so every entry's text starts on the same line.
         > a {
             display: flex;
             align-items: center;
-            height: 56px;
-            margin-bottom: var(--agr-space-2);
+            height: 32px;
+            margin-bottom: var(--agr-space-1);
         }
 
         a img,
         a svg {
             display: block;
-            max-width: 240px;
-            max-height: 56px;
+            max-width: 150px;
+            max-height: 28px;
         }
     }
 
     .credits-fallback {
-        font-size: var(--agr-h4-size);
+        margin: 0 0 var(--agr-space-3);
+        font-size: 13px;
         font-weight: 400;
     }
 
