@@ -348,81 +348,10 @@
         }
     }
 
-    .widget-heading {
-        margin-bottom: var(--agr-space-4);
-    }
-
-    .widgets {
-        display: flex;
-        flex-wrap: wrap;
-
-        .widget {
-            background-color: var(--agr-bg);
-            padding: var(--agr-space-4);
-            border: 1px solid var(--agr-border);
-            border-radius: var(--agr-radius);
-
-            &.is-loading {
-                opacity: 0.3;
-                pointer-events: none;
-            }
-
-            .widget-title {
-                font-size: var(--agr-h4-size);
-                font-weight: 700;
-                margin: 0 0 var(--agr-space-2);
-            }
-
-            .widget-description {
-                color: var(--agr-muted);
-            }
-
-            &-filter {
-                display: flex;
-                align-items: baseline;
-                gap: var(--agr-space-2);
-                margin-bottom: var(--agr-space-4);
-                font-weight: 700;
-
-                select {
-                    margin-left: var(--agr-space-1);
-                    font-weight: 400;
-                }
-            }
-
-            .vega-embed {
-                max-height: 400px;
-                width: 100%;
-                overflow: auto;
-            }
-
-            .table-widget {
-                max-height: 400px;
-                overflow: auto;
-                margin-top: var(--agr-space-2);
-            }
-        }
-
-        @media (min-width: 1600px) {
-            // .col-xl-* doesn't exist and adding it properly is a lot of work
-            // for something we probably will only use here. Hence a workaround!
-            .col-xl-4-workaround {
-                width: 33.33333333%;
-                float: left;
-            }
-        }
-    }
-
     h3.results-heading {
         margin-top: var(--agr-space-4);
     }
 
-    // The visualizations and tools row can be wider than a phone screen.
-    // Scroll it inside its own box instead of widening the page.
-    > .row + .row {
-        overflow-x: auto;
-        max-width: 100%;
-    }
 
     // im-tables keeps its layout. Colours and fonts follow the tokens.
     .im-table {
@@ -433,10 +362,6 @@
             color: var(--agr-primary-dark);
         }
 
-        .table > thead > tr > th {
-            color: var(--agr-text);
-        }
-
         .btn-primary,
         .pagination > .active > a {
             background-color: var(--agr-primary);
@@ -444,24 +369,68 @@
             color: #fff;
         }
     }
+}
 
-    .jump-to {
-        background-color: var(--agr-bg);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding: var(--agr-space-2) 0;
-        border-bottom: 1px solid var(--agr-border);
+.results.results-page {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: var(--agr-space-4) var(--agr-space-5) var(--agr-space-6);
 
-        .jump-item {
-            font-weight: 400;
-            margin-right: var(--agr-space-4);
-            cursor: pointer;
-            color: var(--agr-primary-dark);
+    @media (max-width: 767px) {
+        padding-left: var(--agr-space-3);
+        padding-right: var(--agr-space-3);
+    }
 
-            &:hover {
-                text-decoration: underline;
+    .results-head {
+        margin-bottom: var(--agr-space-3);
+
+        .agr-page-title {
+            margin: 0;
+        }
+    }
+
+    .results-subtitle {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--agr-space-2);
+        margin: var(--agr-space-1) 0 0;
+        font-size: var(--agr-h4-size);
+        color: var(--agr-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .results-table {
+        margin-bottom: var(--agr-space-5);
+    }
+
+    .results-analysis {
+        display: grid;
+        grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+        gap: var(--agr-space-5);
+        align-items: start;
+        margin-bottom: var(--agr-space-5);
+
+        &.results-analysis-single {
+            grid-template-columns: minmax(0, 1fr);
+
+            .results-enrichment {
+                max-width: 760px;
             }
         }
+
+        h3.agr-section-title {
+            margin-top: 0;
+        }
+
+        @media (max-width: 991px) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    .results-enrichment,
+    .results-widgets,
+    .results-extras {
+        min-width: 0;
     }
 }

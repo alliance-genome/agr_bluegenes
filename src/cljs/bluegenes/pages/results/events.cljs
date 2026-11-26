@@ -187,7 +187,7 @@
                       im-table-location
                       {:service (merge service {:summary-fields summary-fields})
                        :query value
-                       :settings {:pagination {:limit 10}
+                       :settings {:pagination {:limit 20}
                                   :links {:vocab {:mine (name source)}
                                           :url (fn [{:keys [mine class objectId] :as vocab}]
                                                  (route/href ::route/report

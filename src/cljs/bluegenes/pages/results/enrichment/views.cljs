@@ -10,6 +10,7 @@
             [oops.core :refer [oget ocall]]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]
+            [bluegenes.utils :refer [italicize-species]]
             [goog.string :as gstring]))
 
 (def css-transition-group
@@ -23,7 +24,7 @@
             (map-indexed (fn [idx header]
                            [:tr.popover-contents.sidebar-popover
                             [:td.title (last (str/split header " > "))]
-                            [:td.value (get (first results) idx)]]) columnHeaders))]]))
+                            (into [:td.value] (italicize-species (get (first results) idx)))]) columnHeaders))]]))
 
 (defn p-val-tooltip []
   [poppable {:data "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
@@ -40,17 +41,17 @@
       [:input
        {:type "checkbox"
         :checked selected?
-        :on-click (fn [e]
-                    (ocall e :stopPropagation)
-                    (on-click identifier))}]]
+        :on-change (fn [e]
+                     (ocall e :stopPropagation)
+                     (on-click identifier))}]]
      [:div
       (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
         [poppable
          {:data (if summary-value
                   [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
                   [:span "Loading"])
-          :children [:a {:on-click #(dispatch [:enrichment/view-one-result details identifier])}
-                     (str description " (" matches ")")]}])]
+          :children (into [:a {:on-click #(dispatch [:enrichment/view-one-result details identifier])}]
+                          (italicize-species (str description " (" matches ")")))}])]
      [:div
       [:span.enrichment-p-value
        (.toExponential p-value 2)]]]))
@@ -72,8 +73,8 @@
       [:input
        {:type "checkbox"
         :checked selected?
-        :on-click (fn [e]
-                    (ocall e :stopPropagation) (on-click))}]]
+        :on-change (fn [e]
+                     (ocall e :stopPropagation) (on-click))}]]
      [:div "Item (matches)"]
      [:div "p-value" [p-val-tooltip]]]))
 
@@ -84,7 +85,7 @@
         config (subscribe [:enrichment/enrichment-config])
         selected (reagent/atom #{})
         show-more* (reagent/atom false)
-        is-collapsed* (reagent/atom false)]
+        user-collapsed* (reagent/atom nil)]
     (fn [[widget-name {:keys [results] :as details}]]
       (let [on-click (fn [v]
                        (if (contains? @selected v)
@@ -95,23 +96,26 @@
                                 (has-text? @text-filter description))
                               results)
             filtered-results-count (count filtered-results)
+            collapsed? (if (some? @user-collapsed*)
+                         @user-collapsed*
+                         (and (some? results) (empty? results)))
             identifiers (or
                          ;; Build a query for only the selected identifiers
                          (not-empty @selected)
                          ;; ... unless it's empty, then use all filtered identifiers
                          (map :identifier filtered-results))]
-        [:div.sidebar-item
-
+        [:div.sidebar-item {:class (when collapsed? :is-collapsed)}
          [:div.enrichment-category
-          {:class (when (empty? results) "inactive")}
+          {:class (when (or (string? details) (and (some? results) (empty? results))) "inactive")}
           [:h4
-           (get-in @config [widget-name :title])
-           (cond
-             results [:span (str " (" (count results) ")")]
-             (string? details) [poppable {:data details
-                                          :children [icon "warning"]}]
-             :else [:span [mini-loader "tiny"]])]
+           [:span.enrichment-title (get-in @config [widget-name :title])]
+           (when results [:span.agr-count (count results)])
+           (when (string? details)
+             [poppable {:data details
+                        :children [icon "warning"]}])]
           [:div.enrichment-category-right-side
+           (when (and (nil? results) (not (string? details)))
+             [:span.enrichment-status [mini-loader "tiny"]])
            (when (not-empty results)
              [:<>
               [:button.agr-btn.agr-btn-sm
@@ -121,23 +125,25 @@
                {:on-click #(dispatch [:enrichment/download-results details identifiers])}
                [icon "download"]]])
            [:button.btn.btn-link.toggle-enrichment
-            {:on-click #(swap! is-collapsed* not)}
-            [icon (if @is-collapsed*
+            {:aria-expanded (not collapsed?)
+             :aria-label (str "Toggle " (get-in @config [widget-name :title]) " results")
+             :on-click #(reset! user-collapsed* (not collapsed?))}
+            [icon (if collapsed?
                     "expand-folder"
                     "collapse-folder")]]]]
 
-         (when (and (:filters details) (not @is-collapsed*))
+         (when (and (not collapsed?) (:filters details))
            (let [{:keys [filterSelectedValue filters filterLabel]} details
                  filters (str/split filters #",")]
              [:label.enrichment-filter (str filterLabel ":")
               [:div
                (into [:select.form-control.input-sm
                       {:on-change #(dispatch [:enrichment/update-widget-filter widget-name (oget % "target" "value")])
-                       :value filterSelectedValue}]
+                       :value (or filterSelectedValue "")}]
                      (for [option filters]
                        [:option option]))]]))
 
-         (when-not @is-collapsed*
+         (when-not collapsed?
            (into [:ul.enrichment-list
                   (when (seq filtered-results)
                     [enrichment-results-header
@@ -153,7 +159,7 @@
                         filtered-results
                         (take results-to-show filtered-results)))))
 
-         (when-not @is-collapsed*
+         (when-not collapsed?
            (when (> filtered-results-count results-to-show)
              [:div.show-more-results
               [:button.btn.btn-link
@@ -162,6 +168,7 @@
 
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])
+        config (subscribe [:enrichment/enrichment-config])
         loading-widget-types (subscribe [:enrichment/enrichment-widgets-loading?])]
     (fn []
       (if (nil? (vals @all-enrichment-results))
@@ -176,7 +183,12 @@
            :transition-leave-timeout 500}
           (map (fn [enrichment-response]
                  ^{:key (first enrichment-response)} [enrichment-results-preview enrichment-response])
-               @all-enrichment-results)]]))))
+               ;; Categories with no results last, then by title.
+               (sort-by (fn [[widget-name d]]
+                          (let [r (:results d)]
+                            [(boolean (and (some? r) (empty? r)))
+                             (str/lower-case (str (get-in @config [widget-name :title])))]))
+                        @all-enrichment-results))]]))))
 
 (defn text-filter []
   (let [value (subscribe [:enrichment/text-filter])]
@@ -192,11 +204,11 @@
        :placeholder "Text to filter items"}]]))
 
 (defn enrichment-settings []
-  [:div.sidebar-item.enrichment-settings
+  [:div.sidebar-item.enrichment-settings.enrichment-card
    [:label.pval [:div.inline-label "Max p-value" [p-val-tooltip]]
     [:select.form-control
      {:on-change #(dispatch [:enrichment/update-enrichment-setting :maxp (oget % "target" "value")])
-      :value @(subscribe [:enrichment/max-p-value])}
+      :value (or @(subscribe [:enrichment/max-p-value]) "")}
      [:option "0.05"]
      [:option "0.10"]
      [:option "1.00"]]]
@@ -204,7 +216,7 @@
    [:label.correction "Test Correction"
     [:select.form-control
      {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])
-      :value @(subscribe [:enrichment/test-correction])}
+      :value (or @(subscribe [:enrichment/test-correction]) "")}
      [:option "Holm-Bonferroni"]
      [:option "Benjamini Hochberg"]
      [:option "Bonferroni"]

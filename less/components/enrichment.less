@@ -13,13 +13,8 @@
 }
 
 .enrichment {
-    background: var(--agr-bg);
-    border: 1px solid var(--agr-border);
-    border-radius: var(--agr-radius);
     margin-top: 0;
     font-size: 13px;
-
-    padding: var(--agr-space-3) var(--agr-space-4);
 
     a {
         cursor: pointer;
@@ -35,9 +30,23 @@
         vertical-align: baseline;
     }
 
-    .form-control,
     label {
-        font-size: 0.8em;
+        display: flex;
+        flex-direction: column;
+        gap: var(--agr-space-1);
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--agr-text);
+    }
+
+    .form-control {
+        background-image: none;
+        border: 1px solid var(--agr-border-strong);
+        border-radius: var(--agr-radius);
+        padding: 4px 8px;
+        height: auto;
+        font-size: 13px;
         color: var(--agr-text);
     }
 
@@ -46,25 +55,22 @@
     }
     justify-content: space-between;
 
-    .fa:hover {
-        cursor: pointer;
-    }
-
     .enrichment-category {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 0 @spacer/2;
-
+        gap: var(--agr-space-2);
+        padding: var(--agr-space-2) var(--agr-space-3);
         background: var(--agr-bg-light);
         color: var(--agr-text);
-        border: 1px solid var(--agr-border);
-        border-radius: var(--agr-radius) var(--agr-radius) 0 0;
+        border-bottom: 1px solid var(--agr-border);
 
         h4 {
-            font-size: 15px;
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0;
+            font-size: 14.4px;
             font-weight: 700;
-            margin: var(--agr-space-2) 0;
+            overflow-wrap: anywhere;
 
             .icon-warning {
                 fill: var(--agr-danger);
@@ -76,69 +82,82 @@
         }
 
         &-right-side {
+            flex: 0 0 auto;
             display: flex;
+            align-items: center;
+            gap: var(--agr-space-1);
+            white-space: nowrap;
+        }
 
-            .btn-icon {
-                margin-left: @spacer/4;
-            }
+        .btn-icon,
+        .toggle-enrichment {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            margin: 0;
         }
 
         .toggle-enrichment {
             fill: var(--agr-primary-dark);
-            padding: @spacer/4 @spacer/2;
             font-size: 1.2em;
         }
     }
 
-    i {
-        padding: 0 10px;
+    .is-collapsed .enrichment-category {
+        border-bottom: 0;
+    }
+
+    // Spinner in the header while a category loads.
+    .enrichment-status {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .enrichment-card,
+    .demo .sidebar-item {
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+        background: var(--agr-bg);
+        box-shadow: none;
+        margin-bottom: var(--agr-space-3);
+    }
+
+    .demo .sidebar-item {
+        overflow: hidden;
     }
 
     .enrichment-settings {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        margin-bottom: @spacer;
-        //for when it breakpoint wraps underneath the table:
-        @media (max-width:990px) {
-            justify-content: flex-start;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--agr-space-3);
+        padding: var(--agr-space-3);
+
+        .population,
+        .text-filter,
+        .enrichment-message,
+        .alert {
+            grid-column: ~"1 / -1";
         }
 
-        input,
-        label select,
-        select {
-            font-size: 1em;
-            .border-radius;
-            border: solid 1px var(--agr-border-strong);
+        .alert {
+            margin: 0;
         }
 
         .pval select {
-            max-width: 7em;
+            max-width: none;
         }
 
         .population {
-            margin-top: @spacer/2;
-            flex-basis: 100%;
-            max-width: ~"calc(100% - 35px)";
-
             &-controls {
                 display: flex;
-                align-items: start;
+                align-items: center;
+                gap: var(--agr-space-1);
             }
 
             &-clear {
-                padding: @spacer/2 @spacer/4;
+                padding: var(--agr-space-1);
                 margin: 0;
             }
-        }
-
-        .text-filter {
-            margin-top: @spacer/2;
-            flex-grow: 1;
-        }
-
-        label {
-            font-size: 1em;
         }
     }
 
@@ -229,7 +248,6 @@
             }
         }
     }
-    h3 {display:inline}
     .enrichment-header {
         font-size: 1.1em;
         font-weight: bold;
@@ -259,22 +277,24 @@
         }
     }
 
-    .sidebar-item {
-        margin-bottom: @spacer/2;
-    }
-
     .enrichment-filter {
         display: flex;
         align-items: baseline;
         font-size: 1em;
         background-color: @content-color-background;
 
-        padding: @spacer/3;
+        padding: var(--agr-space-2) var(--agr-space-3);
         margin: 0;
+        gap: var(--agr-space-2);
+        flex-direction: row;
+        font-weight: 700;
+
+        > div {
+            flex: 1 1 auto;
+        }
 
         select {
-            margin-left: @spacer/3;
-            font-size: 1.1em;
+            font-size: 13px;
         }
     }
 }
@@ -295,5 +315,31 @@
         td {
             padding: 4px;
         }
+    }
+}
+
+// Choose a list button from components/ui/list_dropdown.cljs. The Material
+// .btn.btn-raised rules have 3 classes, so this needs 4 or more.
+.results .enrichment .population-controls .btn.dropdown-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: 6px 12px;
+    margin: 0;
+    border: 1px solid var(--agr-secondary);
+    border-radius: var(--agr-radius);
+    background: var(--agr-bg);
+    background-image: none;
+    color: var(--agr-muted);
+    font: inherit;
+    text-transform: none;
+    box-shadow: none;
+
+    &:hover,
+    &:focus {
+        background: var(--agr-bg-hover);
+        color: var(--agr-text);
     }
 }

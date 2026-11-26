@@ -1,0 +1,117 @@
+.results .widget-heading {
+    margin: 0 0 var(--agr-space-4);
+}
+
+.results .widgets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(~"min(100%, 360px)", 1fr));
+    gap: var(--agr-space-4);
+    align-items: start;
+
+    // Two tables side by side are too narrow below this width.
+    @media (max-width: 900px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .widget {
+        min-width: 0;
+        padding: var(--agr-space-4);
+        background: var(--agr-bg);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+
+        &.widget-full {
+            grid-column: ~"1 / -1";
+        }
+
+        &.is-loading {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .widget-title {
+            font-size: var(--agr-h4-size);
+            font-weight: 700;
+            margin: 0 0 var(--agr-space-2);
+            padding-bottom: var(--agr-space-2);
+            border-bottom: 1px solid var(--agr-border);
+        }
+
+        .widget-description {
+            color: var(--agr-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .widget-note {
+            margin: 0 0 var(--agr-space-2);
+        }
+
+        &-filter {
+            display: flex;
+            align-items: baseline;
+            gap: var(--agr-space-2);
+            margin-bottom: var(--agr-space-4);
+            font-weight: 700;
+
+            select {
+                margin-left: var(--agr-space-1);
+                font-weight: 400;
+                background-image: none;
+            }
+        }
+
+        .vega-embed {
+            max-height: 400px;
+            width: 100%;
+            overflow: auto;
+        }
+
+        .table-widget {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-top: var(--agr-space-2);
+
+            .agr-table {
+                table-layout: fixed;
+                width: 100%;
+
+                th,
+                td {
+                    overflow-wrap: break-word;
+                }
+
+                th:first-child,
+                td:first-child {
+                    width: 2.5rem;
+                }
+
+                // Identifier column of four-column tables: wide enough for ids and headers.
+                th:nth-child(2):not(:nth-last-child(2)),
+                td:nth-child(2):not(:nth-last-child(2)) {
+                    width: 28%;
+                }
+
+                th:last-child,
+                td:last-child {
+                    width: 5.5rem;
+                    text-align: right;
+                    white-space: nowrap;
+                }
+
+                thead th {
+                    white-space: normal;
+                    overflow-wrap: anywhere;
+                    line-height: 1.25;
+                    position: sticky;
+                    top: 0;
+                    z-index: 1;
+                    background: var(--agr-table-head-bg);
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 (ns bluegenes.components.tools.views
-  (:require [re-frame.core :refer [subscribe dispatch]]
+  (:require [re-frame.core :refer [subscribe dispatch dispatch-sync]]
             [reagent.core :as reagent]
             [clojure.string :as str]
             [bluegenes.components.tools.subs :as subs]
@@ -8,11 +8,11 @@
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [clean-tool-name]]
-            [bluegenes.components.tools.utils :refer [threshold-halted? threshold-notice group-tools]]
+            [bluegenes.components.tools.utils :refer [threshold-halted? threshold-notice group-tools active-group]]
             [bluegenes.pages.reportpage.utils :refer [description-dropdown toggle-props chevron]]))
 
 ;; The following component may be used by itself to display one tool.
-(defn tool [{{:keys [cljs]} :names :as tool-details} & {:keys [collapse id]}]
+(defn tool [{{:keys [cljs]} :names :as tool-details} & {:keys [collapse id card]}]
 
   ;; We don't have a nil state so we use an atom to check if the user has
   ;; overridden the layout-provided collapse value.
@@ -29,7 +29,7 @@
     (when-not (or collapse @collapsed-tool? (threshold-halted? @overrides tool-details))
       (dispatch [::events/init-tool tool-details tool-id]))
 
-    (fn [{{:keys [cljs human]} :names :as tool-details} & {:keys [collapse id description]}]
+    (fn [{{:keys [cljs human]} :names :as tool-details} & {:keys [collapse id description card]}]
       (let [halted? (threshold-halted? @overrides tool-details)
             collapsed? (or @collapsed-tool?
                            halted?
@@ -38,7 +38,7 @@
             description (or description (get-in tool-details [:config :description]))
             run-anyway! (fn []
                           (dispatch [::events/override-threshold cljs (:entity tool-details)])
-                          (dispatch [::events/init-tool tool-details tool-id])
+                          (reagent/after-render #(dispatch [::events/init-tool tool-details tool-id]))
                           (when @collapsed-tool?
                             (dispatch [::events/expand-tool cljs]))
                           (reset! override-collapse* true))]
@@ -50,20 +50,31 @@
            (fn []
              (if halted?
                (run-anyway!)
-               (do
+               (let [stored-collapsed? @collapsed-tool?]
                  ;; Only init the tool if it had been initially collapsed
                  ;; (and therefore not previously initialised).
-                 (when (and (or collapse @collapsed-tool?)
-                            (not @override-collapse*))
-                   (dispatch [::events/init-tool tool-details tool-id]))
-                 (dispatch [(if collapsed? ::events/expand-tool ::events/collapse-tool) cljs])
+                 (if (and (or collapse stored-collapsed?)
+                          (not @override-collapse*))
+                   (do
+                     ;; Store the expanded state synchronously, then init after
+                     ;; render. Reagent has removed .hidden by then, so the
+                     ;; tool measures a container with a width.
+                     (when stored-collapsed?
+                       (dispatch-sync [::events/expand-tool cljs]))
+                     (reagent/after-render #(dispatch [::events/init-tool tool-details tool-id])))
+                   (when collapsed?
+                     (reagent/after-render #(.dispatchEvent js/window (js/Event. "resize")))))
+                 (when-not (and stored-collapsed? (not @override-collapse*) collapsed?)
+                   (dispatch [(if collapsed? ::events/expand-tool ::events/collapse-tool) cljs]))
                  (reset! override-collapse* true))))
            (not collapsed?))
           [:span.report-item-title
            (clean-tool-name human)
            (when (not-empty description)
              [description-dropdown description])
-           [poppable {:data [:span "This is a visualization and may take longer to load. If you click to collapse, it will stay hidden on all pages until you expand it again."]
+           [poppable {:data [:span (if card
+                                     "This is a visualization and may take longer to load. It loads when you expand it."
+                                     "This is a visualization and may take longer to load. If you click to collapse, it will stay hidden on all pages until you expand it again.")]
                       :children [icon "bar-chart"]}]]
           (when halted?
             [:span.report-item-threshold
@@ -75,6 +86,8 @@
                            (run-anyway!))}
               "Run anyway"]])
           [chevron collapsed?]]
+         (when (and card collapsed? (not-empty description))
+           [:p.report-item-summary description])
          [:div.report-item-tool {:class (when collapsed? :hidden)}
           [:div {:class cljs
                  :id tool-id
@@ -83,29 +96,61 @@
 (defn- group-container-id [group]
   (str "tool-group-" (str/lower-case group)))
 
-(defn- group-heading [group collapsed?]
-  [:h3.report-item-heading.tool-group-heading
-   [:button.tool-group-toggle
-    {:type "button"
-     :aria-expanded (not collapsed?)
-     :aria-controls (group-container-id group)
-     :on-click #(dispatch [(if collapsed? ::events/expand-group ::events/collapse-group) group])}
-    [:span.report-item-title group]
-    [chevron collapsed?]]])
+(defn- select-group! [group]
+  (dispatch [::events/set-active-group group])
+  (reagent/after-render #(.dispatchEvent js/window (js/Event. "resize"))))
 
-(defn- tool-group [group tools]
-  (let [collapsed? @(subscribe [::subs/collapsed-group? group])]
-    [:div.tool-group
-     [group-heading group collapsed?]
-     [:div {:id (group-container-id group)}
-      (when-not collapsed?
-        (for [tool-details tools]
-          ^{:key (get-in tool-details [:names :cljs])}
-          [tool tool-details]))]]))
+(defn- arrow-nav
+  "Key handler moving between group tabs with ArrowLeft and ArrowRight."
+  [grouped group]
+  (fn [e]
+    (let [names (mapv first grouped)
+          idx (.indexOf names group)
+          step (case (.-key e) "ArrowLeft" -1 "ArrowRight" 1 nil)]
+      (when step
+        (.preventDefault e)
+        (let [target (nth names (mod (+ idx step) (count names)))]
+          (select-group! target)
+          (reagent/after-render
+           #(some-> (.getElementById js/document (str (group-container-id target) "-tab"))
+                    .focus)))))))
+
+(defn- tool-tabs [grouped active]
+  (into [:ul.agr-tabs.tool-tabs {:role "tablist"}]
+        (for [[group tools] grouped
+              :let [on? (= group active)]]
+          [:li {:class (when on? :active) :role "presentation"}
+           [:button {:type "button"
+                     :role "tab"
+                     :id (str (group-container-id group) "-tab")
+                     :aria-selected on?
+                     :aria-controls (group-container-id group)
+                     :tab-index (if on? 0 -1)
+                     :on-click #(select-group! group)
+                     :on-key-down (arrow-nav grouped group)}
+            group [:span.agr-count (count tools)]]])))
 
 (defn main []
-  (let [suitable-tools @(subscribe [::subs/suitable-tools])]
-    [:div
-     (for [[group tools] (group-tools suitable-tools)]
-       ^{:key group}
-       [tool-group group tools])]))
+  (let [suitable @(subscribe [::subs/suitable-tools])
+        grouped (group-tools suitable)
+        active (active-group @(subscribe [::subs/active-group]) grouped)]
+    (when (seq grouped)
+      [:section.results-tools
+       [:div.tools-head
+        [:h3.results-heading.agr-section-title "Tools"]
+        [:span.agr-count (count suitable)]
+        [:button.agr-btn.agr-btn-sm.tools-top
+         {:type "button"
+          :on-click #(.scrollTo js/window #js {:top 0 :behavior "smooth"})}
+         "Top"]]
+       [tool-tabs grouped active]
+       (for [[group tools] grouped]
+         ^{:key group}
+         [:div.tool-grid {:id (group-container-id group)
+                          :role "tabpanel"
+                          :tab-index 0
+                          :aria-labelledby (str (group-container-id group) "-tab")
+                          :hidden (not= group active)}
+          (for [t tools]
+            ^{:key (get-in t [:names :cljs])}
+            [tool t :collapse true :card true])])])))

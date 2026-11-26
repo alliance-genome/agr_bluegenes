@@ -124,6 +124,13 @@
     (is (= ["c" "f"] (map (comp :cljs :names) (second (first grouped)))))
     (is (= ["a" "d" "e"] (map (comp :cljs :names) (second (last grouped)))) "unknown groups fall to Other")))
 
+(deftest active-group
+  (let [grouped [["Annotation" [:a]] ["Export" [:b]]]]
+    (is (= "Export" (tu/active-group "Export" grouped)) "stored group with tools is kept")
+    (is (= "Annotation" (tu/active-group "Other" grouped)) "absent group falls to the first")
+    (is (= "Annotation" (tu/active-group nil grouped)))
+    (is (nil? (tu/active-group nil [])))))
+
 (deftest collapse-groups
   (run-test-sync
    (rf/dispatch-sync [::events/collapse-group "Export"])

@@ -344,7 +344,7 @@
 
 (def ^:private species-re
   "Genus (full or abbreviated) and species of the Alliance organisms."
-  #"\b((?:[A-Z][a-z]+|[A-Z]\.) ?(?:cerevisiae|melanogaster|elegans|briggsae|musculus|norvegicus|rerio|sapiens|laevis|tropicalis|pombe))\b")
+  #"\b((?:[A-Z][a-z]+|[A-Z]\.) ?(?:cerevisiae|melanogaster|elegans|briggsae|musculus|norvegicus|rerio|sapiens|laevis|tropicalis|pombe|japonicus|glabratus|fumigatus|fischeri|nidulans|niger|flavus|oryzae|albicans|crassa|oryzae|immitis|posadasii|marneffei|thaliana|discoideum|gallus|taurus|familiaris|scrofa|mulatta|troglodytes|dubia|pseudoobscura|virilis|mojavensis|ananassae|yakuba|simulans|sechellia|erecta|willistoni|grimshawi|persimilis))\b")
 
 (defn italicize-species
   "Splits a string into strings and [:em species] elements, for hiccup."

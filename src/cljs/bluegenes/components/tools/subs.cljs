@@ -65,6 +65,11 @@
    (contains? (get-in db [:tools :collapsed-groups]) group)))
 
 (reg-sub
+ ::active-group
+ (fn [db]
+   (get-in db [:tools :active-group])))
+
+(reg-sub
  ::threshold-overrides
  (fn [db]
    (get-in db [:tools :threshold-overrides])))

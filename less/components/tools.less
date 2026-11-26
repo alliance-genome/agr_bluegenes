@@ -159,3 +159,129 @@
         }
     }
 }
+
+// Results page tools: group tabs over a grid of collapsed cards.
+.results-tools {
+    margin-top: var(--agr-space-5);
+
+    .tools-head {
+        display: flex;
+        align-items: baseline;
+        gap: var(--agr-space-2);
+        margin-bottom: var(--agr-space-3);
+
+        .results-heading {
+            margin: 0;
+        }
+
+        .tools-top {
+            margin-left: auto;
+        }
+    }
+
+    .tool-grid {
+        // A global [class*="grid"] rule gives -.5rem side margins.
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: var(--agr-space-3);
+        align-items: start;
+
+        &[hidden] {
+            display: none;
+        }
+
+        @media (max-width: 575px) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    .tool-grid > .report-item {
+        margin: 0;
+        min-width: 0;
+        box-shadow: none;
+
+        &:not(.report-item-collapsed) {
+            grid-column: ~"1 / -1";
+        }
+
+        &.report-item-collapsed > .report-item-heading {
+            background: var(--agr-bg);
+            border-bottom: 0;
+        }
+    }
+
+    .report-item-summary {
+        // Margin, not padding: line-clamp shows a third line inside padding.
+        margin: 0 var(--agr-space-3) var(--agr-space-3);
+        padding: 0;
+        font-size: 13px;
+        color: var(--agr-muted);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .report-item-tool {
+        max-height: 720px;
+        overflow: auto;
+    }
+
+    // Heading: title and chevron on row 1, threshold notice on row 2.
+    .tool-grid > .report-item > .report-item-heading {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: var(--agr-space-2);
+        min-width: 0;
+        overflow: hidden;
+
+        .report-item-title {
+            grid-column: 1;
+            grid-row: 1;
+            min-width: 0;
+            flex-wrap: nowrap;
+            gap: var(--agr-space-1);
+        }
+
+        .report-item-toggle {
+            grid-column: 2;
+            grid-row: 1;
+            min-width: 0;
+        }
+    }
+
+    // Beats report.less, which makes the notice an absolute dark tooltip.
+    .report-item .report-item-threshold {
+        position: static;
+        transform: none;
+        grid-column: ~"1 / -1";
+        grid-row: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--agr-space-1) var(--agr-space-2);
+        align-items: center;
+        margin-top: var(--agr-space-1);
+        padding: 0;
+        background: none;
+        color: var(--agr-muted);
+        font-size: 12.5px;
+        font-weight: 400;
+
+        .btn {
+            margin: 0;
+            text-transform: none;
+            font-size: 12.5px;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.4;
+            padding: 2px 8px;
+            background: var(--agr-bg);
+            border: 1px solid var(--agr-secondary);
+            border-radius: var(--agr-radius);
+            color: var(--agr-text);
+            box-shadow: none;
+        }
+    }
+}

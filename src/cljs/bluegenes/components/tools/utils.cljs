@@ -75,6 +75,12 @@
   (let [by-group (group-by tool-group tools)]
     (into [] (keep (fn [group] (when-let [ts (get by-group group)] [group ts]))) groups)))
 
+(defn active-group
+  "Stored group when it has tools, else the first group."
+  [stored grouped]
+  (let [names (map first grouped)]
+    (if (some #{stored} names) stored (first names))))
+
 ;;; Context ;;;
 
 (defn- where-of [query]

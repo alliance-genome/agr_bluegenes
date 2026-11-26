@@ -6,7 +6,7 @@
             [inflections.core :refer [plural]]
             [oops.core :refer [oget ocall]]
             [bluegenes.pages.results.enrichment.events :refer [build-matches-query]]
-            [bluegenes.utils :refer [sanitize-html]]))
+            [bluegenes.utils :refer [sanitize-html italicize-species italicize-species-html]]))
 
 (defn filter-display [& {:keys [widget-kw filterSelectedValue filters filterLabel]}]
   (let [filters (str/split filters #",")]
@@ -14,7 +14,7 @@
      [:div
       (into [:select.form-control.input-sm
              {:on-change #(dispatch [:widgets/update-filter widget-kw (oget % :target :value)])
-              :value filterSelectedValue}]
+              :value (or filterSelectedValue "")}]
             (for [option filters]
               [:option option]))]]))
 
@@ -22,16 +22,17 @@
                         filterSelectedValue filters filterLabel
                         loading? values child
                         widget-kw]}]
-  (conj [:div.widget.col-sm-12
-         {:class (-> []
-                     (into (when-not full-width? [:col-lg-6 :col-xl-4-workaround]))
-                     (into (when loading? [:is-loading])))}
+  (conj [:div.widget
+         {:class (cond-> []
+                   full-width? (conj :widget-full)
+                   loading? (conj :is-loading))}
          [:h4.widget-title title]
-         [:p.widget-description {:dangerouslySetInnerHTML {:__html (sanitize-html description)}}]
+         [:p.widget-description {:title (some-> description (str/replace #"<[^>]*>" "") str/trim)
+                                 :dangerouslySetInnerHTML {:__html (italicize-species-html (sanitize-html description))}}]
          (if (pos? notAnalysed)
-           [:p (str "Number of " (plural type) " in the table not analysed in this widget: ")
+           [:p.agr-note.widget-note (str "Number of " (plural type) " in the table not analysed in this widget: ")
             [:strong notAnalysed]]
-           [:p (str "All " (plural type) " in the table have been analysed in this widget.")])
+           [:p.agr-note.widget-note (str "All " (plural type) " in the table have been analysed in this widget.")])
          (when filters
            [filter-display
             :widget-kw widget-kw
@@ -253,7 +254,7 @@
                       [:th
                        [:input {:type "checkbox"
                                 :checked is-checked
-                                :on-click on-check}]])]
+                                :on-change on-check}]])]
                    (for [col-header (str/split columns #",")]
                      [:th col-header]))]
             (into [:tbody]
@@ -266,8 +267,8 @@
                              [[:td
                                [:input {:type "checkbox"
                                         :checked is-checked
-                                        :on-click on-check}]]]
-                             (map (fn [desc] [:td desc]) descriptions)
+                                        :on-change on-check}]]]
+                             (map (fn [desc] (into [:td] (italicize-species desc))) descriptions)
                              [[:td
                                [:a {:on-click #(view-items! {:current-mine current-mine
                                                              :pathQuery pathQuery

@@ -132,6 +132,11 @@
  (fn [{db :db} [_ tool-name-cljs]]
    (with-persisted-collapse (update-in db [:tools :collapsed] (fnil disj #{}) tool-name-cljs))))
 
+(reg-event-db
+ ::set-active-group
+ (fn [db [_ group]]
+   (assoc-in db [:tools :active-group] group)))
+
 (reg-event-fx
  ::collapse-group
  (fn [{db :db} [_ group]]

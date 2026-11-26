@@ -25,10 +25,7 @@
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [internal-tag?]]
             [bluegenes.pages.lists.views :refer [pretty-timestamp]]
-            [bluegenes.utils :refer [clean-tool-name]]
-            [goog.style :as gstyle]
-            [goog.dom :as gdom]
-            [goog.fx.dom :as gfx]))
+            [bluegenes.utils :refer [italicize-species]]))
 
 (defn adjust-str-to-length [length string]
   (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
@@ -65,7 +62,7 @@
                     [:li.history-item
                      {:class (when (= title @current-query) "active")
                       :on-click #(dispatch [::route/navigate ::route/results {:title title}])}
-                     [:div.title (or display-title title)]
+                     (into [:div.title] (italicize-species (or display-title title)))
                      [:div.time (time/format-query query)]])
                   @historical-queries))])))
 
@@ -168,34 +165,6 @@
      (when-not (empty? description)
        [:p.list-description description])]))
 
-(defn scroll-into-view! [id]
-  (when-let [elem (or (nil? id) (gdom/getElement id))]
-    (let [current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y)) (gdom/getDocumentScroll)))
-          target-scroll (if (nil? id)
-                          #js [0 0] ; Scroll to top if no ID specified.
-                          (clj->js ((juxt #(- (oget % :x) 80) #(- (oget % :y) 80))
-                                    (gstyle/getRelativePosition elem (gdom/getDocumentScrollElement)))))]
-      (doto (gfx/Scroll. (gdom/getDocumentScrollElement)
-                         current-scroll
-                         target-scroll
-                         1)
-        (.play)))))
-
-(defn jump-to []
-  (let [tool-names (map :names @(subscribe [:bluegenes.components.tools.subs/suitable-tools]))]
-    (when (seq tool-names)
-      [:<>
-       [:h3.results-heading.agr-section-title "Tools"]
-       (into [:div.jump-to
-              [:span "Jump to: "]
-              [:span.jump-item
-               {:on-click #(scroll-into-view! nil)}
-               "Top"]]
-             (for [{:keys [cljs human]} tool-names]
-               [:span.jump-item
-                {:on-click #(scroll-into-view! (str cljs "-container"))}
-                (clean-tool-name human)]))])))
-
 (defn list-actions
   "Action buttons for the current Gene list, rendered inside the toolbar. Each
   component renders its panel after its button; the panels span the full width."
@@ -246,6 +215,16 @@
         (reveal-panel! panel)))
     :reagent-render (fn [_open] nil)}))
 
+(defn results-head []
+  (let [intent @(subscribe [:results/intent])
+        {:keys [title from]} @(subscribe [:results/query])]
+    [:div.results-head
+     [:h2.results-heading.agr-page-title "Query Results"]
+     (when (and title (not= intent :list))
+       (-> [:p.results-subtitle]
+           (into (italicize-species title))
+           (cond-> from (conj [:span.agr-badge.results-type from]))))]))
+
 (defn main
   "Result page for a list or query."
   []
@@ -253,12 +232,11 @@
         intent (subscribe [:results/intent])
         current-mine-is-env? (subscribe [:current-mine-is-env?])]
     (fn []
-      [:div.container-fluid.results
+      [:div.container-fluid.results.results-page
        (when @are-there-results?
-         [:<>
-          [:div.row
-           [:div.col-sm-8.col-lg-9
-            [:h2.results-heading.agr-page-title "Query Results"]
+         (let [has-widgets? (some val @(subscribe [:widgets/all-widgets]))]
+           [:<>
+            [results-head]
             [:div.results-actions
              [back-button]
              [query-history]
@@ -273,13 +251,9 @@
               [query-details])
             [:div.results-table
              [tables/main [:results :table]]]
-            [widgets/main]]
-           [:div.col-sm-4.col-lg-3
-            [enrichment/enrich]]]
-          ;; Only show visualizations for configured mines (i.e. not registry mines).
-          (when @current-mine-is-env?
-            [:div.row
-             [:div.col-sm-12
-              [viz/main]
-              [jump-to]
-              [tools/main]]])])])))
+            [:div.results-analysis {:class (when-not has-widgets? :results-analysis-single)}
+             [:div.results-enrichment [enrichment/enrich]]
+             [:div.results-widgets [widgets/main]]]
+            ;; Only show visualizations for configured mines (i.e. not registry mines).
+            (when @current-mine-is-env?
+              [:div.results-extras [viz/main] [tools/main]])]))])))
