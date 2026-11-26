@@ -351,3 +351,125 @@ a.agr-external.agr-external-icon {
 .agr-heat-4 { background: var(--agr-heat-4); color: #fff; }
 .agr-heat-5 { background: var(--agr-heat-5); color: #fff; }
 .agr-heat-6 { background: var(--agr-heat-6); color: #fff; }
+
+// Dropdowns: one Alliance look in place of the system control.
+// Page rules reset background-image to drop Material's underline; the chevron
+// and its padding are marked important so those resets do not remove it.
+select.form-control {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 34px;
+  padding: 4px 10px;
+  border: 1px solid var(--agr-border-strong);
+  border-radius: var(--agr-radius);
+  background-color: var(--agr-bg);
+  box-shadow: none;
+  color: var(--agr-text);
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  color-scheme: light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23495057' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 11px 8px !important;
+  padding-right: 30px !important;
+
+  &:hover:not(:disabled) { border-color: var(--agr-muted); }
+  &:focus { border-color: var(--agr-primary); box-shadow: 0 0 0 2px var(--agr-primary-light); outline: none; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &::-ms-expand { display: none; }
+
+  &[multiple], &[size] {
+    height: auto;
+    background-image: none !important;
+    padding-right: 10px !important;
+  }
+}
+
+// Browsers with customizable select (Chrome and Edge 135+) draw the open list
+// from page CSS. Safari and Firefox keep the system list, in light colours.
+@supports (appearance: base-select) {
+  select.form-control:not([multiple]):not([size]) {
+    appearance: base-select;
+    display: inline-flex;
+    align-items: center;
+
+    &::picker-icon { display: none; }
+
+    &::picker(select) {
+      appearance: base-select;
+      margin-top: 4px;
+      padding: 4px 0;
+      max-height: 340px;
+      border: 1px solid var(--agr-border-strong);
+      border-radius: var(--agr-radius);
+      background: var(--agr-bg);
+      box-shadow: 0 8px 24px rgba(15, 35, 60, 0.14);
+    }
+
+    option {
+      padding: 6px 12px;
+      color: var(--agr-text);
+      font-size: 14px;
+      cursor: pointer;
+
+      &::checkmark { display: none; }
+      &:hover, &:focus-visible { background: var(--agr-primary-light); outline: none; }
+      &:checked { color: var(--agr-primary-dark); font-weight: 600; }
+      &:disabled { color: var(--agr-muted); cursor: default; }
+    }
+  }
+}
+
+// Suggestion list under a text filter (components/ui/autocomplete.cljs).
+.agr-autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.agr-autocomplete-list {
+  position: absolute;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+  min-width: 100%;
+  max-width: 560px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  border: 1px solid var(--agr-border-strong);
+  border-radius: var(--agr-radius);
+  background: var(--agr-bg);
+  box-shadow: 0 8px 24px rgba(15, 35, 60, 0.14);
+
+  li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 12px;
+    color: var(--agr-text);
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+
+    &.active { background: var(--agr-primary-light); }
+  }
+
+  mark {
+    padding: 0;
+    background: none;
+    color: inherit;
+    font-weight: 600;
+  }
+
+  .meta {
+    flex-shrink: 0;
+    color: var(--agr-muted);
+    font-size: 13px;
+  }
+}

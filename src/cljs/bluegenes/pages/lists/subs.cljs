@@ -1,7 +1,8 @@
 (ns bluegenes.pages.lists.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [bluegenes.pages.lists.utils :refer [normalize-lists ->filterf ->sortf filtered-list-ids-set]]
-            [clojure.set :as set]))
+            [bluegenes.pages.lists.utils :refer [normalize-lists ->filterf ->sortf filtered-list-ids-set internal-tag?]]
+            [clojure.set :as set]
+            [clojure.string :as str]))
 
 (reg-sub
  :lists/root
@@ -31,6 +32,28 @@
  :<- [:lists/root]
  (fn [root]
    (:all-types root)))
+
+;; Class names such as LongTerminalRepeat read better as "Long terminal repeat".
+;; The model displayName is preferred, and this is the fallback for first paint
+;; and for classes the model does not know.
+(defn type-label-fallback [type]
+  (let [words (-> (str type)
+                  (str/replace #"([a-z0-9])([A-Z])" "$1 $2")
+                  (str/replace #"([A-Z]+)([A-Z][a-z])" "$1 $2"))]
+    (if (re-find #"[a-z]" words)
+      (str (str/upper-case (subs words 0 1)) (str/lower-case (subs words 1)))
+      words)))
+
+(reg-sub
+ :lists/type-names
+ :<- [:lists/all-types]
+ :<- [:model]
+ (fn [[all-types model]]
+   (into {}
+         (map (fn [type]
+                [type (or (get-in model [(keyword type) :displayName])
+                          (type-label-fallback type))]))
+         all-types)))
 
 (reg-sub
  :lists/all-paths
@@ -146,6 +169,19 @@
  (fn [[items-by-id active-filters]]
    (filtered-list-ids-set items-by-id active-filters)))
 
+;; The tags column only earns its width when some list in the filtered set
+;; (not just the current page) has a visible tag, or the tag filter is active.
+(reg-sub
+ :lists/show-tags?
+ :<- [:lists/by-id]
+ :<- [:lists/filtered-list-ids-set]
+ :<- [:lists/filters]
+ (fn [[by-id list-ids filters]]
+   (or (some? (:tags filters))
+       (boolean (some (fn [id]
+                        (some (complement internal-tag?) (:tags (get by-id id))))
+                      list-ids)))))
+
 (reg-sub
  :lists/no-lists?
  :<- [:lists/by-id]
@@ -214,6 +250,12 @@
  :<- [:lists/selected-lists]
  (fn [[by-id selected-lists]]
    (map by-id selected-lists)))
+
+(reg-sub
+ :lists/selected-deletable?
+ :<- [:lists/selected-lists-details]
+ (fn [lists]
+   (every? :authorized lists)))
 
 (reg-sub
  :lists/selected-lists-different-types?

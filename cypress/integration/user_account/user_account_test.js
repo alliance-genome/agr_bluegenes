@@ -75,8 +75,8 @@ describe("User Account Test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.bottom-controls').within(() => {
-            cy.contains("Move all").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Move").click();
         })
         cy.get(".css-1wy0on6").click().type("List of common genes{enter}",{delay:100},{force:true});
         cy.get(".modal-footer").within(() => {
@@ -90,8 +90,7 @@ describe("User Account Test", function() {
         cy.createProteinList("Q8ID23_PLAF7, Q6LFN1");
         cy.get('.lists-item').its("length").should('be.gt',0);
 
-        cy.contains("Tags").parent().find(".icon-selection").click();
-        cy.get(".dropdown").find("li").filter(':contains("Algae genes")').click();
+        cy.get("#lists-filter-tags").select("Algae genes");
         cy.get('.lists-item').should('have.length',1);
         cy.get('.lists-item').find(".list-title").should("include.text","List of common genes");
     })

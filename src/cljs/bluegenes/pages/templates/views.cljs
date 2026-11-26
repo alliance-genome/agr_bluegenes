@@ -15,8 +15,10 @@
             [bluegenes.components.top-scroll :as top-scroll]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
+            [bluegenes.components.loader :refer [mini-loader]]
             [goog.functions :refer [debounce]]
-            [bluegenes.components.bootstrap :refer [poppable]]))
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.components.ui.autocomplete :as autocomplete]))
 
 (defn categories []
   (let [categories @(subscribe [:template-chooser-categories])
@@ -65,29 +67,31 @@
         {:data-toggle "dropdown"
          :role "button"}
         [icon "code"] [:span "Web service URL"]]
-       [:div.dropdown-menu
+       [:div.dropdown-menu.dropdown-menu-right
         [:form {:on-submit #(.preventDefault %)}
          [:div.web-service-url-container
           [:p "Use the URL below to fetch the first " [:strong "10"] " records for this template from the command line or a script " [:em "(authentication needed for private templates and lists)"] " :"]
-          [:input.form-control
-           {:type "text"
-            :ref (fn [el]
-                   (when el
-                     (reset! input-ref* el)
-                     (.focus el)
-                     (.select el)))
-            :autoFocus true
-            :readOnly true
-            :value @url}]
-          [:button.btn.btn-raised
-           {:on-click (fn [_]
-                        (when-let [input-el @input-ref*]
-                          (.focus input-el)
-                          (.select input-el)
-                          (try
-                            (ocall js/document :execCommand "copy")
-                            (catch js/Error _))))}
-           "Copy"]]]]])))
+          [:div.url-row
+           [:input.form-control
+            {:type "text"
+             :ref (fn [el]
+                    (when el
+                      (reset! input-ref* el)
+                      (.focus el)
+                      (.select el)))
+             :autoFocus true
+             :readOnly true
+             :value @url}]
+           [:button.agr-btn-primary
+            {:type "button"
+             :on-click (fn [_]
+                         (when-let [input-el @input-ref*]
+                           (.focus input-el)
+                           (.select input-el)
+                           (try
+                             (ocall js/document :execCommand "copy")
+                             (catch js/Error _))))}
+            "Copy"]]]]]])))
 
 (defn preview-results
   "Preview results of template as configured by the user or default config"
@@ -264,10 +268,16 @@
   "Outputs all the templates that match the user's chosen filters."
   []
   (fn [templates]
-    (if (seq templates)
+    (cond
+      @(subscribe [:template-chooser/loading?])
+      [:div.templates-loading
+       [mini-loader]
+       [:span "Loading templates"]]
+
+      (seq templates)
       ;;return the list of templates if there are some
       (into [:div.template-list] (map (fn [t] [template t]) templates))
-      ;;if there are no templates, perhaps because of filters or perhaps not...
+      :else
       [:div.no-results
        [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
        " No templates available"
@@ -302,18 +312,22 @@
 (defn template-filter []
   (let [input (reagent/atom @(subscribe [:template-chooser/text-filter]))
         debounced (debounce #(dispatch [:template-chooser/set-text-filter %]) 500)
-        on-change (fn [e]
-                    (let [value (oget e :target :value)]
-                      (reset! input value)
-                      (debounced value)))]
+        on-change (fn [value]
+                    (reset! input value)
+                    (debounced value))]
     (fn []
-      [:input.form-control.input-lg
+      [autocomplete/input
        {:id "template-text-filter"
-        :type "text"
         :value @input
         :placeholder "Search for keywords"
+        :aria-label "Filter templates"
         :autoFocus true
-        :on-change on-change}])))
+        :on-change on-change
+        :items (for [[id {:keys [title]}] @(subscribe [:templates])
+                     :when title]
+                 {:key (name id)
+                  :label (-> title (s/replace #"-+>" "→") (s/replace #"<-+" "←"))
+                  :on-pick #(dispatch [::route/navigate ::route/template {:template (name id)}])})}])))
 
 (defn authorized-filter []
   (let [filter-authorized? @(subscribe [:template-chooser/authorized-filter])
@@ -337,7 +351,7 @@
     [:div.template-filter.text-filter
      [:label.control-label
       {:for "template-text-filter"}
-      "Filter by text"]
+      "Filter"]
      [:div.filter-input
       [template-filter]
       [authorized-filter]]]

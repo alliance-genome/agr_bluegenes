@@ -11,8 +11,8 @@ describe("Multiple Lists Test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.top-controls').within(() => {
-            cy.contains("Combine lists").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Combine").click();
         })
         cy.get('.modal-footer').within(() => {
             cy.contains("Save new list").click();
@@ -28,8 +28,8 @@ describe("Multiple Lists Test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.top-controls').within(() => {
-            cy.contains("Intersect lists").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Intersect").click();
         })
         cy.get('.modal-footer').within(() => {
             cy.contains("Save new list").click();
@@ -45,8 +45,8 @@ describe("Multiple Lists Test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.top-controls').within(() => {
-            cy.contains("Difference lists").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Difference").click();
         })
         cy.get('.modal-footer').within(() => {
             cy.contains("Save new list").click();
@@ -62,8 +62,8 @@ describe("Multiple Lists Test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.top-controls').within(() => {
-            cy.contains("Subtract lists").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Subtract").click();
         })
         cy.get('.modal-footer').within(() => {
             cy.contains("Save new list").click();
@@ -88,15 +88,13 @@ describe("Multiple Lists Test", function() {
         cy.createProteinList("Q8ID23_PLAF7, Q6LFN1");
         cy.get('.lists-item').should('have.length',3);
 
-        cy.contains("Type").parent().find(".icon-selection").click();
-        cy.get(".dropdown").find("li").filter(':contains("Protein")').click();
+        cy.get("#lists-filter-type").select("Protein");
         cy.get('.lists-item').should('have.length',1);
         cy.get('.lists-item').find(".list-title").should("include.text","Protein");
     })
 
     it("can filter lists by list details",function(){
-        cy.contains("List details").parent().find(".icon-selection").click();
-        cy.get(".dropdown").find("li").filter(':contains("Public only")').click();
+        cy.get("#lists-filter-lists").select("Public lists");
         cy.get('.no-lists').should('exist');
     })
 });

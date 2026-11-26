@@ -135,19 +135,52 @@
             }
 
             .web-service-url-container {
-                padding: @spacer/4 @spacer/2;
+                width: 560px;
+                max-width: 90vw;
+                padding: var(--agr-space-3) var(--agr-space-4);
 
-                p { padding: 0; }
+                p {
+                    margin: 0 0 var(--agr-space-3);
+                    padding: 0;
+                    line-height: 1.5;
+                }
+
+                .url-row {
+                    display: flex;
+                    gap: var(--agr-space-2);
+                }
 
                 input {
-                    width: 500px;
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    height: 34px;
+                    padding: 4px 10px;
+                    border: 1px solid var(--agr-border-strong);
+                    border-radius: var(--agr-radius);
+                    background-color: var(--agr-bg-light);
+                    background-image: none;
+                    box-shadow: none;
+                    font-family: var(--agr-font-mono, monospace);
+                    font-size: 13px;
                 }
+
+                button { flex-shrink: 0; }
             }
         }
     }
 
     .view-results {
         min-width: 200px;
+    }
+
+    .templates-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--agr-space-3);
+        padding: var(--agr-space-6, 48px) 0;
+        color: var(--agr-muted);
+        font-size: 15px;
     }
 
     .template-filters {
@@ -246,6 +279,29 @@
                 color: #fff;
             }
         }
+    }
+
+    // Text and category filters use the Source row's pattern: label left of a 34px control.
+    .template-filters .template-filter.text-filter,
+    .template-filters .template-filter.category-filter {
+        display: flex;
+        align-items: center;
+        gap: var(--agr-space-3);
+
+        .control-label { margin: 0; white-space: nowrap; font-size: inherit; }
+    }
+
+    .template-filters .template-filter.text-filter .form-control {
+        height: 34px;
+        padding: 4px 10px;
+        font-size: 14px;
+        border: 1px solid var(--agr-border-strong);
+        border-radius: var(--agr-radius);
+        background-color: var(--agr-bg);
+        background-image: none;
+        box-shadow: none;
+
+        &:focus { border-color: var(--agr-primary); box-shadow: 0 0 0 2px var(--agr-primary-light); }
     }
 
     .template-filters .template-filter.category-filter {

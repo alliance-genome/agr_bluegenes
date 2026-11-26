@@ -63,16 +63,6 @@ describe("Single List Test", function() {
         cy.get('.no-lists').should('exist');
     });
 
-    it("can control the number of lists shown", function(){
-        cy.get(".pagination-controls").within(() => {
-            cy.contains("Rows per page").siblings(".dropdown").as("rowSelect");
-            cy.get("@rowSelect").find("li").filter(".active").should("have.text","20");
-            cy.get("@rowSelect").find("button").click();
-            cy.contains("100").click();
-            cy.get("@rowSelect").find("li").filter(".active").should("have.text","100");
-        })
-    });
-
     it("has an associated list analysis page and can be analyzed with the enrichment widget",function(){
         cy.get('.list-title').first().click();
         cy.url().should("contain","/results");

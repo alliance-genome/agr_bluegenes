@@ -7,7 +7,6 @@
             [oops.core :refer [oget]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
-            [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [copy-list-name folder?]]))
 
 ;;; Regions
@@ -447,10 +446,9 @@
   []
   (let [error @(subscribe [::selection-error])
         loading? @(subscribe [::loading?])]
-    [:button.agr-btn
+    [:button.agr-btn.agr-btn-sm
      {:type "button"
       :disabled (or loading? (boolean error))
       :title error
       :on-click #(dispatch [::open])}
-     "Compare overlap"
-     [icon "venn-intersection"]]))
+     "Compare overlap"]))

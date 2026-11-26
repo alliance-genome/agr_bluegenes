@@ -14,7 +14,8 @@
             [clojure.string :as str]
             [bluegenes.route :as route]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [goog.string :as gstring])
+            [bluegenes.components.ui.autocomplete :as autocomplete]
+            [bluegenes.utils :refer [italicize-species]])
   (:import goog.date.Date))
 
 (def set-operations [:combine :intersect :difference :subtract])
@@ -29,6 +30,12 @@
    :subtract {:text "Subtract lists"
               :icon [icon "venn-difference"]}})
 
+(def set-operations->labels
+  {:combine "Combine"
+   :intersect "Intersect"
+   :difference "Difference"
+   :subtract "Subtract"})
+
 (defn find-set-op [f set-op]
   (let [target-index (some (fn [[i op]]
                              (when (= op set-op) (f i)))
@@ -39,60 +46,142 @@
 (defn filter-lists []
   (let [input (r/atom @(subscribe [:lists/keywords-filter]))
         debounced (debounce #(dispatch [:lists/set-keywords-filter %]) 500)
-        on-change (fn [e]
-                    (let [value (oget e :target :value)]
-                      (reset! input value)
-                      (debounced value)))]
+        on-change (fn [value]
+                    (reset! input value)
+                    (debounced value))]
     (fn []
-      [:div.filter-lists
-       [:h2.lists-title.agr-page-title "Lists"
-        [poppable {:data "When you upload lists, duplicates are removed and the naming of the items standardised. This means that you can do set operations correctly on lists of the same type (e.g. genes), such as finding the intersection between two (or more) lists, and subtracting lists. See the options below - selecting an option provides further guidance and explanation."
-                   :children [icon "info"]}]]
-       [:div.filter-input.agr-filter-bar
-        [:input.form-control
-         {:id "lists-keyword-filter"
-          :type "text"
-          :placeholder "Search for keywords"
-          :on-change on-change
-          :value @input}]
-        [icon "search"]]])))
+      (let [type-names @(subscribe [:lists/type-names])
+            items (for [{:keys [title type size status]} (vals @(subscribe [:lists/by-id]))
+                        :when (and title (not= status "TO_UPGRADE"))]
+                    {:key title
+                     :label title
+                     :meta (str (.toLocaleString size) " " (get type-names type type))
+                     :on-pick #(dispatch [::route/navigate ::route/results {:title title}])})]
+        [:div.filter-lists
+         [:h2.lists-title.agr-page-title "Lists"]
+         [:div.filter-input.agr-filter-bar
+          [autocomplete/input
+           {:id "lists-keyword-filter"
+            :aria-label "Search lists"
+            :placeholder "Search lists"
+            :on-change on-change
+            :value @input
+            :items items}]
+          [icon "search"]]]))))
 
-(defn top-controls []
-  (let [insufficient-selected (not @(subscribe [:lists/selected-operation?]))]
-    (conj (into [:div.top-controls.agr-filter-bar]
-                (for [set-op set-operations]
-                  [:button.agr-btn
-                   {:type "button"
-                    :disabled insufficient-selected
-                    :on-click #(dispatch [:lists/open-modal set-op])}
-                   (get-in set-operations->assets [set-op :text])
-                   (get-in set-operations->assets [set-op :icon])]))
-          [upset/button])))
+(defn filter-select
+  "A labelled select for one list filter. Option values are strings; the empty
+  string maps to nil (no filter) and `keywordize?` turns the rest into the
+  keywords `->filterf` expects."
+  [{:keys [filter-name label options keywordize?]}]
+  (let [active (some-> @(subscribe [:lists/filter filter-name]) name)
+        id (str "lists-filter-" (name filter-name))]
+    [:div.list-filter
+     [:label {:for id} label]
+     (into [:select.form-control
+            {:id id
+             :value (or active "")
+             :on-change (fn [e]
+                          (let [value (oget e :target :value)]
+                            (dispatch [:lists/set-filter filter-name
+                                       (cond
+                                         (empty? value) nil
+                                         keywordize? (keyword value)
+                                         :else value)])))}]
+           (for [{:keys [text value]} options]
+             ^{:key value}
+             [:option {:value value} text]))]))
 
-(defn bottom-controls []
-  (let [list-count (count @(subscribe [:lists/selected-lists]))]
-    (when (pos? list-count)
-      [:div.bottom-controls
-       [:div
-        [:span.selected-indicator
-         (str "Selected " list-count (cond-> " list" (> list-count 1) (str "s")))]
-        [:button.agr-btn
+(defn filter-band []
+  (let [all-types @(subscribe [:lists/all-types])
+        type-names @(subscribe [:lists/type-names])
+        all-tags @(subscribe [:lists/all-tags])
+        filters @(subscribe [:lists/filters])
+        fetching-lists? @(subscribe [:lists/fetching?])
+        filtered? (some #(if (string? %) (seq %) (some? %)) (vals filters))]
+    [:div.list-filters
+     [filter-select
+      {:filter-name :lists
+       :label "Show"
+       :keywordize? true
+       :options [{:text "All lists" :value ""}
+                 {:text "Your lists" :value "private"}
+                 {:text "Public lists" :value "public"}
+                 {:text "Folders first" :value "folder"}
+                 {:text "Needs upgrade" :value "upgrade"}]}]
+     [filter-select
+      {:filter-name :date
+       :label "Date"
+       :keywordize? true
+       :options [{:text "Any time" :value ""}
+                 {:text "Last day" :value "day"}
+                 {:text "Last week" :value "week"}
+                 {:text "Last month" :value "month"}
+                 {:text "Last year" :value "year"}]}]
+     [filter-select
+      {:filter-name :type
+       :label "Type"
+       :options (cons {:text "All types" :value ""}
+                      (sort-by :text
+                               (map (fn [type] {:text (get type-names type type) :value type})
+                                    all-types)))}]
+     (when (seq all-tags)
+       [filter-select
+        {:filter-name :tags
+         :label "Tag"
+         :options (cons {:text "All tags" :value ""}
+                        (map (fn [tag] {:text tag :value tag}) all-tags))}])
+     [:div.list-filters-end
+      (when filtered?
+        [:button.link-button
+         {:type "button"
+          :on-click #(dispatch [:lists/reset-filters])}
+         "Clear filters"])
+      [:button.agr-btn.agr-btn-sm
+       {:type "button"
+        :disabled fetching-lists?
+        :on-click #(dispatch [:assets/fetch-lists])}
+       (if fetching-lists?
+         [:<> [mini-loader "tiny"] "Refreshing"]
+         "Refresh")]]]))
+
+(defn selection-bar []
+  (let [selected-count (count @(subscribe [:lists/selected-lists]))
+        operation? @(subscribe [:lists/selected-operation?])
+        deletable? @(subscribe [:lists/selected-deletable?])]
+    (when (pos? selected-count)
+      [:div.selection-bar
+       [:div.selection-count
+        [:strong (str selected-count " selected")]
+        [:button.link-button
          {:type "button"
           :on-click #(dispatch [:lists/clear-selected])}
-         "Deselect all"]]
-       [:div
-        [:button.agr-btn
-         {:type "button"
-          :on-click #(dispatch [:lists/open-modal :move])}
-         "Move all" [icon "new-folder"]]
-        [:button.agr-btn
+         "Clear"]]
+       (into [:div.selection-group]
+             (concat
+              (for [set-op set-operations]
+                [:button.agr-btn.agr-btn-sm
+                 {:type "button"
+                  :disabled (not operation?)
+                  :title (when-not operation? "Select 2 or more lists")
+                  :on-click #(dispatch [:lists/open-modal set-op])}
+                 (get-in set-operations->labels [set-op])])
+              [[upset/button]]))
+       [:div.selection-group
+        [:button.agr-btn.agr-btn-sm
          {:type "button"
           :on-click #(dispatch [:lists/open-modal :copy])}
-         "Copy all" [icon "list-copy"]]
-        [:button.agr-btn.agr-btn-danger
+         "Copy"]
+        [:button.agr-btn.agr-btn-sm
          {:type "button"
+          :on-click #(dispatch [:lists/open-modal :move])}
+         "Move"]
+        [:button.agr-btn.agr-btn-sm.danger
+         {:type "button"
+          :disabled (not deletable?)
+          :title (when-not deletable? "You can only delete lists you own")
           :on-click #(dispatch [:lists/open-modal :delete])}
-         "Delete all" [icon "list-delete"]]]])))
+         "Delete"]]])))
 
 (defn pagination-items [p pages]
   (concat
@@ -107,60 +196,52 @@
    (when (< p (- pages 2)) [{:label pages :value pages}])
    [{:disabled (= p pages) :label "›" :value (inc p)}]))
 
-(defn pagination []
+(defn list-footer []
   (let [per-page @(subscribe [:lists/per-page])
         page-count @(subscribe [:lists/page-count])
-        current-page @(subscribe [:lists/current-page])]
-    ;; Don't show pagination if there are no pages and therefore no lists.
-    (when (pos? page-count)
-      ;; This is a guard to switch to the last page if the current one no
-      ;; longer exists. The right place to put it would be in :lists/initialize
-      ;; but we have to normalize-lists to tell the page count. As a future
-      ;; refactoring improvement, you could compute page count as part of
-      ;; denormalization and put it in app-db, instead of using it as a sub.
-      (when (> current-page page-count)
-        (dispatch [:lists/set-current-page page-count]))
-      [:div.pagination-controls
-       [:span "Rows per page"]
-       [:div.dropdown
-        [:button.agr-btn.agr-btn-sm.dropdown-toggle.rows-per-page
-         {:type "button"
-          :data-toggle "dropdown"}
-         per-page [icon "caret-down"]]
-        (into [:ul.dropdown-menu]
-              (map (fn [value]
-                     [:li {:class (when (= value per-page) :active)}
-                      [:a {:on-click #(dispatch [:lists/set-per-page value])}
-                       value]])
-                   [20 50 100]))]
+        current-page @(subscribe [:lists/current-page])
+        total @(subscribe [:lists/top-level-count])]
+    ;; This is a guard to switch to the last page if the current one no
+    ;; longer exists. The right place to put it would be in :lists/initialize
+    ;; but we have to normalize-lists to tell the page count. As a future
+    ;; refactoring improvement, you could compute page count as part of
+    ;; denormalization and put it in app-db, instead of using it as a sub.
+    (when (and (pos? page-count) (> current-page page-count))
+      (dispatch [:lists/set-current-page page-count]))
+    ;; Nothing to page through when everything fits on one page of the default size.
+    (when (and (pos? page-count)
+               (or (> page-count 1) (> total 20)))
+      [:div.list-footer
+       [:div.list-footer-info
+        [:span (str "Showing " (inc (* per-page (dec current-page))) " to "
+                    (min total (* per-page current-page)) " of " total)]
+        [:label.list-rows
+         [:span "Rows"]
+         (into [:select.form-control
+                {:value per-page
+                 :on-change #(dispatch [:lists/set-per-page
+                                        (js/parseInt (oget % :target :value) 10)])}]
+               (for [value [20 50 100]]
+                 ^{:key value}
+                 [:option {:value value} value]))]]
        (into [:ul.pagination]
              (map (fn [{:keys [disabled active label value]}]
                     [:li {:class (cond disabled :disabled
                                        active :active)}
-                     [:a {:disabled disabled
-                          :on-click (when (and (not disabled) value)
-                                      #(dispatch [:lists/set-current-page value]))}
-                      label]])
-                  (pagination-items current-page page-count)))])))
-
-(defn pagination-bottom []
-  (let [page-count @(subscribe [:lists/page-count])
-        current-page @(subscribe [:lists/current-page])]
-    ;; Don't show pagination if there are no pages and therefore no lists.
-    (when (pos? page-count)
-      [:div.pagination-controls.pagination-bottom
-       (into [:ul.pagination]
-             (map (fn [{:keys [disabled active label value]}]
-                    [:li {:class (cond disabled :disabled
-                                       active :active)}
-                     [:a {:disabled disabled
-                          :on-click (when (and (not disabled) value)
-                                      #(dispatch [:lists/set-current-page value true]))}
-                      label]])
+                     (if value
+                       [:button {:type "button"
+                                 :disabled (boolean disabled)
+                                 :aria-label (if (number? label)
+                                               (str "Page " label)
+                                               (if (= label "‹") "Previous page" "Next page"))
+                                 :aria-current (when active "page")
+                                 :on-click #(dispatch [:lists/set-current-page value true])}
+                        label]
+                       [:span.pagination-gap label])])
                   (pagination-items current-page page-count)))])))
 
 (def list-time-formatter (time-format/formatters :mysql))
-(def list-date-formatter (time-format/formatter "dd MMM, Y"))
+(def list-date-formatter (time-format/formatter "d MMM Y"))
 
 (let [minute 60000
       hour 3.6e+6
@@ -185,242 +266,207 @@
                                         (time-coerce/from-long ts))
              :children (pretty-timestamp ts)}])
 
-(defn sort-button [column]
-  (let [active-sort @(subscribe [:lists/sort])]
-    [:button.btn
-     {:on-click #(dispatch [:lists/toggle-sort column])}
-     [icon "sort" nil [(when (= column (:column active-sort))
-                         (case (:order active-sort)
-                           :asc "active-asc-sort"
-                           :desc "active-desc-sort"))]]]))
+;; Colour carries meaning only for the main InterMine data types.
+(def type-colours
+  {"Gene" "gene"
+   "Protein" "protein"
+   "Publication" "publication"
+   "Interaction" "interaction"
+   "Organism" "organism"
+   "GOTerm" "go"})
 
-(defn selection-button [filter-name items]
-  (let [active-value @(subscribe [:lists/filter filter-name])]
-    [:div.dropdown
-     [:button.btn.dropdown-toggle
-      {:data-toggle "dropdown"}
-      [icon "selection" nil [(when (some? active-value)
-                               "active-selection")]]]
-     (into [:ul.dropdown-menu]
-           (for [{:keys [label value]} items]
-             [:li {:class (when (= value active-value)
-                            "active")}
-              [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
-               label]]))]))
+(defn list-type [type-names type]
+  [:span.list-type
+   {:class (some->> (type-colours type) (str "lt-"))}
+   (get type-names type type)])
 
-(defn list-row-controls [{:keys [id authorized status name]}]
-  [:<>
-   (when (= status "TO_UPGRADE")
-     [:a.btn
-      {:href (route/href ::route/upgrade nil {:name name})}
-      [icon "arrow-up"]])
-   [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :copy id])
-     :disabled (= status "TO_UPGRADE")}
-    [icon "list-copy"]]
-   [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :edit id])
-     :disabled (not authorized)}
-    [icon "list-edit"]]
-   [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :delete id])
-     :disabled (not authorized)}
-    [icon "list-delete"]]])
+(defn list-tags [tags]
+  (into [:div.list-tags]
+        ;; Hide internal tags.
+        (for [tag (remove internal-tag? tags)]
+          ^{:key tag}
+          [:span.list-tag tag])))
 
-(defn list-row [item]
+(defn sort-button [column label]
+  (let [{active-column :column order :order} @(subscribe [:lists/sort])
+        active? (= column active-column)]
+    [:button.sort-button
+     {:type "button"
+      :class (when active? "active")
+      :on-click #(dispatch [:lists/toggle-sort column])}
+     label
+     [:span.sort-chevron
+      {:class (when active?
+                (case order
+                  :asc "active-asc-sort"
+                  :desc "active-desc-sort"))}]]))
+
+(defn list-row-controls [{:keys [id authorized status name]} labels?]
+  (let [upgrade? (= status "TO_UPGRADE")
+        action (fn [action-name label icon-name modal]
+                 [:button.list-action
+                  {:type "button"
+                   :class action-name
+                   :title label
+                   :aria-label label
+                   :disabled (and upgrade? (= modal :copy))
+                   :on-click #(dispatch [:lists/open-modal modal id])}
+                  [icon icon-name]
+                  (when labels? [:span label])])]
+    [:<>
+     (when upgrade?
+       [:a.list-action.list-action-upgrade
+        {:href (route/href ::route/upgrade nil {:name name})
+         :title "Upgrade list"
+         :aria-label "Upgrade list"}
+        [icon "arrow-up"]
+        (when labels? [:span "Upgrade list"])])
+     [action "action-copy" "Copy list" "list-copy" :copy]
+     (when authorized
+       [:<>
+        [action "action-edit" "Edit list" "list-edit" :edit]
+        [action "action-delete" "Delete list" "list-delete" :delete]])]))
+
+(defn list-row [item show-tags?]
   (let [{:keys [id title size authorized description timestamp type tags status
                 path is-last]} item
         expanded-paths @(subscribe [:lists/expanded-paths])
         selected-lists @(subscribe [:lists/selected-lists])
         new-lists @(subscribe [:lists/new-lists])
+        type-names @(subscribe [:lists/type-names])
+        logged-in? @(subscribe [::auth/authenticated?])
         is-folder (folder? item)
         is-expanded (and is-folder (contains? expanded-paths path))
         is-selected (contains? selected-lists id)
-        is-new (contains? new-lists {:id id})]
+        is-new (contains? new-lists {:id id})
+        is-public (contains? (set tags) "im:public")]
     [:div.lists-row.lists-item
-     {:class (when (or is-expanded is-last) :separator)}
+     {:class [(when (or is-expanded is-last) :separator)
+              (when is-selected :selected)]}
 
-     (if is-folder
-       [:div.lists-col
-        [:div.list-actions
-         (if is-expanded
-           [:button.btn
-            {:on-click #(dispatch [:lists/collapse-path path])}
-            [icon "collapse-folder"]]
-           [:button.btn
-            {:on-click #(dispatch [:lists/expand-path path])}
-            [icon "expand-folder"]])
-         [:span.list-icon
-          (if is-expanded
-            [icon "folder-open-item"]
-            [icon "folder-item"])]]]
-       [:div.lists-col
-        [:label.list-actions
-         [:input {:type "checkbox"
-                  :disabled (= status "TO_UPGRADE")
-                  :checked is-selected
-                  :on-change #(dispatch [(if (oget % :target :checked)
-                                           :lists/select-list
-                                           :lists/deselect-list)
-                                         id])}]
-         [:span.list-icon
-          {:class (when is-new :new)}
-          (if is-new
-            [poppable {:data "This list was just created by you."
-                       :children [icon "list-item"]}]
-            [icon "list-item"])]]])
+     [:div.lists-col.col-check
+      (if is-folder
+        [:button.folder-toggle
+         {:type "button"
+          :aria-label (if is-expanded "Collapse folder" "Expand folder")
+          :aria-expanded (boolean is-expanded)
+          :on-click #(dispatch [(if is-expanded :lists/collapse-path :lists/expand-path) path])}
+         [icon (if is-expanded "collapse-folder" "expand-folder")]]
+        [:input {:type "checkbox"
+                 :aria-label (str "Select " title)
+                 :disabled (= status "TO_UPGRADE")
+                 :checked is-selected
+                 :on-change #(dispatch [(if (oget % :target :checked)
+                                          :lists/select-list
+                                          :lists/deselect-list)
+                                        id])}])]
 
-     [:div.lists-col
+     [:div.lists-col.col-list
       [:div.list-detail
        (cond
-         is-folder [:button.btn.btn-link.list-title
-                    {:on-click (if is-expanded
-                                 #(dispatch [:lists/collapse-path path])
-                                 #(dispatch [:lists/expand-path path]))}
+         is-folder [:button.list-title.folder-title
+                    {:type "button"
+                     :on-click #(dispatch [(if is-expanded :lists/collapse-path :lists/expand-path) path])}
+                    [icon (if is-expanded "folder-open-item" "folder-item")]
                     title]
-         (= status "TO_UPGRADE") [poppable {:data "This list contains outdated identifiers. Use the green arrow to the far right to start the upgrade process."
+         (= status "TO_UPGRADE") [poppable {:data "This list contains outdated identifiers. Use Upgrade list in the row actions to start the upgrade."
                                             :options {:class [:list-title :disabled]}
                                             :children title}]
-         :else [:a.list-title
-                {:href (route/href ::route/results {:title title})}
-                title])
-       [:span.list-size (str "[" size "]")]
-       (when authorized
-         (if is-folder
-           [icon "user-circle" nil ["authorized"]]
-           [poppable {:data "This list is owned by you."
-                      :children [icon "user-circle" nil ["authorized"]]}]))
-       (when (contains? (set tags) "im:public")
-         (if is-folder
-           [icon "globe"]
+         :else (into [:a.list-title
+                      {:href (route/href ::route/results {:title title})}]
+                     (italicize-species title)))
+       (when is-new
+         [poppable {:data "This list was just created by you."
+                    :options {:class [:list-badge :list-badge-new]}
+                    :children "New"}])
+       (when-not is-folder
+         (cond
+           is-public
            [poppable {:data "This is a public list, visible to all users whether logged in or not. Users that do not own it can still make a copy or use it for set operations."
-                      :children [icon "globe"]}]))]
-      [:p.list-description description]]
+                      :options {:class [:list-badge]}
+                      :children "Public"}]
+           (and authorized logged-in?)
+           [poppable {:data "This list is owned by you."
+                      :options {:class [:list-badge]}
+                      :children "Yours"}]))]
+      (when (seq (str/trim (str description)))
+        (into [:p.list-description {:title description}]
+              (italicize-species description)))]
 
-     [:div.lists-col
-      [:span.list-timestamp
+     [:div.lists-col.lists-meta
+      [:div.lists-col.col-items
+       (.toLocaleString size "en-US")]
+      [:div.lists-col.col-type
+       (when-not is-folder
+         [list-type type-names type])]
+      [:div.lists-col.col-date
        [readable-time timestamp]]]
 
-     [:div.lists-col
-      (when-not is-folder
-        [:code.start {:class (str "start-" type)}
-         type])]
+     (when show-tags?
+       [:div.lists-col.col-tags
+        [list-tags tags]])
 
-     [:div.lists-col
-      (into [:div.list-tags]
-            ;; Hide internal tags.
-            (for [tag (remove internal-tag? tags)]
-              [:code.tag tag]))]
-
-     [:div.lists-col.vertical-align-cell
+     [:div.lists-col.col-actions
       (when-not is-folder
         [:<>
-         [:div.list-controls.hidden-lg
-          [:div.dropdown
-           [:button.btn.dropdown-toggle
-            {:data-toggle "dropdown"}
-            [icon "list-more"]]
-           [:div.dropdown-menu.dropdown-menu-controls
-            [:div.list-controls
-             [list-row-controls item]]]]]
-         [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-          [list-row-controls item]]])
-      (when is-selected
-        [:div.selected-list-overlay])]]))
+         [:div.list-controls.list-controls-inline
+          [list-row-controls item false]]
+         [:div.list-controls-kebab.dropdown
+          [:button.list-action.dropdown-toggle
+           {:type "button"
+            :title "List actions"
+            :aria-label "List actions"
+            :data-toggle "dropdown"}
+           [icon "list-more"]]
+          [:div.dropdown-menu.dropdown-menu-controls
+           [:div.list-controls
+            [list-row-controls item true]]]]])]]))
 
 (defn lists []
   (let [filtered-lists @(subscribe [:lists/filtered-lists])
-        lists-selection @(subscribe [:lists/filter :lists])
-        all-types @(subscribe [:lists/all-types])
-        all-tags @(subscribe [:lists/all-tags])
         all-selected? @(subscribe [:lists/all-selected?])
         new-hidden-lists @(subscribe [:lists/new-hidden-lists])
-        fetching-lists? @(subscribe [:lists/fetching?])]
+        show-tags? @(subscribe [:lists/show-tags?])]
     [:section.lists-table
+     {:class (when-not show-tags? "lists-table--no-tags")}
 
      [:header.lists-row.lists-headers
-      [:div.lists-col
+      [:div.lists-col.col-check
        [:input {:type "checkbox"
+                :aria-label "Select all lists"
                 :checked all-selected?
                 :on-change (if all-selected?
                              #(dispatch [:lists/clear-selected])
                              #(dispatch [:lists/select-all-lists]))}]]
-      [:div.lists-col
-       [:div.list-header
-        [:span (str "List details ("
-                    (case lists-selection
-                      nil "All"
-                      :private "Private only"
-                      :public "Public only"
-                      :folder "Folders first"
-                      :upgrade "Need upgrade")
-                    ")")]
-        [sort-button :title]
-        [selection-button
-         :lists
-         [{:label "All" :value nil}
-          {:label "Private only" :value :private}
-          {:label "Public only" :value :public}
-          {:label "Folders first" :value :folder}
-          {:label "Need upgrade" :value :upgrade}]]]]
-      [:div.lists-col
-       [:div.list-header
-        [:span "Date"]
-        [sort-button :timestamp]
-        [selection-button
-         :date
-         [{:label "All" :value nil}
-          {:label "Last day" :value :day}
-          {:label "Last week" :value :week}
-          {:label "Last month" :value :month}
-          {:label "Last year" :value :year}]]]]
-      [:div.lists-col
-       [:div.list-header
-        [:span "Type"]
-        [sort-button :type]
-        [selection-button
-         :type
-         (cons {:label "All" :value nil}
-               (map (fn [type] {:label type :value type}) all-types))]]]
-      [:div.lists-col
-       [:div.list-header
-        [:span "Tags"]
-        [sort-button :tags]
-        [selection-button
-         :tags
-         (cons {:label "All" :value nil}
-               (map (fn [tag] {:label tag :value tag}) all-tags))]]]
-      [:div.lists-col
-       [:div.list-header
-        [:button.btn.refresh-button
-         {:disabled fetching-lists?
-          :on-click #(dispatch [:assets/fetch-lists])}
-         (if fetching-lists?
-           [mini-loader "tiny"]
-           [poppable {:data "Refresh lists"
-                      :children [icon-comp "refresh"]}])]]]]
+      [:div.lists-col.col-list
+       [sort-button :title "List"]]
+      [:div.lists-col.lists-meta
+       [:div.lists-col.col-items
+        [sort-button :size "Items"]]
+       [:div.lists-col.col-type
+        [sort-button :type "Type"]]
+       [:div.lists-col.col-date
+        [sort-button :timestamp "Date"]]]
+      (when show-tags?
+        [:div.lists-col.col-tags
+         [sort-button :tags "Tags"]])
+      [:div.lists-col.col-actions]]
 
      (when (seq new-hidden-lists)
        (let [amount (count new-hidden-lists)
-             plural? (> amount 2)]
-         [:div.lists-row
-          [:div.new-lists-alert.text-center
-           (str "You have " amount " new list"
-                (when plural? "s")
-                " that "
-                (if plural? "aren't" "isn't")
-                " visible under the active filters. ")
-           [:a {:role "button"
-                :on-click #(dispatch [:lists/show-new-lists])}
-            "Click here"]
-           " to clear filters."]
-          ;; There's no colspan with CSS Tables so we use the dummy element
-          ;; below to occupy space, and absolute positioning for the above.
-          [:div.new-lists-dummy (gstring/unescapeEntities "&nbsp;")]]))
+             plural? (> amount 1)]
+         [:div.new-lists-note.agr-note
+          (str "You have " amount " new list"
+               (when plural? "s")
+               " hidden by the current filters. ")
+          [:button.link-button
+           {:type "button"
+            :on-click #(dispatch [:lists/show-new-lists])}
+           "Clear filters"]]))
 
      (for [{:keys [id] :as item} filtered-lists]
        ^{:key id}
-       [list-row item])]))
+       [list-row item show-tags?])]))
 
 (defn no-lists []
   (let [no-lists? @(subscribe [:lists/no-lists?])
@@ -442,15 +488,12 @@
 (defn modal-list-row [item & {:keys [subop single?]}]
   (let [{:keys [id title timestamp type tags]} item]
     [:tr
-     [:td.title title]
+     [:td.title (italicize-species title)]
      [:td [readable-time timestamp]]
      [:td
-      [:code.start {:class (str "start-" type)}
-       type]]
+      [list-type @(subscribe [:lists/type-names]) type]]
      [:td
-      (into [:div.tags]
-            (for [tag (remove internal-tag? tags)]
-              [:code.tag tag]))]
+      [list-tags tags]]
      [:td
       (case subop
         :down [:button.btn.pull-right
@@ -718,13 +761,14 @@
              nil)]]]]]]]))
 
 (defn main []
-  [:div.container-fluid.lists
+  [:div.lists.agr-page
    [filter-lists]
-   [top-controls]
+   [:p.agr-note.lists-note "Select two or more lists to combine, intersect, subtract or compare them."]
    [upset/panel]
-   [pagination]
-   [lists]
-   [no-lists]
-   [pagination-bottom]
-   [bottom-controls]
+   [:div.lists-card
+    [filter-band]
+    [selection-bar]
+    [lists]
+    [no-lists]
+    [list-footer]]
    [modal]])

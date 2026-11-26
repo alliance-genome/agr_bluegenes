@@ -12,6 +12,14 @@
    (get-in db [:assets :templates (:current-mine db)])))
 
 (reg-sub
+ :template-chooser/loading?
+ (fn [db]
+   ;; True while a mine switch reloads assets, so the page shows a loader
+   ;; in place of "No templates available".
+   (or (:fetching-assets? db)
+       (nil? (get-in db [:assets :templates (:current-mine db)])))))
+
+(reg-sub
  :template-chooser/count
  (fn [db]
    (get-in db [:components :template-chooser :count])))

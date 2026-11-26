@@ -10,7 +10,7 @@ describe("Admin account list test", function() {
         cy.get(".lists-headers").within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.bottom-controls').within(() => {
+        cy.get('.selection-bar').within(() => {
             cy.contains("Delete").click({delay:100});
         })
         cy.get('.modal-footer').within(() => {
@@ -25,14 +25,7 @@ describe("Admin account list test", function() {
         cy.get('.lists-item').its("length").should('be.gt',0);
 
         cy.get(".lists-item").first().within(() => {
-            cy.get("button").find('svg[class="icon icon-list-more"]')
-            .should("be.visible")
-            .click();
-
-            cy.get("button").find('svg[class="icon icon-list-edit"]')
-            .should("be.visible")
-            .first()
-            .click();
+            cy.get('button[aria-label="Edit list"]:visible').click();
         });
 
         cy.get(".modal-body").within(()=>{
@@ -54,14 +47,7 @@ describe("Admin account list test", function() {
         cy.get('.lists-item').its("length").should('be.gt',0);
 
         cy.get(".lists-item").first().within(() => {
-            cy.get("button").find('svg[class="icon icon-list-more"]')
-            .should("be.visible")
-            .click();
-
-            cy.get("button").find('svg[class="icon icon-list-edit"]')
-            .should("be.visible")
-            .first()
-            .click();
+            cy.get('button[aria-label="Edit list"]:visible').click();
         });
 
         cy.get(".modal-body").within(()=>{
@@ -71,7 +57,7 @@ describe("Admin account list test", function() {
             cy.contains("Save").click();
         })
         cy.get(".lists-table").within(()=>{
-            cy.get(".tag").should("contain","Major genes");
+            cy.get(".list-tag").should("contain","Major genes");
         })
     })
 
@@ -81,9 +67,8 @@ describe("Admin account list test", function() {
         cy.get('.lists-item').its("length").should('be.gt',0);
 
         cy.get('.lists-headers').within(() => {
-            cy.contains("Tags").siblings(".dropdown").click();
-            cy.get("li").contains("Major genes").click();
         })
+        cy.get("#lists-filter-tags").select("Major genes");
         cy.get('.lists-item').its("length").should('eq',1);
     })
 
@@ -95,8 +80,8 @@ describe("Admin account list test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.bottom-controls').within(() => {
-            cy.contains("Move all").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Move").click();
         })
         cy.get(".css-1wy0on6").click().type("List of common genes{enter}",{delay:100},{force:true});
         cy.get(".modal-footer").within(() => {
@@ -113,8 +98,8 @@ describe("Admin account list test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.bottom-controls').within(() => {
-            cy.contains("Copy all").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Copy").click();
         })
         cy.get(".css-1wy0on6").click().type("List 2{enter}",{delay:100},{force:true});
         cy.get(".modal-footer").within(() => {
@@ -131,8 +116,8 @@ describe("Admin account list test", function() {
         cy.get('.lists-headers').within(() => {
             cy.get('[type="checkbox"]').check();
         })
-        cy.get('.bottom-controls').within(() => {
-            cy.contains("Move all").click();
+        cy.get('.selection-bar').within(() => {
+            cy.contains("Move").click();
         })
         cy.get(".css-1wy0on6").click().type("List 3{enter}",{delay:100},{force:true});
         cy.get(".css-1hwfws3").click().type("Subfolder 1{enter}",{delay:100},{force:true});

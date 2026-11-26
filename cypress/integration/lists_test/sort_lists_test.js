@@ -8,50 +8,44 @@ describe("Sort Lists Test", function() {
     });
 
     it("can sort lists by name in ascending order", function(){
-        cy.get(".lists-headers").children().eq(1).as("listDetailsSection").within(() => {
-            cy.get(".icon-sort").click();
-            cy.get(".active-asc-sort").should("exist");
-        })
+        cy.get(".lists-headers").contains(".sort-button", "List").as("sortButton");
+        cy.get("@sortButton").click();
+        cy.get("@sortButton").find(".active-asc-sort").should("exist");
         cy.get(".list-title").eq(0).should("include.text","Gene list");
     })
 
     it("can sort lists by name in descending order", function(){
-        cy.get(".lists-headers").children().eq(1).as("listDetailsSection").within(() => {
-            cy.get(".icon-sort").dblclick();
-            cy.get(".active-desc-sort").should("exist");
-        })
+        cy.get(".lists-headers").contains(".sort-button", "List").as("sortButton");
+        cy.get("@sortButton").dblclick();
+        cy.get("@sortButton").find(".active-desc-sort").should("exist");
         cy.get(".list-title").eq(0).should("include.text","Protein list");
     })
 
     it("can sort lists by date in ascending order", function(){
-        cy.get(".lists-headers").children().eq(2).as("dateSection").within(() => {
-            cy.get(".icon-sort").click();
-            cy.get(".active-asc-sort").should("exist");
-        })
+        cy.get(".lists-headers").contains(".sort-button", "Date").as("sortButton");
+        cy.get("@sortButton").click();
+        cy.get("@sortButton").find(".active-asc-sort").should("exist");
         cy.get(".list-title").eq(0).should("include.text","Gene list");
     })
 
     it("can sort lists by date in descending order", function(){
-        cy.get(".lists-headers").children().eq(2).as("dateSection").within(() => {
-            cy.get(".icon-sort").dblclick();
-            cy.get(".active-desc-sort").should("exist");
-        })
+        cy.get(".lists-headers").contains(".sort-button", "Date").as("sortButton");
+        cy.get("@sortButton").dblclick();
+        cy.get("@sortButton").find(".active-desc-sort").should("exist");
         cy.get(".list-title").eq(0).should("include.text","Protein list");
     })
 
     it("can sort lists by type in ascending order", function(){
-        cy.get(".lists-headers").children().eq(3).as("typeSection").within(() => {
-            cy.get(".icon-sort").click();
-            cy.get(".active-asc-sort").should("exist");
-        })
+        cy.get(".lists-headers").contains(".sort-button", "Type").as("sortButton");
+        cy.get("@sortButton").click();
+        cy.get("@sortButton").find(".active-asc-sort").should("exist");
         cy.get(".list-title").eq(0).should("include.text","Gene list");
     })
 
     it("can sort lists by type in descending order", function(){
-        cy.get(".lists-headers").children().eq(3).as("dateSection").within(() => {
-            cy.get(".icon-sort").dblclick();
-            cy.get(".active-desc-sort").should("exist");
-        })
+        cy.get(".lists-headers").contains(".sort-button", "Type").as("sortButton");
+        cy.get("@sortButton").dblclick();
+        cy.get("@sortButton").find(".active-desc-sort").should("exist");
         cy.get(".list-title").eq(0).should("include.text","Protein list");
     })
 });
