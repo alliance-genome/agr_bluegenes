@@ -1,19 +1,12 @@
+// Query Builder: a sticky Model Browser card on the left (340px) and a stack of
+// three cards on the right (editor, preview, reuse), under a four-step strip.
+// Page rules sit under .qb-page. Colours and spacing come from the --agr tokens.
+// Less pitfalls: calc() is written ~"calc(...)" and "1 / -1" as ~"1 / -1".
+
 @import "../variables";
 @import "../datatype-colors";
-@model-browser-bg: #f7f7f7;
-@model-browser-fg: black;
-@model-browser-class: #29b6ff;
-@query-browser-bg: white;
-@query-browser-fg: black;
-@query-browser-class: #29b6ff;
-@model-browser-class: #0090da;
-@swith: 300px;
 
-//this is the value by which we offset the borders of the
-//various QB trees to make it look like a tree ofrmat and not
-//just normal box borders
-
-@border-offset: 0.7em;
+// ---- Shared classes used by other pages -------------------------------------
 
 .danger {
     @dangercolor: #9d5858;
@@ -21,473 +14,699 @@
     fill: @dangercolor;
 }
 
-@querybuilder-soft-color: #d5d5d5;
-
-div.column-container {
-    display: flex;
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: var(--agr-nav-height, 100px); // set from the navbar's height (nav.cljs); 100px is the desktop value
-    bottom: var(--agr-footer-height, 92px); // set from the footer's height (footer/views.cljs)
-
-    .model-browser-column {
-        width: 400px;
-        background-color: @model-browser-bg;
-        color: @model-browser-fg;
-
-        border: 1px solid @querybuilder-soft-color;
-        border-width: 0 1px 0 0;
-
-        padding: @spacer/2 @spacer @spacer/2 @spacer;
-
-        resize: horizontal;
-        overflow: auto;
-
-        .model-browser-intro {
-            display: flex;
-            align-items: flex-end;
-        }
-
-        .model-browser-root {
-            display: flex;
-            max-width: 300px;
-            align-items: center;
-
-            .label-button {
-                margin-left: @spacer/2;
-            }
-        }
-
-        .browse-button {
-            margin-left: @spacer/2;
-            margin-top: 0;
-            padding-left: 5px;
-            padding-right: 15px;
-        }
-
-        .header-group {
-            display: flex;
-            justify-content: space-between;
-        }
-    }
-
-    .query-view-column {
-        padding: 20px;
-        flex: 1 0;
-        background-color: #fbfbfb;
-        overflow: auto;
-
-        p {
-            margin: @spacer 0 @spacer/2 0;
-        }
-
-        .flex-row {
-            display: flex;
-            align-items: baseline;
-        }
-
-        .panel {
-            border: 1px solid #e5e5e5;
-            height: 100%;
-        }
-
-        .button-group {
-            display: flex;
-            align-items: baseline;
-            flex-wrap: wrap;
-
-            button {
-                margin-right: @spacer/2;
-            }
-
-            .sort-priority {
-                color: #039be5;
-                margin-right: @spacer/2;
-            }
-
-            .input-group {
-                display: flex;
-                align-items: baseline;
-                flex-wrap: nowrap;
-
-                margin-top: 10px;
-                margin-right: @spacer;
-            }
-        }
-
-        // These two selectors below are to enable columns to expand to the same
-        // height as the tallest column on the same row.
-        // This is standard in Bootstrap 4.
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-        }
-        .row > [class*='col-'] {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .table {
-            margin-bottom: 0;
-        }
-
-        code {
-            display: inline-block;
-            background-color: #DFE6ED;
-            color: #4B5C6B;
-            margin: 0 @spacer/2 @spacer/2 0;
-        }
-
-        .query-table {
-            tbody > tr {
-                cursor: pointer;
-
-                &.active-query,
-                &.active-query:hover {
-                    background-color: #f0fae5;
-                }
-
-                &:hover {
-                    background-color: #edf3f2;
-                }
-            }
-
-            code.start {
-                color: inherit;
-                background-color: @color-Nuffink;
-
-                // If only we had CSS-in-JS [;
-                // Actually, I do think if we want to do this well, (including
-                // the 3 other places this is used) we should use inline style.
-                &.start-Gene {
-                    background-color: @color-Gene;
-                    color: #fff;
-                }
-                &.start-Protein {
-                    background-color: @color-Protein;
-                }
-                &.start-Author,
-                &.start-Publication {
-                    background-color: @color-Publication;
-                }
-                &.start-Organism {
-                    background-color: @color-Organism;
-                }
-                &.start-Interaction {
-                    background-color: @color-Interaction;
-                }
-                &.start-GOTerm {
-                    background-color: @color-GO;
-                    color: #fff;
-                }
-            }
-
-            .date {
-                white-space: nowrap;
-            }
-        }
-
-        .preview-container {
-            overflow: auto;
-        }
-
-        .joins-list {
-            padding: 0;
-            list-style: none;
-            margin-top: @spacer/2;
-            margin-bottom: @spacer;
-
-            & > li {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-
-                & > svg {
-                    fill: #039be5;
-                    font-size: 1.5em;
-                }
-            }
-        }
-
-        .logic-container {
-            display: flex;
-            align-items: baseline;
-            margin-bottom: @spacer;
-
-            pre {
-                margin-bottom: 0;
-            }
-        }
-
-        pre {
-            // Wrap lines at words, so you can see entire XML without scrolling.
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .query-preview-loader {
-            position: relative;
-            top: 0.4*@spacer;
-            left: 0.4*@spacer;
-        }
-
-        @media (min-width: 1600px) {
-            // .col-xl-* doesn't exist and adding it properly is a lot of work
-            // for something we probably will only use here. Hence a workaround!
-            .col-xl-5-workaround {
-                width: 41.66666667%;
-                float: left;
-            }
-            .col-xl-6-workaround {
-                width: 50%;
-                float: left;
-            }
-            .col-xl-7-workaround {
-                width: 58.33333333%;
-                float: left;
-            }
-        }
-
-        .template-intro {
-            .icon {
-                margin-left: 3px;
-            }
-        }
-
-        .template-actions {
-            display: flex;
-            align-items: baseline;
-        }
-
-        .create-template {
-            .input-group {
-                display: flex;
-                align-items: baseline;
-                flex-wrap: nowrap;
-
-                margin-top: 10px;
-                margin-right: @spacer;
-
-                label {
-                    display: inline-block;
-                    min-width: 100px;
-                    text-align: right;
-                    font-size: 14px;
-                }
-
-                input[type="text"].form-control {
-                    max-width: 500px;
-                }
-
-                textarea.form-control {
-                    max-width: 500px;
-                }
-            }
-
-            .helptext {
-                display: inline-block;
-                padding-left: 107px;
-                margin-top: 5px;
-                font-size: 12px;
-            }
-
-            .template-constraints {
-
-                .const {
-                    display: flex;
-                    flex-wrap: nowrap;
-
-                    margin-top: 15px;
-
-                    &-reorder {
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-
-                        .drag-bar {
-                            font-size: 18px;
-                            cursor: pointer;
-                            margin-right: 10px;
-                        }
-                    }
-
-                    &-group {
-                        width: 100%;
-                        max-width: 500px;
-
-                        // We want the constraint to look editable, even though
-                        // it's disabled.
-                        &.editable {
-                            .constraint-input .disabled,
-                            .constraint-chooser.disabled {
-                                fill: rgb(85, 85, 85);
-                                color: rgb(85, 85, 85);
-                                background-color: white;
-                            }
-                        }
-                    }
-
-                    &-options {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-
-                    .radio-group {
-                        label {
-                            font-size: 1em;
-                            line-height: 1em;
-                            color:@body-foreground-color;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-.contract {
-    max-width: 400px;
-}
-
-.main-window {
-    position: fixed;
-    left: @swith;
-    top: 60px;
-    bottom: 54px;
-    right: 0;
-    // padding-left: @swith;
-    // padding: 20px;
-    width: 100%;
-    background-color: white;
-}
-
-.addfilter {
-    font-weight: normal;
-    color: black;
-    padding-left: 15px;
-    font-size: 0.8em;
-}
-
 .noselect {
     -webkit-touch-callout: none;
-    /* iOS Safari */
     -webkit-user-select: none;
-    /* Safari */
     -khtml-user-select: none;
-    /* Konqueror HTML */
     -moz-user-select: none;
-    /* Firefox */
     -ms-user-select: none;
-    /* Internet Explorer/Edge */
     user-select: none;
-    /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
 }
 
-.playground {
-    font-size: 0.8em;
-    font-family: "monospace";
-    max-height: 500px;
-    overflow-y: scroll;
+.arr {
+    transition: all 90ms ease;
+}
+
+.btn-slim {
+    margin: 1px;
+    padding: 3px;
+    text-transform: none;
+}
+
+.constraint-component {
+    display: flex;
+    align-items: center;
+
+    .icon {
+        min-width: 1em;
+        margin-right: -1.5em;
+    }
+}
+
+.icon.icon-bin {
+    .danger;
+}
+
+.label-soft {
+    background-color: #c8ced0;
+    color: #666;
+    border-radius: 3px;
+}
+
+.label-no-results {
+    background-color: #df7d7d;
+    color: white;
+    border-radius: 3px;
+}
+
+//yes this is overly specific. Sorry, bootstrap is bad to
+//override.
+.constraint-operator.input-group-btn button.btn {
+    text-transform: none;
+}
+
+.qb-label {
+    padding-left: 0;
+    white-space: nowrap;
+}
+
+// ---- Page and layout ----------------------------------------------------------
+
+.agr-page.qb-page {
+    max-width: 1280px;
+}
+
+.qb-layout {
+    display: grid;
+    grid-template-columns: clamp(260px, 32%, 340px) minmax(0, 1fr);
+    gap: var(--agr-space-5);
+    align-items: start;
+}
+
+// ---- Steps strip --------------------------------------------------------------
+
+.qb-steps {
+    display: flex;
+    gap: var(--agr-space-3);
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--agr-space-4);
+}
+
+.qb-step {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    column-gap: var(--agr-space-2);
+    align-items: start;
+    font-weight: 700;
+    color: var(--agr-muted);
+    min-width: 0;
+
+    &.is-active {
+        color: var(--agr-text);
+    }
+}
+
+.qb-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--agr-border-strong);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+
+    svg {
+        width: 12px;
+        height: 12px;
+        fill: var(--agr-primary);
+    }
+
+    .is-active & {
+        background: var(--agr-primary);
+        border-color: var(--agr-primary);
+        color: #fff;
+    }
+
+    .is-done & {
+        border-color: var(--agr-primary);
+        color: var(--agr-primary);
+    }
+
+    .is-optional & {
+        border-style: dashed;
+    }
+}
+
+.qb-step-hint {
+    grid-column: 2;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--agr-muted);
+}
+
+// ---- Left card: Model Browser -------------------------------------------------
+
+.model-browser-column {
+    position: sticky;
+    top: var(--agr-space-4);
+    max-height: ~"calc(100vh - 2 * var(--agr-space-4))";
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--agr-space-3);
+    padding: var(--agr-space-4);
+    border: 1px solid var(--agr-border);
+    border-radius: var(--agr-radius);
+    background: var(--agr-bg);
+    min-width: 0;
+
+    > h4 {
+        font-size: var(--agr-h4-size);
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .header-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--agr-space-2);
+
+        h4 {
+            font-size: var(--agr-h4-size);
+            font-weight: 700;
+            margin: 0;
+        }
+    }
+
+    .model-browser {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        margin: 0 ~"calc(-1 * var(--agr-space-4))";
+        padding: 0 var(--agr-space-4);
+    }
+}
+
+.model-browser-root {
+    display: flex;
+    gap: var(--agr-space-2);
+    align-items: center;
+
+    select {
+        flex: 1;
+        min-width: 0;
+        background-image: none;
+    }
+}
+
+.qb-add-summary {
+    white-space: nowrap;
+    height: 34px;
+}
+
+.qb-intro-line {
+    font-size: 13px;
+    color: var(--agr-muted);
+    margin: 0;
+}
+
+.qb-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    color: var(--agr-primary-dark);
+    cursor: pointer;
+
+    .icon {
+        width: 14px;
+        height: 14px;
+        fill: var(--agr-primary-dark);
+    }
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.qb-help,
+.qb-no-match {
+    font-size: 13px;
+    color: var(--agr-muted);
+
+    p {
+        margin: 0;
+    }
+}
+
+.qb-no-match {
+    padding: var(--agr-space-3) 0;
+    margin: 0;
+}
+
+.qb-tree-tools {
+    display: flex;
+    flex-direction: column;
+    gap: var(--agr-space-2);
+}
+
+.qb-filter {
+    position: relative;
+
+    > .icon {
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        margin-top: -7px;
+        width: 14px;
+        height: 14px;
+        fill: var(--agr-secondary);
+        pointer-events: none;
+    }
+
+    input.form-control.input-sm {
+        padding: 0 28px 0 32px;
+        background-image: none;
+        border: 1px solid var(--agr-border-strong);
+        border-radius: var(--agr-radius);
+        height: 32px;
+        margin: 0;
+        font-size: 13px;
+    }
+}
+
+.qb-filter-clear {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    margin-top: -10px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+
+    .icon {
+        width: 12px;
+        height: 12px;
+        fill: var(--agr-secondary);
+    }
+
+    &:hover .icon {
+        fill: var(--agr-text);
+    }
+}
+
+.qb-tree-buttons {
+    display: flex;
+    gap: var(--agr-space-1);
+}
+
+.qb-tool {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    border-color: var(--agr-border);
+
+    .icon {
+        width: 12px;
+        height: 12px;
+        fill: var(--agr-muted);
+    }
+
+    &[title="Remove all selected attributes"]:hover {
+        color: var(--agr-danger);
+        border-color: var(--agr-danger);
+        background: var(--agr-bg);
+
+        .icon {
+            fill: var(--agr-danger);
+        }
+    }
+}
+
+.qb-section {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 0;
+    border: 0;
+    border-bottom: 1px solid var(--agr-border);
+    background: var(--agr-bg);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--agr-muted);
+    text-align: left;
+    cursor: pointer;
+
+    .icon {
+        width: 12px;
+        height: 12px;
+        fill: var(--agr-secondary);
+    }
+
+    .agr-count {
+        margin-left: 0;
+        font-weight: 400;
+    }
+}
+
+.qb-selected {
+    margin-left: auto;
+    font-weight: 400;
+    color: var(--agr-primary-dark);
+}
+
+// Model Browser tree
+.model-browser {
     .noselect;
     cursor: pointer;
-    background-color: white;
-    padding: 20px;
+    color: var(--agr-text);
 
-    li,
-    ul {
+    ul,
+    li {
         list-style: none;
         margin: 0;
         padding: 0;
     }
 
-    ul {
-        padding-left: 1em;
+    .icon {
+        flex: none;
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        min-height: 16px;
+        fill: var(--agr-secondary);
     }
 
-    li {
-        padding-left: 1em;
-        border: 1px solid @querybuilder-soft-color;
-        border-width: 0 0 1px 1px;
+    .icon-checkbox-checked {
+        fill: var(--agr-primary);
     }
 
-    li.haschildren {
-        border-bottom: 0;
+    .icon-checkbox-unchecked {
+        fill: var(--agr-border-strong);
     }
 
-    li.empty {
-        font-style: italic;
-        color: silver;
-        border-color: silver;
-    }
+    li.haschildren > span,
+    .group-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 28px;
+        padding: 0 6px;
+        border-radius: var(--agr-radius);
+        font-size: 14px;
+        cursor: pointer;
+        white-space: nowrap;
 
-    li ul {
-        border-top: 1px solid @querybuilder-soft-color;
-        margin-left: -1em;
-        padding-left: 2em;
-    }
-
-    ul li:last-child ul {
-        border-left: 1px solid white;
-        margin-left: -17px;
-    }
-
-    .il {
-        margin: 2px;
-        padding: 2px;
-        text-transform: none;
-        // font-size: 0.8em;
-    }
-
-    .hotlink {
-        a {
-            color: #039be5;
-            padding-left: 3px;
-            padding-right: 3px;
-            font-size: 0.8em;
-            font-style: italic;
+        &:hover {
+            background: var(--agr-bg-hover);
         }
     }
-}
 
-.qb-container {
-    font-size: 0.8em;
-    // font-family: "monospace";
-    .qb-attribute {
-        font-style: italic;
+    li.is-selected > span {
+        background: var(--agr-table-head-bg);
+        font-weight: 700;
+    }
+
+    .qb-section .icon {
+        width: 12px;
+        height: 12px;
+        min-width: 12px;
+        min-height: 12px;
+    }
+
+    .qb-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .qb-class {
+        color: var(--agr-primary-dark);
+        font-weight: 400;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &.empty-class {
+            color: var(--agr-secondary);
+        }
+    }
+
+    .qb-group .icon.reverse-reference {
+        margin: 0;
+    }
+
+    .qb-match-hint {
+        font-size: 13px;
+        color: var(--agr-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .group-title .label-button {
+        margin-left: auto;
+        border: 0;
+        background: none;
+        padding: 0 2px;
+        font-size: 13px;
+        color: var(--agr-secondary);
+        white-space: nowrap;
+    }
+
+    .group-title:hover .label-button {
+        color: var(--agr-primary-dark);
+        text-decoration: underline;
+    }
+
+    .expanded-group > ul {
+        margin-left: 11px;
+        padding-left: 12px;
+        border-left: 1px solid var(--agr-border);
+    }
+
+    select.form-control {
+        background-image: none;
+        margin: var(--agr-space-1) 0;
+    }
+
+    .class-count {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--agr-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .no-icon {
+        margin-left: 22px;
     }
 }
 
-.flexmex {
+.label-button {
+    transition: all 100ms ease;
+    cursor: pointer;
+}
+
+.qb-add-summary.label-button {
+    font-size: 13px;
+    margin: 0;
+    padding: 2px 10px;
+    color: #fff;
+    border: 1px solid var(--agr-primary);
+    background: var(--agr-primary);
+
+    &:hover {
+        color: #fff;
+        background: var(--agr-primary-dark);
+        border-color: var(--agr-primary-dark);
+    }
+}
+
+// ---- Right column -------------------------------------------------------------
+
+.query-view-column {
     display: flex;
-    position: relative;
-    top: @border-offset;
-    background: white;
+    flex-direction: column;
+    gap: var(--agr-space-4);
+    min-width: 0;
 
-    .con {
-        flex: 1 0;
+    p {
+        margin: 0 0 var(--agr-space-2);
+    }
+
+    .flex-row {
         display: flex;
-        flex-direction: column;
+        align-items: baseline;
+        gap: var(--agr-space-2);
+        margin-top: var(--agr-space-2);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    code {
+        display: inline-block;
+        background-color: var(--agr-bg-hover);
+        color: var(--agr-muted);
+        margin: 0 var(--agr-space-1) var(--agr-space-1) 0;
+    }
+
+    .button-group {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--agr-space-2);
+
+        .sort-priority {
+            color: var(--agr-primary-dark);
+            font-size: 13px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: var(--agr-space-2);
+        }
+    }
+
+    .joins-list {
+        padding: 0;
+        list-style: none;
+        margin: var(--agr-space-2) 0 var(--agr-space-4);
+
+        > li {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            > svg {
+                fill: var(--agr-primary);
+                font-size: 1.5em;
+            }
+        }
+    }
+
+    .logic-container {
+        display: flex;
+        align-items: baseline;
+        gap: var(--agr-space-2);
+        margin: var(--agr-space-3) 0 0;
+
+        pre {
+            margin-bottom: 0;
+            font-family: var(--agr-font-mono);
+            background: var(--agr-bg-light);
+        }
+    }
+
+    pre {
+        // Wrap lines at words, so you can see entire XML without scrolling.
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: var(--agr-font-mono);
+        font-size: 12px;
+        background: var(--agr-bg-light);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+        max-height: 360px;
+        overflow: auto;
+    }
+
+    .query-preview-loader {
+        margin-left: auto;
+    }
+
+    .preview-container {
+        max-height: 360px;
+        overflow: auto;
+    }
+
+    .qb-muted,
+    .qb-hint,
+    .qb-start-label {
+        font-size: 13px;
+        color: var(--agr-muted);
+    }
+
+    .qb-hint {
+        margin: var(--agr-space-2) 0 0;
+    }
+
+    .template-intro .icon {
+        margin-left: 3px;
+    }
+
+    .template-actions {
+        display: flex;
+        align-items: baseline;
+        gap: var(--agr-space-2);
+        margin-top: var(--agr-space-3);
     }
 }
+
+.qb-card {
+    border: 1px solid var(--agr-border);
+    border-radius: var(--agr-radius);
+    box-shadow: none;
+    margin: 0;
+    background: var(--agr-bg);
+
+    > .panel-body {
+        padding: var(--agr-space-4);
+    }
+}
+
+// Empty editor
+.qb-empty-lead {
+    color: var(--agr-muted);
+}
+
+.qb-start-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--agr-space-2);
+    align-items: center;
+    margin-top: var(--agr-space-3);
+}
+
+// Run bar
+.qb-runbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--agr-space-2);
+    align-items: center;
+    background: var(--agr-bg);
+    border-top: 1px solid var(--agr-border);
+    margin-top: var(--agr-space-3);
+    padding-top: var(--agr-space-3);
+
+    #query-title-input {
+        background-image: none;
+    }
+}
+
+// ---- Editor tree --------------------------------------------------------------
 
 .query-browser {
-    .icon, .icon-filter, .icon-edit {
-      fill: darken(silver,20%);
-      .arr;
-    }
-    .icon-filter {
-        width: @border-offset;
-        margin-left:0;
-    }
     .noselect;
-    font-size: 1.1em;
     cursor: pointer;
-    background-color: @query-browser-bg;
-    color: @query-browser-fg;
-    padding: 0 20px 20px;
+    color: var(--agr-text);
+
+    .icon {
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        fill: var(--agr-secondary);
+        .arr;
+
+        &:hover {
+            fill: var(--agr-primary-dark);
+        }
+    }
+
+    .icon-bin {
+        margin-left: auto;
+
+        &:hover {
+            fill: var(--agr-danger);
+        }
+    }
 
     li.tree,
     ul.tree {
@@ -496,108 +715,58 @@ div.column-container {
         padding: 0;
     }
 
-    ul.tree {
-        padding-left: 1em;
-        padding-left: 0;
-    }
-
-    li.tree {
-        padding-left: 1em;
-        // padding-left: 0.2em;
-        border: 1px solid @querybuilder-soft-color;
-        border-width: 0 0 1px 1px;
-    }
-
-    li.tree.haschildren {
-        border-bottom: 0;
-    }
-
-    li.tree.empty {
-        font-style: italic;
-        color: silver;
-        border-color: silver;
-    }
-
-    li.tree p {
-        margin: 0;
-        // font-size: 1.2em;
-        background: @query-browser-bg;
-        position: relative;
-        top: 0.5em;
-        top: @border-offset;
-
-        &.classy {
-            font-size: 1.5em;
-            font-style: italic;
-            font-weight: bold;
-        }
-    }
-
     li.tree ul.tree {
-        border-top: 1px solid @querybuilder-soft-color;
-        margin-left: -1em;
-        padding-left: 2em;
+        margin-left: 11px;
+        padding-left: 12px;
+        border-left: 1px solid var(--agr-border);
     }
 
-    ul.tree li.tree:last-child ul.tree {
-        border-left: 1px solid white;
-        margin-left: -1em;
+    .flexmex {
+        display: flex;
+        min-height: 36px;
+        align-items: center;
     }
 
-    .il {
-        margin: 2px;
-        padding: 2px;
-        text-transform: none;
-        // font-size: 0.8em;
+    .lab {
+        display: flex;
+        align-items: center;
+        gap: var(--agr-space-2);
+        width: 100%;
     }
 
     .qb-attribute {
-        // font-style: italic;
-        // padding-left: 19px;
+        font-size: 14.4px;
+        color: var(--agr-text);
         white-space: nowrap;
     }
 
     .qb-class {
-        font-weight: 500;
-        color: @query-browser-class;
         white-space: nowrap;
 
+        .qb-label a {
+            font-weight: 700;
+            color: var(--agr-primary-dark);
+        }
+
         .label {
-            padding: @spacer*0.1 @spacer*0.6;
-            margin-left: @spacer/2;
+            padding: 2px 6px;
         }
     }
 
     .qb-type {
-        font-size: 12px;
-        margin-left: @spacer/2;
-        color: #8d8d8d;
+        font-size: 13px;
+        color: var(--agr-muted);
     }
-
-    .light {
-        color: #898989;
-    }
-
-    .semilight {
-        color: #c1c1c1;
-    }
-
-    select {
-        background-color: gainsboro;
-    }
-
-    .subclass {}
 
     .outer-join-button {
-        & > svg {
-            margin: 0 @spacer/2 0 0;
-        }
+        display: flex;
 
         &.active > svg {
-            fill: #039be5;
+            fill: var(--agr-primary);
         }
     }
 
+    // Constraint widgets are shared components and need these overrides.
     .constraint-selector.constraint-selector.constraint-selector.constraint-selector.constraint-selector.constraint-selector {
         flex-direction: row;
     }
@@ -630,190 +799,39 @@ div.column-container {
     }
 }
 
-.class-browser {
-    .no-icon {
-        margin-left: 2em;
-    }
-
-    .class-count {
-        margin-left: @spacer/2;
-    }
-}
-
-.model-browser {
-    .icon {
-        fill: darken(silver,10%);
-
-        // Without this, they will oddly shrink when there's little space.
-        min-width: 1em;
-        min-height: 1em;
-    }
-    .noselect;
-    font-size: 0.9em;
-    cursor: pointer;
-    background-color: @model-browser-bg;
-    color: @model-browser-fg;
-    padding: 0 20px 20px;
-
-    li,
-    ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    ul {
-        padding-left: 1em;
-        padding-left: 0;
-    }
-
-    li {
-      a {padding-left:0;}
-        padding-left: 1em;
-        // padding-left: 0.2em;
-        border: 1px solid @querybuilder-soft-color;
-        border-width: 0 0 1px 1px;
-        height: 100%;
-
-        &.haschildren {
-            border-bottom: 0;
-        }
-
-        &.empty {
-            font-style: italic;
-            color: silver;
-            border-color: silver;
-        }
-
-        ul {
-            border-top: 1px solid @querybuilder-soft-color;
-            margin-left: -1em;
-            padding-left: 2em;
-        }
-    }
-
-    ul li:last-child ul {
-        border-left: 1px solid white;
-        margin-left: -1em;
-    }
-
-    .il {
-        margin: 2px;
-        padding: 2px;
-        text-transform: none;
-        // font-size: 0.8em;
-    }
-
-    .qb-attribute {
-        // font-style: italic;
-        // padding-left: 19px;
-        white-space: nowrap;
-    }
-
-    .qb-class {
-        font-weight: 500;
-        color: @model-browser-class;
-
-        &.empty-class {
-            color: @visible-gray;
-        }
-    }
-
-    .qb-group {
-        .icon.reverse-reference {
-            margin: 0;
-        }
-    }
-
-    .light {
-        color: #898989;
-    }
-
-    .semilight {
-        color: #c1c1c1;
-    }
-
-    select {
-        background-color: gainsboro;
-    }
-
-    li.haschildren > span {
-        display: flex;
-        background-color: @model-browser-bg;
-        align-items: center;
-    }
-
-    li {
-        position: relative;
-    }
-
-    .expanded-group > .group-title {
-        background-color: @model-browser-bg;
-        margin-bottom: -@border-offset;
-        z-index: 12;
-        position: relative;
-        padding: @border-offset/2 0em;
-        height: 2.3em;
-    }
-
-    .group-title {
-      &.is-parent {
-        padding-top:@border-offset;
-        .expand-close .icon {
-          margin-top:@border-offset;
-        }
-         .qb-class {
-           display:inline-block;
-           margin-top:@border-offset/2;
-        }
-      }
-        white-space: nowrap;
-    }
-
-    .expanded-group ul {
-        padding-top: @border-offset;
-        z-index: 11;
-    }
-
-    .model-button-container {
-        padding-left: 0.6em;
-
-        .model-button-group {
-            display: flex;
-
-            .icon {
-                fill: @body-foreground-color;
-            }
-        }
-    }
-}
-
-.arr {
-    transition: all 90ms ease;
-}
-
-.qb-label {
-    padding-left: 0;
-    white-space: nowrap;
-}
-
-.icon-blank::before,
-.icon-spacer::before {
-    width: 1.28571429em;
-    content: ' ';
-}
-
 .contract {
+    max-width: 560px;
+    background: var(--agr-bg-light);
+    border-left: 3px solid var(--agr-primary-light);
+    border-radius: var(--agr-radius);
+    padding: var(--agr-space-2);
+    margin: var(--agr-space-1) 0;
+
+    input.form-control {
+        background-image: none;
+    }
+
+    // The constraint component lays out its selector and input as grid columns.
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+    }
+
+    .row > [class*='col-'] {
+        display: flex;
+        flex-direction: column;
+        padding: 0 var(--agr-space-1);
+    }
+
     &.empty {
         .input-group input[type=text] {
             border: 0;
             border-left: solid 1px #ccc;
             border-radius: 0;
-            background-color: #f7f7f7;
+            background-color: var(--agr-bg-light);
         }
     }
-    margin-top: 0.3em;
-    padding: 0.3em 0;
 
     .input-group {
         border: solid #ccc 1px;
@@ -849,187 +867,317 @@ div.column-container {
     }
 }
 
-.sort-order {
-    margin: 0;
-    padding: 0;
-
-    li {
-        list-style-type: none;
-
-        i {
-            padding: 0 10px;
-        }
-        margin: 5px;
-        padding: 10px;
-        background-color: #03a9f4;
-        color: white;
-    }
-}
-
-.dragme {
-    margin: 0;
-    padding: 0;
-
-    li {
-        list-style-type: none;
-        transition: all 100ms ease;
-        background-color: #f7f7f7;
-        padding: 7px;
-        margin: 2px;
-        border: 1px solid grey;
-        display: inline;
-
-        &.dragging {
-            background-color: @model-browser-class;
-            // background-color: white;
-            opacity: 0.8;
-            color: white;
-            // margin-top: 15px;
-            // padding-top: 15px;
-        }
-    }
-}
-
-.label-button {
-    font-size: 0.8em;
-    margin-left: 2px;
-    padding: 1px 3px;
-    transition: all 100ms ease;
-    border: 1px solid #c4c4c4;
-    border-radius: 3px;
-    background-color: white;
-    cursor: pointer;
-
-    &:hover {
-        background-color: @model-browser-class;
-        border: 1px solid @model-browser-class;
-        color: white;
-    }
-}
+// ---- Manage Columns -----------------------------------------------------------
 
 .sort-order-container {
     display: flex;
-    flex-wrap: wrap;
-    padding: 10px;
     flex-direction: column;
+    gap: var(--agr-space-1);
     transition: all 100ms ease;
 
-    &.dragtest {
-        background-color: #f7f7f7;
-        border-radius: 10px;
-
-        > * {
-            background-color: white;
-        }
+    > * {
+        display: flex;
+        cursor: grab;
+        transition: all 100ms ease;
+        background: var(--agr-bg);
+        border: 1px solid var(--agr-border);
+        border-radius: var(--agr-radius);
+        min-height: 40px;
+        padding: 0 var(--agr-space-2);
+        gap: var(--agr-space-2);
+        align-items: center;
     }
 
-    > * {
-        font-size: 0.9em;
-        cursor: -webkit-grab;
-        transition: all 100ms ease;
-        background-color: #f7f7f7;
-        padding: 7px;
-        margin: 2px;
-        border: 1px solid grey;
-        display: inline;
+    .dragging {
+        background: var(--agr-primary-light);
+        color: var(--agr-text);
+    }
 
-        &.dragging {
-            background-color: @model-browser-class;
-            opacity: 0.8;
-            color: white;
-            margin-left: 15px;
-        }
+    .drag-bar {
+        cursor: grab;
+        color: var(--agr-secondary);
     }
 
     .sort-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 40px;
+        justify-content: flex-start;
         max-width: 100%;
 
         .path-parts {
             display: flex;
             flex-wrap: wrap;
+            flex: 1;
+            min-width: 0;
 
             .part {
                 padding: 0 2px;
+
+                &:nth-child(even) {
+                    color: var(--agr-secondary);
+                }
             }
         }
 
-        .sort-button {
-            background-color: white;
-            font-size: 16px;
-            outline: solid 1px @querybuilder-soft-color;
-            margin-right: 4px;
-            display: flex;
-            padding: 4px;
+        .button-group {
+            margin-left: auto;
+        }
 
-            & > svg {
+        .sort-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--agr-bg);
+            border: 1px solid var(--agr-border-strong);
+            border-radius: var(--agr-radius);
+
+            > svg {
                 margin: 0;
-                fill: #6c757d;
+                width: 16px;
+                height: 16px;
+                fill: var(--agr-muted);
             }
 
             &.active {
-                outline: solid 2px #039be5;
-            }
+                border-color: var(--agr-primary);
+                background: var(--agr-table-head-bg);
 
-            &.active > svg {
-                fill: #039be5;
+                > svg {
+                    fill: var(--agr-primary);
+                }
             }
         }
 
         .outerjoined-section {
-            margin-right: 4px;
+            margin-left: auto;
 
             svg {
                 margin: 0;
-                fill: #039be5;
+                fill: var(--agr-primary);
                 font-size: 1.5em;
             }
         }
     }
 }
 
-.label-soft {
-    background-color: #c8ced0;
-    color: #666;
-    border-radius: 3px;
-}
+// ---- Reuse card ---------------------------------------------------------------
 
-.label-no-results {
-    background-color: #df7d7d;
-    color: white;
-    border-radius: 3px;
-}
+.query-table {
+    tbody > tr {
+        cursor: pointer;
 
-.btn-slim {
-    margin: 1px;
-    padding: 3px;
-    text-transform: none;
-}
+        &.active-query,
+        &.active-query:hover {
+            background: var(--agr-heat-1);
+        }
+    }
 
-.scrollable-dropdown {
-    overflow-y: auto;
-    max-height: 300px;
-}
+    code.start {
+        color: inherit;
+        background-color: @color-Nuffink;
 
-.constraint-component {
-    display: flex;
-    align-items: center;
+        &.start-Gene {
+            background-color: @color-Gene;
+            color: #fff;
+        }
+        &.start-Protein {
+            background-color: @color-Protein;
+        }
+        &.start-Author,
+        &.start-Publication {
+            background-color: @color-Publication;
+        }
+        &.start-Organism {
+            background-color: @color-Organism;
+        }
+        &.start-Interaction {
+            background-color: @color-Interaction;
+        }
+        &.start-GOTerm {
+            background-color: @color-GO;
+            color: #fff;
+        }
+    }
 
-    .icon {
-        min-width: 1em;
-        margin-right: -1.5em;
+    .date {
+        white-space: nowrap;
     }
 }
 
-.icon.icon-bin {
-    .danger;
+.qb-row-action + .qb-row-action {
+    margin-left: var(--agr-space-2);
 }
 
-//yes this is overly specific. Sorry, bootstrap is bad to
-//override.
-.constraint-operator.input-group-btn button.btn {
-    text-transform: none;
+.qb-import {
+    textarea {
+        font-family: var(--agr-font-mono);
+        font-size: 13px;
+        background-image: none;
+    }
+}
+
+.create-template {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--agr-space-5);
+
+    @media (min-width: 1200px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .input-group {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: nowrap;
+        margin-top: 10px;
+
+        label {
+            display: inline-block;
+            min-width: 100px;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        input[type="text"].form-control,
+        textarea.form-control {
+            max-width: 500px;
+            background-image: none;
+        }
+    }
+
+    .helptext {
+        display: inline-block;
+        padding-left: 107px;
+        margin-top: 5px;
+        font-size: 13px;
+    }
+
+    .template-constraints {
+        .const {
+            display: flex;
+            flex-wrap: nowrap;
+            margin-top: 15px;
+
+            &-reorder {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
+                .drag-bar {
+                    font-size: 18px;
+                    cursor: pointer;
+                    margin-right: 10px;
+                }
+            }
+
+            &-group {
+                width: 100%;
+                max-width: 500px;
+
+                // We want the constraint to look editable, even though
+                // it's disabled.
+                &.editable {
+                    .constraint-input .disabled,
+                    .constraint-chooser.disabled {
+                        fill: rgb(85, 85, 85);
+                        color: rgb(85, 85, 85);
+                        background-color: white;
+                    }
+                }
+            }
+
+            &-options {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .radio-group {
+                label {
+                    font-size: 1em;
+                    line-height: 1em;
+                    color: @body-foreground-color;
+                }
+            }
+        }
+    }
+}
+
+// ---- Narrow screens -----------------------------------------------------------
+
+@media (max-width: 699px) {
+    .qb-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .model-browser-column {
+        position: static;
+        max-height: none;
+
+        .model-browser {
+            max-height: 360px;
+        }
+    }
+}
+
+@media (max-width: 899px) {
+    .qb-steps {
+        gap: var(--agr-space-2);
+    }
+
+    .qb-step-label {
+        font-size: 13px;
+    }
+
+    .qb-step .qb-step-hint {
+        display: none;
+    }
+
+    .qb-step.is-active {
+        .qb-step-hint {
+            display: block;
+        }
+    }
+}
+
+@media (max-width: 767px) {
+    .qb-runbar {
+        position: static;
+    }
+}
+
+@media (max-width: 575px) {
+    .qb-card .agr-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .model-browser-root {
+        flex-wrap: wrap;
+    }
+
+    .create-template .input-group {
+        flex-wrap: wrap;
+    }
+
+    .create-template .helptext {
+        padding-left: 0;
+    }
+}
+
+// ---- Keyboard focus -----------------------------------------------------------
+
+.qb-link-btn,
+.qb-section,
+.qb-filter-clear,
+.qb-tool,
+.qb-card .agr-tabs button,
+.model-browser .qb-attr-row,
+.query-browser .icon-filter,
+.query-browser .qb-label [role="button"] {
+    &:focus-visible {
+        outline: 2px solid var(--agr-primary);
+        outline-offset: 1px;
+    }
 }

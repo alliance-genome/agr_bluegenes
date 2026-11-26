@@ -20,10 +20,6 @@
          (map #(into {} (remove (comp empty? val)) %)
               queries)))
 
-(defn one-of? [haystack needle] (some? (some #{needle} haystack)))
-
-(def auto (reagent/atom true))
-
 (def aquery {:from "Gene"
              :constraintLogic "A or B"
              :select ["symbol"
@@ -61,10 +57,10 @@
         preferred (filter-preferred classes)]
     (into [:select.form-control
            {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
-            :value root-class}
+            :value (or root-class "")}
            (when (nil? root-class)
              [:<>
-              [:option {:value nil} "Select to start query"]
+              [:option {:value ""} "Select to start query"]
               [:option {:disabled true :role "separator"} "─────────────────────────"]])]
           (map (fn [[class-kw details :as item]]
                  (if (map-entry? item)
@@ -80,11 +76,6 @@
 (defn attributes-first [[_ v]] (empty? v))
 
 (defn has-children? [[_ v]] (some? (not-empty v)))
-
-(defn within? [haystack needle] (some? (some #{needle} haystack)))
-
-(defn not-selected [selected [k attributes-map]]
-  (not (within? selected (name k))))
 
 (defn display-name [model class]
   (let [class-kw (cond-> class
@@ -106,22 +97,26 @@
 (def rel-display-name (rel-prop-fn :displayName))
 (def rel-referenced-type (rel-prop-fn :referencedType))
 
-(def q {:from "Gene"
-        :select ["Gene.symbol"
-                 "Gene.secondaryIdentifier"
-                 "Gene.organism.name"]})
-
 (defn attribute []
   (let [enhance-query (subscribe [:qb/enhance-query])]
     (fn [model [k properties] & [trail sub]]
       (let [path (conj trail (name k))
-            selected? (get-in @enhance-query path)]
+            selected? (get-in @enhance-query path)
+            toggle! (fn []
+                      (if selected?
+                        (dispatch [:qb/enhance-query-remove-view path])
+                        (dispatch [:qb/enhance-query-add-view path])))]
         [:li.haschildren
-         [:span
-          {:on-click (fn []
-                       (if selected?
-                         (dispatch [:qb/enhance-query-remove-view path])
-                         (dispatch [:qb/enhance-query-add-view path])))}
+         {:class (when selected? "is-selected")}
+         [:span.qb-attr-row
+          {:role "checkbox"
+           :tabIndex 0
+           :aria-checked (boolean selected?)
+           :on-click toggle!
+           :on-key-down (fn [e]
+                          (when (#{"Enter" " "} (oget e :key))
+                            (ocall e :preventDefault)
+                            (toggle!)))}
           (if (get-in @enhance-query path)
             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
@@ -140,7 +135,7 @@
 (defn node []
   (let [menu (subscribe [:qb/menu])
         hier (subscribe [:current-model-hier])]
-    (fn [model [k properties :as entry] & [trail]]
+    (fn [model [k properties :as entry] & [trail hits]]
       (let [path (vec (conj trail (name k)))
             open? (get-in @menu path)
             str-path (join "." path)
@@ -160,13 +155,15 @@
           [:span.qb-class
            {:class (when rev-props :empty-class)}
            displayName]
+          (when (and (coll? hits) (seq hits))
+            [:span.qb-match-hint (join ", " hits)])
           (when-not rev-props
             [:span.label-button
              {:on-click (fn [e]
                           (ocall e :stopPropagation)
                           (dispatch [:qb/enhance-query-add-summary-views path sub]))
               :title (str "Add summary fields of " str-path " to query view")}
-             "Add summary"])]
+             "+ Summary"])]
          (when open?
            (let [class (im-path/class model (join "." trail))]
              (into [:ul]
@@ -194,12 +191,12 @@
                     ;; Reverse reference
                     (if sub
                       (map (fn [i]
-                             [node model i path false])
+                             [node model i path])
                            (->> (im-path/relationships model sub)
                                 (filter (partial reverse-reference model @hier class))
                                 (sort-classes)))
                       (map (fn [i]
-                             [node model i path false])
+                             [node model i path])
                            (->> (im-path/relationships model referencedType)
                                 (filter (partial reverse-reference model @hier class))
                                 (sort-classes))))
@@ -218,47 +215,126 @@
                     ;; References and collections
                     (if sub
                       (map (fn [i]
-                             [node model i path false])
+                             [node model i path])
                            (->> (im-path/relationships model sub)
                                 (remove (partial reverse-reference model @hier class))
                                 (sort-classes)))
                       (map (fn [i]
-                             [node model i path false])
+                             [node model i path])
                            (->> (im-path/relationships model referencedType)
                                 (remove (partial reverse-reference model @hier class))
                                 (sort-classes))))))))]))))
 
-(defn model-browser []
-  (fn [model root-class]
-    [:div.model-browser
-     (let [path [root-class]
-           attributes (->> (im-path/attributes model root-class)
-                           (remove (comp #{:id} key)) ; Hide id attribute.
-                           (sort-classes))
-           relationships (->> (im-path/relationships model root-class)
-                              ;; Make sure class is present in model.
-                              ;; (If the class has no members, it won't be.)
-                              (filter #(contains? (:classes model)
-                                                  (-> % val :referencedType keyword)))
-                              (sort-classes))]
-       (into [:ul
-              [:li.model-button-container
-               [:div.model-button-group
-                [:button.btn.btn-slim
-                 {:on-click #(dispatch [:qb/expand-all])
-                  :title "Expand the Model Browser tree to show all selected attributes"}
-                 [icon "enlarge2"] "Expand"]
-                [:button.btn.btn-slim
-                 {:on-click #(dispatch [:qb/collapse-all])
-                  :title "Collapse the Model Browser tree to the top level"}
-                 [icon "shrink"] "Collapse"]
-                [:button.btn.btn-slim
-                 {:on-click #(dispatch [:qb/enhance-query-clear-query])
-                  :title "Remove all selected attributes"}
-                 [icon "bin"] "Clear"]]]]
-             (concat
-              (map (fn [class-entry] [attribute model class-entry path]) attributes)
-              (map (fn [class-entry] [node model class-entry path]) relationships))))]))
+(defn- hit?
+  "Whether the lower-case query `q` occurs in the string `s`."
+  [q s]
+  (string/includes? (lower-case (or s "")) q))
+
+(defn- related-hits
+  "Up to two display names of attributes of the class a relationship points at
+  that match the lower-case query `q`."
+  [model [_ {:keys [referencedType]}] q]
+  (->> (im-path/attributes model referencedType)
+       (remove (comp #{:id} key))
+       (map (comp :displayName val))
+       (filter (partial hit? q))
+       sort
+       (take 2)))
+
+(defn- section-head [{:keys [open? on-toggle label n total selected]}]
+  [:button.qb-section
+   {:type "button"
+    :aria-expanded (boolean open?)
+    :on-click on-toggle}
+   [icon (if open? "minus" "plus")]
+   label
+   [:span.agr-count (if (and total (not= n total)) (str n " of " total) n)]
+   (when (pos? (or selected 0))
+     [:span.qb-selected (str selected " selected")])])
+
+(defn model-browser [_model _root-class _q _set-q!]
+  (let [open* (reagent/atom #{:attrs :refs})
+        enhance-query (subscribe [:qb/enhance-query])
+        toggle! (fn [k] (swap! open* #(if (contains? % k) (disj % k) (conj % k))))]
+    (fn [model root-class q set-q!]
+      (let [path [root-class]
+            ql (lower-case (string/trim q))
+            filtering? (not (string/blank? ql))
+            all-attributes (->> (im-path/attributes model root-class)
+                                (remove (comp #{:id} key)) ; Hide id attribute.
+                                (sort-classes))
+            all-relationships (->> (im-path/relationships model root-class)
+                                   ;; Make sure class is present in model.
+                                   ;; (If the class has no members, it won't be.)
+                                   (filter #(contains? (:classes model)
+                                                       (-> % val :referencedType keyword)))
+                                   (sort-classes))
+            attributes (if filtering?
+                         (filter #(hit? ql (-> % val :displayName)) all-attributes)
+                         all-attributes)
+            relationships (if filtering?
+                            (keep (fn [entry]
+                                    (let [hits (related-hits model entry ql)]
+                                      (when (or (hit? ql (-> entry val :displayName))
+                                                (seq hits))
+                                        [entry hits])))
+                                  all-relationships)
+                            (map vector all-relationships (repeat nil)))
+            selected (count (filter #(get-in @enhance-query [root-class (name (key %))])
+                                    all-attributes))
+            open-attrs? (or filtering? (contains? @open* :attrs))
+            open-refs? (or filtering? (contains? @open* :refs))]
+        [:<>
+         [:div.qb-tree-tools
+          [:div.qb-filter
+           [icon "search"]
+           [:input.form-control.input-sm
+            {:type "search"
+             :placeholder "Filter fields and related data"
+             :aria-label "Filter fields"
+             :value q
+             :on-change #(set-q! (oget % :target :value))
+             :on-key-down #(when (= (oget % :key) "Escape") (set-q! ""))}]
+           (when (seq q)
+             [:button.qb-filter-clear
+              {:type "button"
+               :aria-label "Clear filter"
+               :on-click #(set-q! "")}
+              [icon "close"]])]
+          [:div.qb-tree-buttons
+           [:button.agr-btn.agr-btn-sm.qb-tool
+            {:on-click #(dispatch [:qb/expand-all])
+             :title "Expand the Model Browser tree to show all selected attributes"}
+            [icon "enlarge2"] "Expand"]
+           [:button.agr-btn.agr-btn-sm.qb-tool
+            {:on-click #(dispatch [:qb/collapse-all])
+             :title "Collapse the Model Browser tree to the top level"}
+            [icon "shrink"] "Collapse"]
+           [:button.agr-btn.agr-btn-sm.qb-tool
+            {:on-click #(dispatch [:qb/enhance-query-clear-query])
+             :title "Remove all selected attributes"}
+            [icon "bin"] "Clear"]]]
+         [:div.model-browser
+          [section-head {:open? open-attrs?
+                         :on-toggle #(toggle! :attrs)
+                         :label "Attributes"
+                         :n (count attributes)
+                         :total (count all-attributes)
+                         :selected selected}]
+          (when open-attrs?
+            (into [:ul.qb-attrs]
+                  (map (fn [class-entry] [attribute model class-entry path]) attributes)))
+          [section-head {:open? open-refs?
+                         :on-toggle #(toggle! :refs)
+                         :label "Related data"
+                         :n (count relationships)
+                         :total (count all-relationships)}]
+          (when open-refs?
+            (into [:ul.qb-refs]
+                  (map (fn [[class-entry hits]] [node model class-entry path hits])
+                       relationships)))
+          (when (and filtering? (empty? attributes) (empty? relationships))
+            [:p.qb-no-match (str "No fields match '" q "'.")])]]))))
 
 (defn data-browser-node []
   (let [open? (reagent/atom true)]
@@ -303,7 +379,7 @@
     [:div.model-browser-column
      [:div.header-group
       [:h4 "Data Browser"]
-      [:button.btn.btn-raised.btn-sm.browse-button
+      [:button.agr-btn.agr-btn-sm.browse-button
        {:on-click close!}
        [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
        "Back to query"]]
@@ -318,37 +394,76 @@
   (let [current-model (subscribe [:current-model])
         type-constraints (subscribe [:qb/menu-type-constraints])
         root-class (subscribe [:qb/root-class])
-        browse-model? (reagent/atom true)]
+        browse-model? (reagent/atom true)
+        ;; The filter text is tied to the root class it was typed under, so it
+        ;; reads as empty once the root class changes.
+        filter* (reagent/atom {:root nil :q ""})]
     (fn []
       (if @browse-model?
-        [:div.model-browser-column
-         [:h4 "Model Browser"]
-         [:div.model-browser-intro
-          [:p "Select a Data Type or browse "]
-          [:button.btn.btn-raised.btn-sm.browse-button
-           {:on-click #(swap! browse-model? not)}
-           [icon "tree"]
-           "Data Model"]]
-         [:div.model-browser-root
-          [root-class-dropdown]
-          (when @root-class
-            [:button.label-button
-             {:on-click #(dispatch [:qb/enhance-query-add-summary-views [(name @root-class)]])
-              :title (str "Add summary fields of " (name @root-class) " to query view")}
-             "Add summary"])]
-         (if @root-class
-           [model-browser
-            (assoc @current-model :type-constraints @type-constraints)
-            (name @root-class)]
-           [:div
-            [:hr]
-            [:p.text-muted "Advanced users can use a flexible query interface to construct their own data mining queries. The Query Builder lets you view the data model, apply constraints and select output. You can also export queries to share them with others. "
-             [:a {:href "http://intermine.org/intermine-user-docs/docs/the-query-builder" :target "_blank"} "Click here"]
-             " to learn how to use the Query Builder - we also have a "
-             [:a {:href "http://intermine.org/intermine-user-docs/docs/the-query-builder#video-tutorial" :target "_blank"} "video tutorial"]
-             "."]
-            [:p.text-muted "To get started, use the dropdown above to select a data type to create a new query starting at that class."]])]
+        (let [root @root-class
+              q (if (= (:root @filter*) root) (:q @filter*) "")]
+          [:div.model-browser-column
+           [:h4 "Model Browser"]
+           [:div.model-browser-root
+            [root-class-dropdown]
+            (when root
+              [:button.label-button.qb-add-summary.agr-btn.agr-btn-primary.agr-btn-sm
+               {:on-click #(dispatch [:qb/enhance-query-add-summary-views [(name root)]])
+                :title (str "Add summary fields of " (name root) " to query view")}
+               "Add summary"])]
+           [:p.qb-intro-line
+            "Pick a type, or browse the "
+            [:button.qb-link-btn
+             {:on-click #(swap! browse-model? not)}
+             [icon "tree"]
+             "Data Model"]]
+           (if root
+             [model-browser
+              (assoc @current-model :type-constraints @type-constraints)
+              (name root)
+              q
+              #(reset! filter* {:root root :q %})]
+             [:div.qb-help
+              [:p.text-muted "Build your own queries: browse the data model, add constraints, choose output columns and export queries to share. "
+               [:a {:href "http://intermine.org/intermine-user-docs/docs/the-query-builder" :target "_blank"} "Query Builder guide"]
+               " · "
+               [:a {:href "http://intermine.org/intermine-user-docs/docs/the-query-builder#video-tutorial" :target "_blank"} "video tutorial"]]])])
         [data-browser #(swap! browse-model? not)]))))
+
+(defn steps-bar
+  "Four-step strip above the query builder. It shows the stage of the current
+  query and one hint under the active step."
+  []
+  (let [root-class (subscribe [:qb/root-class])
+        enhance-query (subscribe [:qb/enhance-query])
+        constraint-count (subscribe [:qb/constraint-count])]
+    (fn []
+      (let [stage (cond (nil? @root-class) 1
+                        (empty? @enhance-query) 2
+                        :else 4)
+            n @constraint-count
+            steps [{:label "Data type"
+                    :state (if (= stage 1) :active :done)
+                    :hint "Choose a data type in the Model Browser, or reuse a recent or saved query."}
+                   {:label "Columns"
+                    :state (cond (= stage 2) :active (= stage 4) :done :else :todo)
+                    :hint "Tick the fields you want as columns. The summary button adds a standard set."}
+                   {:label "Filters"
+                    :state (cond (pos? n) :done (= stage 4) :optional :else :todo)}
+                   {:label "Run"
+                    :state (if (= stage 4) :active :todo)
+                    :hint (if (pos? n)
+                            (str "Ready to run with " n (if (= n 1) " filter." " filters."))
+                            "Run the query, or click a funnel icon in the editor to filter first.")}]]
+        (into [:ol.qb-steps]
+              (map-indexed
+               (fn [i {:keys [label state hint]}]
+                 [:li.qb-step {:class (str "is-" (name state))}
+                  [:span.qb-step-num (if (= state :done) [icon "checkmark"] (inc i))]
+                  [:span.qb-step-label label]
+                  (when (and hint (= state :active))
+                    [:span.qb-step-hint hint])])
+               steps))))))
 
 (defn dissoc-keywords [m]
   (apply dissoc m (filter keyword? (keys m))))
@@ -372,7 +487,13 @@
            [:span.qb-label {:style {:margin-left 5}}
             [tooltip {:on-click #(dispatch [:qb/expand-path path])
                       :title (str "Show " relational-name " in the model browser")}
-             [:a relational-name]]]
+             [:span {:role "button"
+                     :tabIndex 0
+                     :on-key-down (fn [e]
+                                    (when (#{"Enter" " "} (oget e :key))
+                                      (ocall e :preventDefault)
+                                      (dispatch [:qb/expand-path path])))}
+              relational-name]]]
            (when (and non-root-class? (not= (lower-case referenced-class)
                                             (lower-case k)))
              [:span.qb-type (str "(" (rel-referenced-type model path-kw) ")")])
@@ -403,8 +524,16 @@
            (when (or (not class-node?)
                      (contains? @class-keys (keyword referenced-class)))
              [:svg.icon.icon-filter
-              {:on-click (fn []
-                           (dispatch [:qb/enhance-query-add-constraint path]))}
+              {:role "button"
+               :tabIndex 0
+               :aria-label "Add constraint"
+               :on-click (fn []
+                           (dispatch [:qb/enhance-query-add-constraint path]))
+               :on-key-down (fn [e]
+                              (when (#{"Enter" " "} (oget e :key))
+                                (ocall e :preventDefault)
+                                (dispatch [:qb/enhance-query-add-constraint path])))}
+              [:title "Add constraint"]
               [:use {:xlinkHref "#icon-filter"}]])
 
            (when-let [c (:id-count properties)]
@@ -454,22 +583,44 @@
                          (sort-by (comp string/lower-case key) classes))))))]))))
 
 (defn example-button []
-  [:button.btn.btn-primary.btn-raised
+  [:button.agr-btn.agr-btn-sm
    {:on-click (fn [] (dispatch [:qb/load-example aquery]))}
    "Example"])
 
+(defn start-chips
+  "Buttons for the preferred data types, shown until a root class is chosen."
+  []
+  [:div.qb-start-chips
+   [:span.qb-start-label "Start with:"]
+   (for [[class-kw {:keys [displayName]}] (->> @(subscribe [:model])
+                                               filter-populated
+                                               sort-classes
+                                               filter-preferred
+                                               (take 6))]
+     ^{:key class-kw}
+     [:button.agr-btn.agr-btn-sm
+      {:on-click #(dispatch [:qb/set-root-class class-kw])}
+      displayName])])
+
 (defn queryview-browser []
   (let [enhance-query (subscribe [:qb/enhance-query])
-        default-query? (subscribe [:qb/example])]
+        default-query? (subscribe [:qb/example])
+        root-class (subscribe [:qb/root-class])
+        constraint-count (subscribe [:qb/constraint-count])]
     (fn [model]
       (if (not-empty @enhance-query)
-        [:div.query-browser
-         (into [:ul.tree]
-               (map (fn [n]
-                      [queryview-node model n]) @enhance-query))]
         [:div
-         [:p "Please select at least one attribute from the Model Browser on the left."]
-         (cond (seq @default-query?) [example-button])]))))
+         [:div.query-browser
+          (into [:ul.tree]
+                (map (fn [n]
+                       [queryview-node model n]) @enhance-query))]
+         (when (zero? @constraint-count)
+           [:p.qb-hint "Click the funnel icon on a row to add a filter."])]
+        [:div.qb-empty
+         [:p.qb-empty-lead "Please select at least one attribute from the Model Browser on the left."]
+         (when (nil? @root-class)
+           [start-chips])
+         (when (seq @default-query?) [example-button])]))))
 
 (def <sub (comp deref subscribe))
 
@@ -518,7 +669,7 @@
         fetching-preview? (subscribe [:qb/fetching-preview?])]
     (fn []
       (if @saving-query?
-        [:div.button-group
+        [:div.button-group.qb-runbar
          [:div.input-group
           [:label {:for "query-title-input"} "Title:"]
           [:input#query-title-input.form-control
@@ -528,20 +679,20 @@
             :on-change #(reset! query-title (oget % :target :value))
             :on-key-up #(when (= (oget % :keyCode) 13)
                           (submit-fn))}]]
-         [:button.btn.btn-raised
+         [:button.agr-btn.agr-btn-primary
           {:on-click submit-fn}
           "Save Query"]
-         [:button.btn
+         [:button.agr-btn
           {:on-click (fn [] (swap! saving-query? not))}
           "Cancel"]]
-        [:div.button-group
-         [:button.btn.btn-primary.btn-raised
+        [:div.button-group.qb-runbar
+         [:button.agr-btn.agr-btn-primary
           {:on-click (fn [] (dispatch [:qb/export-query]))}
-          (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
-         [:button.btn.btn-raised
+          (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str (if (number? c) (.toLocaleString c) c) " ")) "Rows")]
+         [:button.agr-btn
           {:on-click (fn [] (swap! saving-query? not))}
           "Save Query"]
-         [:button.btn.btn-raised
+         [:button.agr-btn
           {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
           "Clear Query"]
          (when @fetching-preview?
@@ -558,9 +709,9 @@
                       [:pre.well.text-danger preview-error]]
        results-preview [preview-table
                         :loading? false ; The loader is ugly.
-                        :hide-count? true
+                        :hide-count? false
                         :query-results results-preview]
-       :else [:p "No query available for generating preview."])]))
+       :else [:p.qb-muted "No query available for generating preview."])]))
 
 (defn move-vec-elem
   "Moves an element in a vector `v` from index `i` to `i'`."
@@ -602,6 +753,7 @@
                             (ocall e :preventDefault))
                  :on-drag-over (fn [e]
                                  (ocall e :preventDefault))}
+                [:span.drag-bar {:aria-hidden true} "≡"]
                 (into [:div.path-parts]
                       (let [model (assoc @current-model
                                          :type-constraints @current-constraints)]
@@ -647,7 +799,7 @@
           {:ref #(reset! clipboard %) :value xml :read-only true}]
          [:pre xml]
          [:div.flex-row
-          [:button.btn.btn-raised
+          [:button.agr-btn.agr-btn-sm
            {:type "button"
             :on-click
             #(when-let [clip @clipboard]
@@ -681,30 +833,40 @@
      (when (>= constraint-count 2)
        [logic-box])]))
 
+(defn tabs
+  "Tab strip. `labels` is a vector and `tab-index` a reagent atom holding the
+  active index. `on-select` is called with the clicked index before the atom
+  changes."
+  [labels tab-index & [on-select]]
+  (into [:ul.agr-tabs {:role "tablist"}]
+        (for [[i title] (map-indexed vector labels)]
+          [:li {:role "presentation"
+                :class (when (= @tab-index i) "active")}
+           [:button {:type "button"
+                     :role "tab"
+                     :aria-selected (= @tab-index i)
+                     :on-click #(do (when on-select (on-select i))
+                                    (reset! tab-index i))}
+            title]])))
+
 (defn query-viewer []
   (let [enhance-query (subscribe [:qb/enhance-query])
         tab-index (reagent/atom 0)]
     (fn []
-      [:div.panel.panel-default
+      [:div.panel.panel-default.qb-card
        [:div.panel-body
-        [:ul.nav.nav-tabs
-         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query Editor"]]
-         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Manage Columns"]]]
+        [tabs ["Query Editor" "Manage Columns"] tab-index]
         (case @tab-index
           0 [query-editor]
           1 [manage-columns])
         (when (not-empty @enhance-query) [controls])]])))
 
 (defn column-order-preview []
-  (let [enhance-query (subscribe [:qb/enhance-query])
-        current-mine (subscribe [:current-mine])
-        tab-index (reagent/atom 0)]
+  (let [tab-index (reagent/atom 0)]
     (fn []
-      [:div.panel.panel-default
+      [:div.panel.panel-default.qb-card
        [:div.panel-body
-        [:ul.nav.nav-tabs
-         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]
-         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
+        [tabs ["Preview" "XML"] tab-index]
         (case @tab-index
           0 [preview]
           1 [xml-view])]])))
@@ -729,7 +891,7 @@
         active-query @(subscribe [:qb/im-query])]
     (if (empty? queries)
       [:p "Queries that you have run during this session will appear here."]
-      [:table.table.query-table
+      [:table.table.query-table.agr-table.agr-table-sm
        [:thead
         [:tr
          [:th "Start"]
@@ -786,32 +948,32 @@
          [:td
           (when-not @any-renaming*
             [:<>
-             [:a {:role "button"
-                  :title ""
-                  :on-click #(do (.stopPropagation %)
-                                 (dispatch [:qb/load-query query]))}
+             [:a.qb-row-action {:role "button"
+                                :title ""
+                                :on-click #(do (.stopPropagation %)
+                                               (dispatch [:qb/load-query query]))}
               "Load"]
              " "
-             [:a {:role "button"
-                  :title ""
-                  :on-click toggle-rename!}
+             [:a.qb-row-action {:role "button"
+                                :title ""
+                                :on-click toggle-rename!}
               "Rename"]
              " "
-             [:a {:role "button"
-                  :title ""
-                  :on-click #(do (.stopPropagation %)
-                                 (dispatch [:qb/delete-query title]))}
+             [:a.qb-row-action {:role "button"
+                                :title ""
+                                :on-click #(do (.stopPropagation %)
+                                               (dispatch [:qb/delete-query title]))}
               "Delete"]])
           (when @renaming?
             [:<>
-             [:a {:role "button"
-                  :title ""
-                  :on-click rename!}
+             [:a.qb-row-action {:role "button"
+                                :title ""
+                                :on-click rename!}
               "Save"]
              " "
-             [:a {:role "button"
-                  :title ""
-                  :on-click toggle-rename!}
+             [:a.qb-row-action {:role "button"
+                                :title ""
+                                :on-click toggle-rename!}
               "Cancel"]])]]))))
 
 (defn saved-queries []
@@ -822,7 +984,7 @@
     (fn []
       (if (empty? @queries)
         [:p "Queries that you have saved will appear here."]
-        [:table.table.query-table
+        [:table.table.query-table.agr-table.agr-table-sm
          [:thead
           (when (and (not-empty @queries) (not @authed?))
             [:tr.danger
@@ -844,7 +1006,7 @@
 (defn import-from-xml []
   (let [query-input (reagent/atom "")]
     (fn []
-      [:div
+      [:div.qb-import
        [:p "Paste your InterMine PathQuery XML here."
         [:a {:href "http://intermine.org/im-docs/docs/api/pathquery/"
              :target "_blank"
@@ -856,7 +1018,7 @@
          :value @query-input
          :on-change #(reset! query-input (oget % :target :value))}]
        [:div.flex-row
-        [:button.btn.btn-raised
+        [:button.agr-btn.agr-btn-primary
          {:type "button"
           :on-click #(when-let [query (not-empty @query-input)]
                        (reset! query-input "")
@@ -1002,8 +1164,8 @@
           [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
                      :children [:span [:strong "editable"] [icon "question"]]}]
           "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
-         [:div.row.create-template
-          [:div.col-xs-12.col-xl-6-workaround
+         [:div.create-template
+          [:div
            [inline-input
             :id "template-name-input"
             :label "Name*:"
@@ -1024,7 +1186,7 @@
             :id "template-comment-input"
             :label "Comment:"
             :state* comment*]]
-          (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
+          (into [:div.template-constraints]
                 (for [[index const] (map-indexed vector @constraints*)
                        ;; Type constraints shouldn't be editable.
                       :when (not (:type const))
@@ -1035,14 +1197,14 @@
                    :set-meta! set-const-meta!
                    :drag* drag*]))]
          [:div.template-actions
-          [:button.btn.btn-primary.btn-raised
+          [:button.agr-btn.agr-btn-primary
            {:on-click #(if-let [err (invalid?)]
                          (reset! error* err)
                          (do (reset! error* nil)
                              (dispatch [:qb/save-template (collect-inputs)
                                         (mapv (fn [c] (merge c (meta-of c))) @constraints*)])))}
            "Save template"]
-          [:button.btn.btn-default.btn-raised
+          [:button.agr-btn
            {:on-click (fn []
                         (reset! error* nil)
                         (doseq [a [name* title* description* comment*]]
@@ -1053,22 +1215,18 @@
 
 (defn other-query-options []
   (let [tab-index (reagent/atom (if @(subscribe [:qb/template-in-progress?]) 3 0))
-        authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
+        authed? (subscribe [:bluegenes.subs.auth/authenticated?])
+        labels ["Recent Queries"
+                "Saved Queries"
+                "Import from XML"
+                "Create Template"]]
     (fn []
-      [:div.panel.panel-default
+      [:div.panel.panel-default.qb-card
        [:div.panel-body
-        (into [:ul.nav.nav-tabs]
-              (let [tabs ["Recent Queries"
-                          "Saved Queries"
-                          "Import from XML"
-                          "Create Template"]]
-                (for [[i title] (map-indexed vector tabs)]
-                  [:li {:class (when (= @tab-index i) "active")}
-                   [:a {:on-click #(do (when (= @tab-index
-                                                (.indexOf tabs "Import from XML"))
-                                         (dispatch [:qb/clear-import-result]))
-                                       (reset! tab-index i))}
-                    title]])))
+        [tabs labels tab-index
+         (fn [_i]
+           (when (= @tab-index (.indexOf labels "Import from XML"))
+             (dispatch [:qb/clear-import-result])))]
         (case @tab-index
           0 [recent-queries]
           1 [saved-queries]
@@ -1078,14 +1236,12 @@
               [:p "You need to be logged in to create templates."]))]])))
 
 (defn main []
-  [:div.column-container
-   [browser-pane]
-   [:div.query-view-column
-    [:div.row
-     [:div.col-xs-12.col-xl-5-workaround
-      [query-viewer]]
-     [:div.col-xs-12.col-xl-7-workaround
-      [column-order-preview]]]
-    [:div.row
-     [:div.col-xs-12
-      [other-query-options]]]]])
+  [:div.agr-page.qb-page
+   [:h2.agr-page-title "Query Builder"]
+   [steps-bar]
+   [:div.qb-layout
+    [browser-pane]
+    [:div.query-view-column
+     [query-viewer]
+     [column-order-preview]
+     [other-query-options]]]])
